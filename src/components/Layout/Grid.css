@@ -5,6 +5,37 @@
   height: 100%;
 }
 
+/* ── Edit-mode vignette ──────────────────────────── */
+.sg-root::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background: radial-gradient(ellipse at center, transparent 48%, rgba(255, 87, 34, 0.14) 100%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.sg-root--edit::after {
+  opacity: 1;
+}
+
+/* ── Settings focus: Background tab ─────────────── */
+/* Fade & blur widgets so the wallpaper is visible */
+.sg-focus-bg .sg-widget {
+  opacity: 0.2;
+  filter: blur(2px);
+}
+
+/* ── Settings focus: Widgets tab ─────────────────── */
+/* Orange glow border around every widget */
+.sg-focus-widgets .sg-widget {
+  box-shadow:
+    0 0 0 1px rgba(255, 87, 34, 0.35),
+    0 0 16px rgba(255, 87, 34, 0.3);
+}
+
 /* ── Toolbar ─────────────────────────────────────── */
 .sg-toolbar {
   display: flex;

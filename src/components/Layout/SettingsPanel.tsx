@@ -1,18 +1,21 @@
-import { useState } from 'react';
 import BackgroundEditor from '../Background/BackgroundEditor';
 import SwatchPicker from '../shared/SwatchPicker';
 import { useTheme } from '../../contexts/ThemeContext';
 import './SettingsPanel.css';
 
-type Tab = 'background' | 'widgets';
+export type SettingsTab = 'background' | 'widgets';
 
-interface Props { onClose: () => void; }
+interface Props {
+  onClose:      () => void;
+  activeTab:    SettingsTab;
+  onTabChange:  (tab: SettingsTab) => void;
+}
 
-export default function SettingsPanel({ onClose }: Props) {
-  const [tab, setTab] = useState<Tab>('background');
+export default function SettingsPanel({ onClose, activeTab, onTabChange }: Props) {
   const { globalColor, globalOpacity, globalDim, globalGradient, setGlobalColor, setGlobalOpacity, setGlobalDim, setGlobalGradient, setGlobalPresetId } = useTheme();
-  const opacityPct = Math.round(globalOpacity * 100);
-  const dimPct     = Math.round(globalDim);
+  const opacityPct      = Math.round(globalOpacity * 100);
+  const transparencyPct = 100 - opacityPct;
+  const dimPct          = Math.round(globalDim);
 
   return (
     <div className="sg-settings-panel" onClick={e => e.stopPropagation()}>
@@ -23,19 +26,19 @@ export default function SettingsPanel({ onClose }: Props) {
 
       <div className="sg-settings-tabs">
         <button
-          className={`sg-settings-tab${tab === 'background' ? ' sg-settings-tab--active' : ''}`}
-          onClick={() => setTab('background')}
+          className={`sg-settings-tab${activeTab === 'background' ? ' sg-settings-tab--active' : ''}`}
+          onClick={() => onTabChange('background')}
         >Background</button>
         <button
-          className={`sg-settings-tab${tab === 'widgets' ? ' sg-settings-tab--active' : ''}`}
-          onClick={() => setTab('widgets')}
+          className={`sg-settings-tab${activeTab === 'widgets' ? ' sg-settings-tab--active' : ''}`}
+          onClick={() => onTabChange('widgets')}
         >Widgets</button>
       </div>
 
       <div className="sg-settings-content">
-        {tab === 'background' && <BackgroundEditor />}
+        {activeTab === 'background' && <BackgroundEditor />}
 
-        {tab === 'widgets' && (
+        {activeTab === 'widgets' && (
           <div className="sg-settings-widgets">
             <section className="settings-section">
               <div className="settings-section-label">Presets</div>
@@ -69,13 +72,13 @@ export default function SettingsPanel({ onClose }: Props) {
             </section>
 
             <section className="settings-section" style={{ paddingBottom: 12 }}>
-              <div className="settings-section-label">Global Opacity</div>
+              <div className="settings-section-label">Global Transparency</div>
               <div className="settings-slider-row">
                 <input
-                  type="range" min={0} max={100} value={opacityPct}
-                  onChange={e => setGlobalOpacity(Number(e.target.value) / 100)}
+                  type="range" min={0} max={100} value={transparencyPct}
+                  onChange={e => setGlobalOpacity((100 - Number(e.target.value)) / 100)}
                 />
-                <span className="settings-slider-val">{opacityPct}%</span>
+                <span className="settings-slider-val">{transparencyPct}%</span>
               </div>
             </section>
           </div>

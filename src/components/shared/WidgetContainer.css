@@ -5,7 +5,7 @@
   background: none;
   border-radius: var(--radius);
   overflow: hidden;
-  transition: box-shadow 0.15s, opacity 0.15s;
+  transition: box-shadow 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
   min-height: 0;
 }
 
@@ -252,11 +252,19 @@
 .sg-widget-appearance {
   flex-shrink: 0;
   border-top: 1px solid var(--border);
-  padding: 7px 10px;
+  padding: 10px 10px 12px;
   background: rgba(15, 17, 23, 0.5);
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 0;
+}
+
+/* Logical section group — adds breathing room between blocks */
+.sg-widget-appearance-section {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
 
 .sg-widget-appearance-label {
@@ -286,6 +294,26 @@
 
 .sg-widget-appearance-row input[type="range"] {
   flex: 1;
+  height: 4px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+/* Stacked slider: label + value on top row, full-width track below */
+.sg-widget-appearance-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.sg-widget-appearance-slider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sg-widget-appearance-slider input[type="range"] {
+  width: 100%;
   height: 4px;
   cursor: pointer;
   accent-color: var(--accent);

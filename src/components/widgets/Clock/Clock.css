@@ -12,48 +12,62 @@
 }
 
 .sg-clock-time {
-  font-size: clamp(28px, 3.5vw, 52px);
-  font-weight: 200;
+  font-size: var(--clock-font-size, 28px);
+  font-weight: var(--clock-font-weight, 200);
   letter-spacing: 0.04em;
-  color: var(--text);
+  color: var(--clock-color, var(--text));
   font-variant-numeric: tabular-nums;
   line-height: 1;
+  transition: font-size 0.15s, font-weight 0.15s, color 0.15s;
 }
 
 .sg-clock-date {
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--clock-color, var(--text-muted));
   font-weight: 400;
   letter-spacing: 0.01em;
+  opacity: 0.65;
 }
 
-/* ── Settings panel ──────────────────────────────── */
+/* ── Size modifiers ──────────────────────────────── */
+.sg-clock--s  { --clock-font-size: clamp(28px, 3.5vw,  52px); }
+.sg-clock--m  { --clock-font-size: clamp(38px, 5vw,    72px); }
+.sg-clock--l  { --clock-font-size: clamp(52px, 7vw,   104px); }
+.sg-clock--xl { --clock-font-size: clamp(72px, 9.5vw, 140px); }
+
+/* ── Weight modifier ─────────────────────────────── */
+.sg-clock--bold { --clock-font-weight: 700; }
+
+/* Wrapper is layout-neutral so rows flow into the float panel */
 .sg-clock-settings {
-  position: absolute;
-  inset: 0;
-  background: rgba(15, 17, 23, 0.92);
-  backdrop-filter: blur(8px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 12px;
-  padding: 20px;
-  border-radius: var(--radius);
+  display: contents;
 }
 
-.sg-clock-toggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  color: var(--text);
-  cursor: pointer;
-}
-
-.sg-clock-toggle input[type="checkbox"] {
-  width: 15px;
-  height: 15px;
-  accent-color: var(--accent);
+/* ── Font color controls ─────────────────────────── */
+.sg-clock-color-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
   cursor: pointer;
   flex-shrink: 0;
+  transition: border-color 0.12s;
+}
+
+.sg-clock-color-btn:hover {
+  border-color: var(--accent);
+}
+
+.sg-clock-color-reset {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 1px 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.sg-clock-color-reset:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
 }
