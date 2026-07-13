@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import type { ClockData } from '../../../types/widget';
 import { SettingsRow, SegmentedControl, SettingsSwitch } from '../../shared/Form';
+import CustomColorPicker from '../../shared/CustomColorPicker';
 import './Clock.css';
 
 const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -26,7 +27,12 @@ interface SettingsProps {
 }
 
 export function ClockSettings({ data, onUpdateData }: SettingsProps) {
-  const { format = '24h', showSeconds = true, showDate = true } = data;
+  const { format = '24h', showSeconds = true, showDate = true,
+          fontSize = 'S', isBold = false, fontColor } = data;
+  const colorBtnRef = useRef<HTMLButtonElement>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const pickerValue = fontColor ?? '#ffffff';
+
   return (
     <div className="sg-clock-settings" onClick={e => e.stopPropagation()}>
       <SettingsRow label="Format">
@@ -42,6 +48,47 @@ export function ClockSettings({ data, onUpdateData }: SettingsProps) {
       <SettingsRow label="Show date">
         <SettingsSwitch checked={showDate} onChange={v => onUpdateData({ showDate: v })} />
       </SettingsRow>
+      <SettingsRow label="Size">
+        <SegmentedControl
+          options={[
+            { value: 'S',  label: 'S'  },
+            { value: 'M',  label: 'M'  },
+            { value: 'L',  label: 'L'  },
+            { value: 'XL', label: 'XL' },
+          ]}
+          value={fontSize}
+          onChange={v => onUpdateData({ fontSize: v as ClockData['fontSize'] })}
+        />
+      </SettingsRow>
+      <SettingsRow label="Bold font">
+        <SettingsSwitch checked={isBold} onChange={v => onUpdateData({ isBold: v })} />
+      </SettingsRow>
+      <SettingsRow label="Font color">
+        <button
+          ref={colorBtnRef}
+          className="sg-clock-color-btn"
+          style={{ background: pickerValue }}
+          title="Pick font color"
+          onClick={() => setPickerOpen(o => !o)}
+          onPointerDown={e => e.stopPropagation()}
+        />
+        {fontColor && (
+          <button
+            className="sg-clock-color-reset"
+            title="Reset to default"
+            onClick={() => onUpdateData({ fontColor: undefined })}
+            onPointerDown={e => e.stopPropagation()}
+          >↺</button>
+        )}
+      </SettingsRow>
+
+      <CustomColorPicker
+        value={pickerValue}
+        onChange={color => onUpdateData({ fontColor: color })}
+        anchorRef={colorBtnRef}
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+      />
     </div>
   );
 }
@@ -54,7 +101,8 @@ interface Props {
 }
 
 export default function Clock({ data }: Props) {
-  const { format = '24h', showSeconds = true, showDate = true } = data;
+  const { format = '24h', showSeconds = true, showDate = true,
+          fontSize = 'S', isBold = false, fontColor } = data;
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -64,8 +112,12 @@ export default function Clock({ data }: Props) {
 
   const dateStr = `${DAYS[now.getDay()]}, ${MONTHS[now.getMonth()]} ${now.getDate()}`;
 
+  const style = {
+    ...(fontColor ? { '--clock-color': fontColor } as React.CSSProperties : {}),
+  };
+
   return (
-    <div className="sg-clock">
+    <div className={`sg-clock sg-clock--${fontSize.toLowerCase()}${isBold ? ' sg-clock--bold' : ''}`} style={style}>
       <div className="sg-clock-time">{formatTime(now, format, showSeconds)}</div>
       {showDate && <div className="sg-clock-date">{dateStr}</div>}
     </div>

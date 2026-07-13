@@ -6,7 +6,7 @@ import { findFreePosition, isPositionFree } from '../../lib/gridUtils';
 import type { WidgetType } from '../../types/widget';
 import { WIDGET_REGISTRY, WIDGET_MENU_TYPES } from '../widgets/registry';
 import WidgetContainer from '../shared/WidgetContainer';
-import SettingsPanel from './SettingsPanel';
+import SettingsPanel, { type SettingsTab } from './SettingsPanel';
 import './Grid.css';
 
 const COLS    = 8;
@@ -23,6 +23,7 @@ export default function Grid() {
   const [dropTarget,        setDropTarget]        = useState<DropTarget | null>(null);
   const [addMenuOpen,       setAddMenuOpen]       = useState(false);
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
+  const [activeTab,         setActiveTab]         = useState<SettingsTab>('background');
 
   const cellFromPoint = (clientX: number, clientY: number) => {
     const rect = gridRef.current!.getBoundingClientRect();
@@ -63,8 +64,12 @@ export default function Grid() {
     setAddMenuOpen(false);
   };
 
+  const focusClass = settingsPanelOpen
+    ? activeTab === 'background' ? ' sg-focus-bg' : ' sg-focus-widgets'
+    : '';
+
   return (
-    <div className={`sg-root${isEditMode ? ' sg-root--edit' : ''}`}>
+    <div className={`sg-root${isEditMode ? ' sg-root--edit' : ''}${focusClass}`}>
       <header className="sg-toolbar">
         <span className="sg-logo">⬡ StartGrid</span>
         <div className="sg-toolbar-actions">
@@ -104,7 +109,13 @@ export default function Grid() {
         </div>
       </header>
 
-      {settingsPanelOpen && <SettingsPanel onClose={() => setSettingsPanelOpen(false)} />}
+      {settingsPanelOpen && (
+        <SettingsPanel
+          onClose={() => setSettingsPanelOpen(false)}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      )}
 
       <main className="sg-grid-wrapper" onClick={() => { setAddMenuOpen(false); setSettingsPanelOpen(false); }}>
         <div

@@ -2,6 +2,9 @@ export interface ClockData {
   format: '24h' | '12h';
   showSeconds: boolean;
   showDate: boolean;
+  fontSize?: 'S' | 'M' | 'L' | 'XL';
+  isBold?: boolean;
+  fontColor?: string;
 }
 
 export interface QuickLink {

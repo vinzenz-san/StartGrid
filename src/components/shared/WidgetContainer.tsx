@@ -53,11 +53,12 @@ export default function WidgetContainer({ widget }: Props) {
     refs.setReference(node);
   };
 
-  // Outside-click to close
+  // Outside-click to close — ignore clicks inside any active color picker portal
   useEffect(() => {
     if (!settingsOpen) return;
     const handler = (e: PointerEvent) => {
-      const target = e.target as Node;
+      const target = e.target as Element;
+      if (target.closest('.ccp-panel')) return;
       if (!elRef.current?.contains(target) && !refs.floating.current?.contains(target))
         setSettingsOpen(false);
     };
@@ -118,11 +119,12 @@ export default function WidgetContainer({ widget }: Props) {
     updateWidget(widget.id, { data: { ...widget.data, ...patch } });
   };
 
-  const overrideEnabled      = widget.localOverrideEnabled  ?? false;
-  const localGradientEnabled = widget.localGradientOverride ?? false;
-  const localOpacityPct     = Math.round((widget.bgOpacity ?? globalOpacity) * 100);
-  const localDimPct         = Math.round(widget.bgDim ?? globalDim);
-  const effectiveColor      = widget.bgColor ?? globalColor;
+  const overrideEnabled       = widget.localOverrideEnabled  ?? false;
+  const localGradientEnabled  = widget.localGradientOverride ?? false;
+  const localOpacityPct       = Math.round((widget.bgOpacity ?? globalOpacity) * 100);
+  const localTransparencyPct  = 100 - localOpacityPct;
+  const localDimPct           = Math.round(widget.bgDim ?? globalDim);
+  const effectiveColor        = widget.bgColor ?? globalColor;
 
   // Local override: set CSS variables on the element so ::before / ::after pick them up.
   // --widget-bg-preset-css overrides the `:root` preset (or formula fallback) for this widget only.
@@ -199,41 +201,55 @@ export default function WidgetContainer({ widget }: Props) {
 
         {overrideEnabled && (
           <>
-            <div className="sg-widget-appearance-row">
-              <span className="sg-widget-appearance-label">Gradient effect</span>
-              <button
-                role="switch"
-                aria-checked={localGradientEnabled}
-                className={`sg-form-switch${localGradientEnabled ? ' sg-form-switch--on' : ''}`}
-                onClick={() => updateWidget(widget.id, { localGradientOverride: !localGradientEnabled })}
-                onPointerDown={e => e.stopPropagation()}
-              >
-                <span className="sg-form-switch-thumb" />
-              </button>
+            <div className="sg-widget-appearance-section">
+              <div className="sg-widget-appearance-row">
+                <span className="sg-widget-appearance-label">Gradient effect</span>
+                <button
+                  role="switch"
+                  aria-checked={localGradientEnabled}
+                  className={`sg-form-switch${localGradientEnabled ? ' sg-form-switch--on' : ''}`}
+                  onClick={() => updateWidget(widget.id, { localGradientOverride: !localGradientEnabled })}
+                  onPointerDown={e => e.stopPropagation()}
+                >
+                  <span className="sg-form-switch-thumb" />
+                </button>
+              </div>
             </div>
-            <SwatchPicker
-              value={widget.bgColor ?? globalColor}
-              onChange={color => updateWidget(widget.id, { bgColor: color })}
-            />
-            <div className="sg-widget-appearance-row">
-              <span className="sg-widget-appearance-label">Dimming</span>
-              <input
-                type="range" min={0} max={80} value={localDimPct}
-                onChange={e => updateWidget(widget.id, { bgDim: Number(e.target.value) })}
-                onPointerDown={e => e.stopPropagation()}
-                title="Dimming"
+
+            <div className="sg-widget-appearance-section">
+              <span className="sg-widget-appearance-label">Presets</span>
+              <SwatchPicker
+                value={widget.bgColor ?? globalColor}
+                onChange={color => updateWidget(widget.id, { bgColor: color })}
               />
-              <span className="sg-widget-appearance-val">{localDimPct}%</span>
             </div>
-            <div className="sg-widget-appearance-row">
-              <span className="sg-widget-appearance-label">Opacity</span>
-              <input
-                type="range" min={0} max={100} value={localOpacityPct}
-                onChange={e => updateWidget(widget.id, { bgOpacity: Number(e.target.value) / 100 })}
-                onPointerDown={e => e.stopPropagation()}
-                title="Opacity"
-              />
-              <span className="sg-widget-appearance-val">{localOpacityPct}%</span>
+
+            <div className="sg-widget-appearance-section">
+              <div className="sg-widget-appearance-slider">
+                <div className="sg-widget-appearance-slider-header">
+                  <span className="sg-widget-appearance-label">Dimming</span>
+                  <span className="sg-widget-appearance-val">{localDimPct}%</span>
+                </div>
+                <input
+                  type="range" min={0} max={80} value={localDimPct}
+                  onChange={e => updateWidget(widget.id, { bgDim: Number(e.target.value) })}
+                  onPointerDown={e => e.stopPropagation()}
+                />
+              </div>
+            </div>
+
+            <div className="sg-widget-appearance-section">
+              <div className="sg-widget-appearance-slider">
+                <div className="sg-widget-appearance-slider-header">
+                  <span className="sg-widget-appearance-label">Transparency</span>
+                  <span className="sg-widget-appearance-val">{localTransparencyPct}%</span>
+                </div>
+                <input
+                  type="range" min={0} max={100} value={localTransparencyPct}
+                  onChange={e => updateWidget(widget.id, { bgOpacity: (100 - Number(e.target.value)) / 100 })}
+                  onPointerDown={e => e.stopPropagation()}
+                />
+              </div>
             </div>
           </>
         )}
