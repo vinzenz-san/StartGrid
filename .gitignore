@@ -1,4 +1,11 @@
+# Abhängigkeiten
 node_modules/
+
+# Build-Ergebnis
+dist/
+
+# System-Dateien
 .DS_Store
 *.log
-# Hier kannst du auch Konfigurationsdateien mit Secrets ausschließen
+.vscode/
+.idea/
