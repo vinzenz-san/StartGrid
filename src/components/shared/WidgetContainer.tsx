@@ -181,7 +181,7 @@ export default function WidgetContainer({ widget }: Props) {
       {entry.titleBehavior === 'optional' && entry.renderSettings && (
         <div className="sg-widget-float-divider" />
       )}
-      {entry.renderSettings?.(widget.data, handleUpdateData)}
+      {entry.renderSettings?.(widget.data, handleUpdateData, widget.id)}
 
       {/* Appearance section — shared across all widgets */}
       <div className="sg-widget-float-divider" />
@@ -306,7 +306,7 @@ export default function WidgetContainer({ widget }: Props) {
         )}
 
         <div className="sg-widget-body">
-          {entry.renderComponent(widget.data, handleUpdateData, settingsOpen)}
+          {entry.renderComponent(widget.data, handleUpdateData, settingsOpen, widget.id)}
         </div>
 
         {isEditMode && (

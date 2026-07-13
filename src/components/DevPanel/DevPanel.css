@@ -2,22 +2,23 @@
   position: fixed;
   bottom: 16px;
   right: 16px;
-  background: rgba(15, 17, 23, 0.92);
+  width: 264px;
+  background: rgba(15, 17, 23, 0.94);
   border: 1px solid #2d3148;
-  border-radius: 8px;
-  padding: 10px 14px;
+  border-radius: 10px;
+  padding: 10px 12px 8px;
   font-size: 11px;
   font-family: monospace;
   color: #94a3b8;
   z-index: 9999;
-  min-width: 130px;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   user-select: none;
 }
 
+/* ── Header ── */
 .dev-panel-title {
   font-size: 9px;
   letter-spacing: 0.12em;
@@ -28,16 +29,15 @@
   margin-bottom: 2px;
 }
 
+/* ── Status rows ── */
 .dev-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
-.dev-label {
-  color: #64748b;
-}
+.dev-label { color: #64748b; }
 
 .dev-badge {
   padding: 1px 7px;
@@ -46,13 +46,144 @@
   font-weight: 600;
 }
 
-.dev-badge.ok   { background: rgba(34,197,94,0.15); color: #4ade80; }
-.dev-badge.warn { background: rgba(234,179,8,0.15);  color: #facc15; }
+.dev-badge.ok   { background: rgba(34,197,94,0.15);   color: #4ade80; }
+.dev-badge.warn { background: rgba(234,179,8,0.15);   color: #facc15; }
 .dev-badge.off  { background: rgba(100,116,139,0.15); color: #64748b; }
+
+/* ── Divider ── */
+.dev-divider {
+  height: 1px;
+  background: #1e2130;
+  margin: 3px 0;
+}
+
+/* ── Loading ── */
+.dev-loading {
+  font-size: 10px;
+  color: #475569;
+  text-align: center;
+  padding: 4px 0;
+}
+
+/* ── Storage section ── */
+.dev-store-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dev-store-gap { height: 6px; }
+
+.dev-store-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.dev-store-title {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.dev-store-bytes {
+  font-size: 10px;
+  color: #475569;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Progress bar ── */
+.dev-bar-track {
+  height: 5px;
+  background: #1e2130;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.dev-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: #4ade80;
+  transition: width 0.4s ease;
+  min-width: 2px;
+}
+
+.dev-bar-fill.warn   { background: #facc15; }
+.dev-bar-fill.danger { background: #f87171; }
+
+/* ── Key breakdown ── */
+.dev-key-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: 1px;
+}
+
+.dev-key-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 0;
+}
+
+.dev-key-name {
+  color: #475569;
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.dev-key-size {
+  color: #334155;
+  font-size: 10px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.dev-key-empty {
+  font-size: 10px;
+  color: #334155;
+  font-style: italic;
+}
+
+/* ── Footer ── */
+.dev-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2px;
+}
+
+.dev-refresh-btn {
+  font-size: 10px;
+  font-family: monospace;
+  color: #64748b;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid #2d3148;
+  background: rgba(45, 49, 72, 0.4);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.dev-refresh-btn:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  border-color: #6366f1;
+}
+
+.dev-refresh-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
 
 .dev-hint {
   font-size: 10px;
   color: #334155;
-  text-align: right;
-  margin-top: 2px;
 }

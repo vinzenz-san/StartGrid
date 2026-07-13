@@ -20,8 +20,8 @@ interface TypedEntry<T> {
   defaultTitle?:        string;
   defaultShowCustomTitle?: boolean;
   resolveDynamicTitle?: (data: T) => string | undefined;
-  renderComponent: (data: T, onUpdateData: (patch: Partial<T>) => void, isSettingsOpen?: boolean) => ReactNode;
-  renderSettings:  ((data: T, onUpdateData: (patch: Partial<T>) => void) => ReactNode) | null;
+  renderComponent: (data: T, onUpdateData: (patch: Partial<T>) => void, isSettingsOpen?: boolean, widgetId?: string) => ReactNode;
+  renderSettings:  ((data: T, onUpdateData: (patch: Partial<T>) => void, widgetId?: string) => ReactNode) | null;
 }
 
 // Type-erased entry used for dynamic lookup by widget.type at runtime.
@@ -36,9 +36,9 @@ export interface WidgetEntry {
   defaultShowCustomTitle?: boolean;
   resolveDynamicTitle?: (data: unknown) => string | undefined;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  renderComponent: (data: any, onUpdateData: (patch: any) => void, isSettingsOpen?: boolean) => ReactNode;
+  renderComponent: (data: any, onUpdateData: (patch: any) => void, isSettingsOpen?: boolean, widgetId?: string) => ReactNode;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  renderSettings:  ((data: any, onUpdateData: (patch: any) => void) => ReactNode) | null;
+  renderSettings:  ((data: any, onUpdateData: (patch: any) => void, widgetId?: string) => ReactNode) | null;
 }
 
 // ── Registry ───────────────────────────────────────────────────────────────────
@@ -103,12 +103,12 @@ const _registry = {
     label:                 'Notes',
     icon:                  '📝',
     defaultSize:           { w: 2, h: 2 },
-    defaultData:           { content: '', fontSize: 'M' } satisfies NotesData,
+    defaultData:           { content: '', fontSize: 'M', storageMode: 'local' } satisfies NotesData,
     titleBehavior:         'optional',
     defaultTitle:          'Notes',
     defaultShowCustomTitle: false,
-    renderComponent: (data, onUpdateData) => <Notes data={data} onUpdateData={onUpdateData} />,
-    renderSettings:  (data, onUpdateData) => <NotesSettings data={data} onUpdateData={onUpdateData} />,
+    renderComponent: (data, onUpdateData, isSettingsOpen, widgetId) => <Notes data={data} onUpdateData={onUpdateData} widgetId={widgetId} />,
+    renderSettings:  (data, onUpdateData, widgetId) => <NotesSettings data={data} onUpdateData={onUpdateData} widgetId={widgetId} />,
   } satisfies TypedEntry<NotesData>,
 
   placeholder: {
