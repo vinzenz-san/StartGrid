@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "StartGrid Preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "dist", "-p", "4747", "--no-clipboard"],
+      "port": 4747
+    }
+  ]
+}
