@@ -72,7 +72,11 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
         const size = (config.scalingMode ?? 'fit') === 'fit' ? 'contain' : 'cover';
         return `url("${customImageUrl}") center/${size} no-repeat`;
       }
-      case 'preset':   return PRESETS.find(p => p.id === config.value)?.css ?? DEFAULT_BG.value;
+      case 'preset': {
+        const preset = PRESETS.find(p => p.id === config.value);
+        if (!preset) return DEFAULT_BG.value;
+        return (config.customGradient ?? true) ? preset.css : preset.flatColor;
+      }
       case 'gradient': return config.value;
       case 'color':
       default:         return config.value;
