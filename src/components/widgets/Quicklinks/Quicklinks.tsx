@@ -85,15 +85,15 @@ function LinkItem({ link, iconSize, showTitle, showWhiteBadge, textSize }: LinkI
   let iconInner: React.ReactNode;
   let isFaviconImg = false;
   if (iconSource !== 'auto' && link.customIcon) {
-    iconInner = customImgError ? fallback : <img src={link.customIcon} alt="" onError={() => setCustomImgError(true)} />;
+    iconInner = customImgError ? fallback : <img src={link.customIcon} alt="" draggable={false} onError={() => setCustomImgError(true)} />;
     isFaviconImg = !customImgError;
   } else if (iconSource === 'auto' && link.customIcon) {
     iconInner = link.customIcon.startsWith('data:')
-      ? <img src={link.customIcon} alt="" />
+      ? <img src={link.customIcon} alt="" draggable={false} />
       : <span className="sg-ql-emoji">{link.customIcon}</span>;
     isFaviconImg = link.customIcon.startsWith('data:');
   } else {
-    iconInner = faviconSrc ? <img src={faviconSrc} alt="" onError={() => setFaviconIdx(i => i + 1)} /> : fallback;
+    iconInner = faviconSrc ? <img src={faviconSrc} alt="" draggable={false} onError={() => setFaviconIdx(i => i + 1)} /> : fallback;
     isFaviconImg = !!faviconSrc;
   }
 
@@ -118,7 +118,7 @@ function LinkItem({ link, iconSize, showTitle, showWhiteBadge, textSize }: LinkI
   }
 
   return (
-    <a className={`sg-ql-link sg-ql-link--${iconSize}`} href={link.url} title={label}>
+    <a className={`sg-ql-link sg-ql-link--${iconSize}`} href={link.url} title={label} draggable={false}>
       {iconContent}
       {showTitle && <span className={`sg-ql-title sg-ql-text--${textSize.toLowerCase()}`}>{label}</span>}
     </a>
@@ -293,16 +293,19 @@ export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
 interface Props {
   data: QuicklinksData;
   onUpdateData: (patch: Partial<QuicklinksData>) => void;
+  isSettingsOpen?: boolean;
 }
 
-export default function Quicklinks({ data, onUpdateData: _onUpdateData }: Props) {
+export default function Quicklinks({ data, onUpdateData, isSettingsOpen = false }: Props) {
   const { links = [], layout = 'grid' } = data;
   const iconSize    = data.iconSize   ?? 'medium';
   const showTitles  = data.showTitles ?? true;
   const textSize    = data.textSize   ?? 'M';
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [compact, setCompact] = useState(false);
+  const containerRef                    = useRef<HTMLDivElement>(null);
+  const [compact,   setCompact]         = useState(false);
+  const [dragIndex, setDragIndex]       = useState<number | null>(null);
+  const [overIndex, setOverIndex]       = useState<number | null>(null);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -318,16 +321,102 @@ export default function Quicklinks({ data, onUpdateData: _onUpdateData }: Props)
   const effectiveIconSize   = compact ? 'small' : iconSize;
   const effectiveShowTitles = compact ? false   : showTitles;
 
+  // Explorer-style drag: the entire item tile is the drag target.
+  // Listeners go on `document` so pointermove fires before pointer capture is
+  // acquired (capture is deferred until the 4px threshold to let clicks through).
+  const handleItemDown = (e: React.PointerEvent<HTMLDivElement>, startIdx: number) => {
+    e.stopPropagation(); // always: prevents grid widget drag from starting
+
+    const startX     = e.clientX;
+    const startY     = e.clientY;
+    const pointerId  = e.pointerId;
+    const tileEl     = e.currentTarget; // HTMLDivElement — has setPointerCapture
+    const startLinks = [...links];
+    const horiz      = effectiveLayout === 'row' || effectiveLayout === 'grid';
+
+    let isDragging  = false;
+    let currentOver = startIdx;
+
+    const onMove = (ev: PointerEvent) => {
+      if (!isDragging) {
+        if (Math.hypot(ev.clientX - startX, ev.clientY - startY) < 4) return;
+        isDragging = true;
+        tileEl.setPointerCapture(pointerId);
+        setDragIndex(startIdx);
+        setOverIndex(startIdx);
+      }
+      // elementFromPoint sees through the dragged item (pointer-events:none on it)
+      const el   = document.elementFromPoint(ev.clientX, ev.clientY);
+      const item = el?.closest('[data-ql-index]') as HTMLElement | null;
+      if (!item) return;
+      const itemIdx = Number(item.dataset.qlIndex);
+      if (isNaN(itemIdx)) return;
+      const rect   = item.getBoundingClientRect();
+      const before = horiz
+        ? ev.clientX < rect.left + rect.width  / 2
+        : ev.clientY < rect.top  + rect.height / 2;
+      currentOver = before ? itemIdx : itemIdx + 1;
+      setOverIndex(currentOver);
+    };
+
+    const onUp = () => {
+      document.removeEventListener('pointermove',   onMove);
+      document.removeEventListener('pointerup',     onUp);
+      document.removeEventListener('pointercancel', onUp);
+      if (!isDragging) return;
+      // Absorb the click that follows pointerup so the link doesn't open
+      document.addEventListener('click', (ev: MouseEvent) => { ev.stopPropagation(); ev.preventDefault(); },
+        { capture: true, once: true });
+      const adjusted = currentOver > startIdx ? currentOver - 1 : currentOver;
+      if (adjusted !== startIdx) {
+        const next = [...startLinks];
+        const [removed] = next.splice(startIdx, 1);
+        next.splice(adjusted, 0, removed);
+        onUpdateData({ links: next });
+      }
+      setDragIndex(null);
+      setOverIndex(null);
+    };
+
+    document.addEventListener('pointermove',   onMove);
+    document.addEventListener('pointerup',     onUp);
+    document.addEventListener('pointercancel', onUp);
+  };
+
   return (
-    <div className="sg-ql" ref={containerRef}>
+    <div
+      className="sg-ql"
+      ref={containerRef}
+    >
       {links.length === 0 ? (
         <div className="sg-ql sg-ql--empty">
           <span className="sg-ql-empty">No links. Open ⚙ to add some.</span>
         </div>
       ) : (
         <div className={`sg-ql-links sg-ql-links--${effectiveLayout}`}>
-          {links.map(link => (
-            <LinkItem key={link.id} link={link} iconSize={effectiveIconSize} showTitle={effectiveShowTitles} showWhiteBadge={link.showWhiteBadge ?? false} textSize={textSize} />
+          {links.map((link, idx) => (
+            <div
+              key={link.id}
+              className={[
+                'sg-ql-item',
+                isSettingsOpen && !compact          ? 'sg-ql-item--sortable'    : '',
+                dragIndex === idx                   ? 'sg-ql-item--dragging'    : '',
+                dragIndex !== null && overIndex === idx                                  ? 'sg-ql-item--drop-before' : '',
+                dragIndex !== null && overIndex === idx + 1 && idx === links.length - 1 ? 'sg-ql-item--drop-after'  : '',
+              ].filter(Boolean).join(' ')}
+              data-ql-index={idx}
+              onPointerDown={isSettingsOpen && !compact ? e => handleItemDown(e, idx) : undefined}
+              onMouseDown={isSettingsOpen && !compact ? e => e.stopPropagation() : undefined}
+              onDragStart={e => e.preventDefault()}
+            >
+              <LinkItem
+                link={link}
+                iconSize={effectiveIconSize}
+                showTitle={effectiveShowTitles}
+                showWhiteBadge={link.showWhiteBadge ?? false}
+                textSize={textSize}
+              />
+            </div>
           ))}
         </div>
       )}

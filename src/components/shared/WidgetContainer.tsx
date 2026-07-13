@@ -249,7 +249,7 @@ export default function WidgetContainer({ widget }: Props) {
         )}
 
         <div className="sg-widget-body">
-          {entry.renderComponent(widget.data, handleUpdateData)}
+          {entry.renderComponent(widget.data, handleUpdateData, settingsOpen)}
         </div>
 
         {isEditMode && (

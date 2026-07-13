@@ -40,6 +40,11 @@ export interface CalendarData {
   viewMode?: 'agenda' | 'monthly';
 }
 
+export interface NotesData {
+  content:   string;
+  fontSize?: 'S' | 'M' | 'L';
+}
+
 export interface PlaceholderData {
   title?: string;
 }
@@ -51,6 +56,7 @@ export interface WidgetDataMap {
   bookmarks:   BookmarksData;
   gmail:       GmailData;
   calendar:    CalendarData;
+  notes:       NotesData;
   placeholder: PlaceholderData;
 }
 
@@ -76,4 +82,5 @@ export type Widget =
   | (WidgetBase & { type: 'bookmarks';   data: BookmarksData })
   | (WidgetBase & { type: 'gmail';       data: GmailData })
   | (WidgetBase & { type: 'calendar';    data: CalendarData })
+  | (WidgetBase & { type: 'notes';       data: NotesData })
   | (WidgetBase & { type: 'placeholder'; data: PlaceholderData });
