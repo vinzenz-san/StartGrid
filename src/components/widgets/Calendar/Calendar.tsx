@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { CalendarData, CalendarEvent } from './calendar.types';
 import { GCAL_COLORS, DEFAULT_EVENT_COLOR } from './calendar.types';
 import { useCalendar } from './useCalendar';
@@ -101,10 +101,10 @@ function IconRefresh({ spinning }: { spinning: boolean }) {
       className={`sg-cal-icon-refresh${spinning ? ' spinning' : ''}`}
       viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
     >
-      <path d="M13.5 8A5.5 5.5 0 1 1 8 2.5" stroke="currentColor" strokeWidth="1.5"
-        strokeLinecap="round" fill="none" />
-      <polyline points="10.5,2.5 13.5,2.5 13.5,5.5" stroke="currentColor"
-        strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <polyline points="15,2.5 15,6.5 11,6.5" stroke="currentColor"
+        strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M13.7 10a6 6 0 1 1-1.4-6.2L15 6.5" stroke="currentColor"
+        strokeWidth="1.5" strokeLinecap="round" fill="none" />
     </svg>
   );
 }
@@ -173,8 +173,6 @@ function EventRow({ event }: { event: CalendarEvent }) {
     <a
       className={`sg-cal-event${isAllDay ? ' sg-cal-event--allday' : ''}`}
       href={event.htmlLink}
-      target="_blank"
-      rel="noopener noreferrer"
       title={event.summary}
     >
       <span className="sg-cal-dot" style={{ background: color }} aria-hidden="true" />
@@ -205,26 +203,43 @@ interface SettingsProps {
 function CalendarSettings({ data, onUpdateData }: SettingsProps) {
   const maxDays    = data.maxDays   ?? 3;
   const showAllDay = data.showAllDay ?? true;
+  const viewMode   = data.viewMode  ?? 'agenda';
   const { isConnected, isConnecting, email, error, connect, disconnect } = useGoogleAuth();
 
   return (
     <div className="sg-cal-settings" onClick={e => e.stopPropagation()}>
 
       <div className="sg-cal-settings-row">
-        <label className="sg-cal-settings-label" htmlFor="sg-cal-maxdays">Days ahead</label>
-        <div className="sg-cal-slider-wrap">
-          <input
-            id="sg-cal-maxdays"
-            type="range"
-            min={1}
-            max={7}
-            value={maxDays}
-            onChange={e => onUpdateData({ maxDays: Number(e.target.value) })}
-            className="sg-cal-slider"
-          />
-          <span className="sg-cal-slider-val">{maxDays}</span>
+        <span className="sg-cal-settings-label">View</span>
+        <div className="sg-cal-seg">
+          <button
+            className={`sg-cal-seg-btn${viewMode === 'agenda' ? ' sg-cal-seg-btn--active' : ''}`}
+            onClick={() => onUpdateData({ viewMode: 'agenda' })}
+          >Agenda</button>
+          <button
+            className={`sg-cal-seg-btn${viewMode === 'monthly' ? ' sg-cal-seg-btn--active' : ''}`}
+            onClick={() => onUpdateData({ viewMode: 'monthly' })}
+          >Monthly</button>
         </div>
       </div>
+
+      {viewMode === 'agenda' && (
+        <div className="sg-cal-settings-row">
+          <label className="sg-cal-settings-label" htmlFor="sg-cal-maxdays">Days ahead</label>
+          <div className="sg-cal-slider-wrap">
+            <input
+              id="sg-cal-maxdays"
+              type="range"
+              min={1}
+              max={28}
+              value={maxDays}
+              onChange={e => onUpdateData({ maxDays: Number(e.target.value) })}
+              className="sg-cal-slider"
+            />
+            <span className="sg-cal-slider-val">{maxDays}</span>
+          </div>
+        </div>
+      )}
 
       <div className="sg-cal-settings-row">
         <span className="sg-cal-settings-label">All-day events</span>
@@ -271,6 +286,88 @@ function CalendarSettings({ data, onUpdateData }: SettingsProps) {
   );
 }
 
+// ── Monthly calendar grid ─────────────────────────────────────────────────────
+
+const DOW_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+interface MonthlyProps {
+  events: CalendarEvent[];
+  showAllDay: boolean;
+}
+
+function MonthlyCalendar({ events, showAllDay }: MonthlyProps) {
+  const [display, setDisplay] = useState(() => {
+    const d = new Date();
+    d.setDate(1);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
+
+  const year  = display.getFullYear();
+  const month = display.getMonth();
+
+  const firstDow    = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today       = localDateKey(new Date());
+
+  const eventsByDay = new Map<string, CalendarEvent[]>();
+  for (const evt of events) {
+    if (!showAllDay && evt.start.date) continue;
+    const key = toLocalDateKey(evt);
+    const [ey, em] = key.split('-').map(Number);
+    if (ey !== year || em !== month + 1) continue;
+    if (!eventsByDay.has(key)) eventsByDay.set(key, []);
+    eventsByDay.get(key)!.push(evt);
+  }
+
+  const cells: (number | null)[] = [
+    ...Array(firstDow).fill(null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ];
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  const prevMonth = () => setDisplay(new Date(year, month - 1, 1));
+  const nextMonth = () => setDisplay(new Date(year, month + 1, 1));
+
+  return (
+    <div className="sg-cal-monthly">
+      <div className="sg-cal-monthly-nav">
+        <button className="sg-cal-monthly-nav-btn" onClick={prevMonth} aria-label="Previous month">‹</button>
+        <span className="sg-cal-monthly-nav-label">{MONTHS[month]} {year}</span>
+        <button className="sg-cal-monthly-nav-btn" onClick={nextMonth} aria-label="Next month">›</button>
+      </div>
+
+      <div className="sg-cal-monthly-grid">
+        {DOW_LABELS.map((d, i) => (
+          <div key={i} className="sg-cal-monthly-dow">{d}</div>
+        ))}
+        {cells.map((day, i) => {
+          if (!day) return <div key={`e${i}`} className="sg-cal-monthly-cell sg-cal-monthly-cell--empty" />;
+          const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const dayEvts = eventsByDay.get(key) ?? [];
+          const isToday = key === today;
+          return (
+            <div key={key} className={`sg-cal-monthly-cell${isToday ? ' sg-cal-monthly-cell--today' : ''}`}>
+              <span className="sg-cal-monthly-day-num">{day}</span>
+              {dayEvts.length > 0 && (
+                <div className="sg-cal-monthly-dots">
+                  {dayEvts.slice(0, 3).map(evt => (
+                    <span key={evt.id} className="sg-cal-monthly-dot"
+                      style={{ background: eventColor(evt.colorId) }} />
+                  ))}
+                  {dayEvts.length > 3 && (
+                    <span className="sg-cal-monthly-more">+{dayEvts.length - 3}</span>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Main widget ───────────────────────────────────────────────────────────────
 
 interface Props {
@@ -285,6 +382,7 @@ export default function Calendar({ data, isSettingsOpen, onUpdateData }: Props) 
 
   const maxDays    = data.maxDays   ?? 3;
   const showAllDay = data.showAllDay ?? true;
+  const viewMode   = data.viewMode  ?? 'agenda';
 
   useEffect(() => { refresh(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { refresh(); }, [isConnected]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -295,7 +393,6 @@ export default function Calendar({ data, isSettingsOpen, onUpdateData }: Props) 
 
   const isLoading  = status === 'idle' || status === 'loading';
   const isUnauthed = status === 'unauthenticated';
-  const groups     = isLoading || isUnauthed ? [] : groupEventsByDay(events, maxDays, showAllDay);
 
   return (
     <div className="sg-cal">
@@ -305,7 +402,7 @@ export default function Calendar({ data, isSettingsOpen, onUpdateData }: Props) 
           <IconCalendar />
           <span>{formatHeaderDate()}</span>
         </div>
-        <button className="sg-cal-refresh" onClick={refresh}
+        <button className="sg-cal-refresh" onClick={() => refresh()}
           disabled={isLoading || isUnauthed} title="Refresh" aria-label="Refresh calendar">
           <IconRefresh spinning={isLoading} />
         </button>
@@ -329,14 +426,19 @@ export default function Calendar({ data, isSettingsOpen, onUpdateData }: Props) 
             <span className="sg-cal-empty-icon">⚠</span>
             <span className="sg-cal-empty-text">Could not load calendar</span>
           </div>
-        ) : groups.length === 0 ? (
-          <div className="sg-cal-empty">
-            <span className="sg-cal-empty-icon">✓</span>
-            <span className="sg-cal-empty-text">No upcoming events</span>
-          </div>
-        ) : (
-          groups.map(g => <DayGroup key={g.dateKey} group={g} />)
-        )}
+        ) : viewMode === 'monthly' ? (
+          <MonthlyCalendar events={events} showAllDay={showAllDay} />
+        ) : (() => {
+          const groups = groupEventsByDay(events, maxDays, showAllDay);
+          return groups.length === 0 ? (
+            <div className="sg-cal-empty">
+              <span className="sg-cal-empty-icon">✓</span>
+              <span className="sg-cal-empty-text">No upcoming events</span>
+            </div>
+          ) : (
+            groups.map(g => <DayGroup key={g.dateKey} group={g} />)
+          );
+        })()}
       </div>
 
     </div>

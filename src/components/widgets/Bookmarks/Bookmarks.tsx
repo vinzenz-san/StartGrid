@@ -4,13 +4,22 @@ import './Bookmarks.css';
 
 const isExtension = typeof chrome !== 'undefined' && !!chrome.storage;
 
-function faviconUrl(url: string): string {
+function hostnameOf(url: string): string {
   try {
-    const domain = new URL(url).hostname;
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+    const { hostname } = new URL(url);
+    return hostname;
   } catch {
     return '';
   }
+}
+
+function faviconChain(hostname: string): string[] {
+  if (!hostname) return [];
+  return [
+    `https://icons.duckduckgo.com/ip3/${hostname}.ico`,
+    `https://www.google.com/s2/favicons?sz=64&domain=${hostname}&default=404`,
+    `https://unavatar.io/${hostname}?fallback=clear`,
+  ];
 }
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -137,18 +146,23 @@ interface BmItemProps {
 }
 
 function BmItem({ node, iconSize, onFolderClick }: BmItemProps) {
-  const [imgError, setImgError] = useState(false);
+  const [faviconIdx, setFaviconIdx] = useState(0);
   const isFolder = !node.url;
-  const favicon = node.url ? faviconUrl(node.url) : '';
   const title = node.title || (node.url ? (() => { try { return new URL(node.url!).hostname; } catch { return node.url!; } })() : '');
+
+  const hostname = node.url ? hostnameOf(node.url) : '';
+  const chain = faviconChain(hostname);
+  const faviconSrc = chain[faviconIdx] ?? null;
+
+  const showFaviconImg = !isFolder && !!faviconSrc;
 
   const content = (
     <>
-      <span className={`sg-bm-icon sg-bm-icon--${iconSize}`}>
+      <span className={`sg-bm-icon sg-bm-icon--${iconSize}${showFaviconImg ? ' sg-bm-icon--favicon' : ''}`}>
         {isFolder ? (
           <span className="sg-bm-folder-emoji">📁</span>
-        ) : favicon && !imgError ? (
-          <img src={favicon} alt="" onError={() => setImgError(true)} />
+        ) : faviconSrc ? (
+          <img src={faviconSrc} alt="" onError={() => setFaviconIdx(i => i + 1)} />
         ) : (
           <span className="sg-bm-fallback">{title.charAt(0).toUpperCase()}</span>
         )}
@@ -167,7 +181,7 @@ function BmItem({ node, iconSize, onFolderClick }: BmItemProps) {
   }
 
   return (
-    <a className="sg-bm-link" href={node.url} title={title} target="_blank" rel="noopener noreferrer">
+    <a className="sg-bm-link" href={node.url} title={title}>
       {content}
     </a>
   );

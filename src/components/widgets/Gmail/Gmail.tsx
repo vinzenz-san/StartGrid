@@ -28,10 +28,10 @@ function IconRefresh({ spinning }: { spinning: boolean }) {
   return (
     <svg className={`sg-gm-icon-refresh${spinning ? ' spinning' : ''}`}
       viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M13.5 8A5.5 5.5 0 1 1 8 2.5" stroke="currentColor" strokeWidth="1.5"
-        strokeLinecap="round" fill="none"/>
-      <polyline points="10.5,2.5 13.5,2.5 13.5,5.5" stroke="currentColor"
-        strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <polyline points="15,2.5 15,6.5 11,6.5" stroke="currentColor"
+        strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M13.7 10a6 6 0 1 1-1.4-6.2L15 6.5" stroke="currentColor"
+        strokeWidth="1.5" strokeLinecap="round" fill="none"/>
     </svg>
   );
 }
@@ -89,7 +89,6 @@ function EmailRow({ email, showSnippet }: EmailRowProps) {
     <a
       className={`sg-gm-row${email.isUnread ? ' sg-gm-row--unread' : ''}`}
       href={`https://mail.google.com/mail/u/0/#inbox/${email.threadId}`}
-      target="_blank" rel="noopener noreferrer"
       title={`${sender} — ${email.subject}`}
     >
       {email.isUnread && <span className="sg-gm-unread-dot" aria-label="Unread" />}

@@ -45,8 +45,8 @@
   border: none;
 }
 
-.sg-widget:hover .sg-widget-gear       { opacity: 1; }
-.sg-widget--edit .sg-widget-gear       { display: none; } /* hidden in edit mode — controls bar takes over top area */
+.sg-widget:hover .sg-widget-gear        { opacity: 1; }
+.sg-widget--edit .sg-widget-gear        { display: flex; top: 3px; right: 34px; opacity: 1; } /* always visible in edit mode, left of delete button */
 .sg-widget-gear:hover  { background: var(--surface-hover); color: var(--text); }
 .sg-widget-gear.active { background: rgba(99,102,241,0.2); color: var(--accent-hover); opacity: 1; }
 
@@ -107,13 +107,120 @@
   padding-top: 28px;
 }
 
-/* Settings open: push content below the gear button, reset any centering */
+/* Settings open: push content below the gear button, split layout for appearance bar */
 .sg-widget-body--settings-open {
   padding-top: 40px;
   display: flex !important;
   flex-direction: column !important;
   justify-content: flex-start !important;
   align-items: stretch !important;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.sg-widget-settings-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Widget appearance bar ───────────────────────── */
+.sg-widget-appearance {
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
+  padding: 7px 10px;
+  background: rgba(15, 17, 23, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sg-widget-appearance-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.sg-widget-appearance-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sg-widget-appearance-row input[type="color"] {
+  width: 26px;
+  height: 22px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px;
+  background: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.sg-widget-appearance-row input[type="range"] {
+  flex: 1;
+  height: 4px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.sg-widget-appearance-val {
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 30px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sg-widget-appearance-reset {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 1px 5px;
+  border-radius: 4px;
+  transition: background 0.12s, color 0.12s;
+  flex-shrink: 0;
+}
+.sg-widget-appearance-reset:hover { background: rgba(239,68,68,0.15); color: var(--danger); }
+
+.sg-widget-appearance-toggle {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--surface-hover);
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  cursor: pointer;
+  flex: 1;
+  text-align: center;
+}
+.sg-widget-appearance-toggle:hover { color: var(--text); border-color: var(--accent); }
+.sg-widget-appearance-toggle.active { background: rgba(99,102,241,0.2); color: var(--accent-hover); border-color: var(--accent); }
+
+/* ── Content inversion helpers ───────────────────── */
+/* Text titles across all widgets */
+.sg-invert-text .sg-ql-title,
+.sg-invert-text .sg-ql-fallback,
+.sg-invert-text .sg-bm-title,
+.sg-invert-text .sg-bm-fallback,
+.sg-invert-text .sg-clock-time,
+.sg-invert-text .sg-clock-date,
+.sg-invert-text .sg-gmail-subject,
+.sg-invert-text .sg-gmail-from,
+.sg-invert-text .sg-gmail-snippet,
+.sg-invert-text .sg-cal-event-title,
+.sg-invert-text .sg-cal-event-time,
+.sg-invert-text .sg-cal-day-label {
+  filter: invert(1);
+}
+
+/* Favicon/icon images only */
+.sg-invert-favicons .sg-ql-icon--favicon img,
+.sg-invert-favicons .sg-bm-icon--favicon img {
+  filter: invert(1);
 }
 
 /* ── Resize handle ───────────────────────────────── */

@@ -4,3 +4,19 @@
   z-index: -1;
   transition: background 0.4s ease;
 }
+
+.sg-background-letterbox {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  transition: background 0.3s ease;
+}
+
+.sg-background-dim {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: #000;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}

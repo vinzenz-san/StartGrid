@@ -4,6 +4,9 @@ export interface BackgroundConfig {
   mode: BackgroundMode;
   /** hex color for 'color', CSS gradient string for 'gradient', preset id for 'preset', unused for 'custom' */
   value: string;
+  dimAmount?: number;       // 0.0-0.9 overlay darkness, default 0
+  scalingMode?: 'cover' | 'fit'; // custom image scaling; 'fit' = contain + letterbox color, default 'cover'
+  letterboxColor?: string;  // CSS color for bars in 'fit' mode, default '#000000'
 }
 
 export const DEFAULT_BG: BackgroundConfig = {

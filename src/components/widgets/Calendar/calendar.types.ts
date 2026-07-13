@@ -1,8 +1,9 @@
 // ── Persistent widget data (stored in browser.storage.sync) ──────────────────
 
 export interface CalendarData {
-  maxDays: number;        // 1–7, default 3
-  showAllDay: boolean;    // include all-day events, default true
+  maxDays: number;               // 1–28, default 3
+  showAllDay: boolean;           // include all-day events, default true
+  viewMode: 'agenda' | 'monthly'; // default 'agenda'
 }
 
 // ── API-mirroring types (matches Google Calendar REST API event resource) ──────

@@ -4,7 +4,7 @@ import { useWidgets } from '../../contexts/WidgetContext';
 import { dragState } from '../../lib/dragState';
 import { findFreePosition, isPositionFree } from '../../lib/gridUtils';
 import WidgetContainer from '../shared/WidgetContainer';
-import BackgroundEditor from '../Background/BackgroundEditor';
+import SettingsPanel from './SettingsPanel';
 import './Grid.css';
 
 const COLS    = 8;
@@ -28,8 +28,8 @@ export default function Grid() {
   const { widgets, addWidget, updateWidget, loaded } = useWidgets();
   const gridRef  = useRef<HTMLDivElement>(null);
   const [dropTarget,    setDropTarget]    = useState<DropTarget | null>(null);
-  const [addMenuOpen,   setAddMenuOpen]   = useState(false);
-  const [bgEditorOpen,  setBgEditorOpen]  = useState(false);
+  const [addMenuOpen,      setAddMenuOpen]      = useState(false);
+  const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
 
   const cellFromPoint = (clientX: number, clientY: number) => {
     const rect = gridRef.current!.getBoundingClientRect();
@@ -78,7 +78,7 @@ export default function Grid() {
             <div className="sg-add-wrap">
               <button
                 className={`sg-btn-add${addMenuOpen ? ' active' : ''}`}
-                onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); setAddMenuOpen(s => !s); setBgEditorOpen(false); }}
+                onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); setAddMenuOpen(s => !s); setSettingsPanelOpen(false); }}
               >＋ Widget</button>
               {addMenuOpen && (
                 <div className="sg-add-menu">
@@ -94,27 +94,27 @@ export default function Grid() {
           )}
           {isEditMode && <span className="sg-edit-hint">Drag to move</span>}
           <button
-            className={`sg-btn-edit${bgEditorOpen ? ' active' : ''}`}
-            onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); setBgEditorOpen(s => !s); setAddMenuOpen(false); }}
-            title="Background"
+            className={`sg-btn-edit${settingsPanelOpen ? ' active' : ''}`}
+            onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); setSettingsPanelOpen(s => !s); setAddMenuOpen(false); }}
+            title="Settings"
           >
-            🎨 BG
+            ⚙ Settings
           </button>
           <button
             className={`sg-btn-edit${isEditMode ? ' active' : ''}`}
-            onPointerDown={() => { setAddMenuOpen(false); setBgEditorOpen(false); toggleEditMode(); }}
+            onPointerDown={() => { setAddMenuOpen(false); setSettingsPanelOpen(false); toggleEditMode(); }}
             title="Edit mode (Ctrl+E)"
           >
-            {isEditMode ? '🔒 Lock' : '✏️ Edit'}
+            {isEditMode ? '🔒 Lock' : '🔓 Unlock'}
           </button>
         </div>
       </header>
 
-      {bgEditorOpen && <BackgroundEditor onClose={() => setBgEditorOpen(false)} />}
+      {settingsPanelOpen && <SettingsPanel onClose={() => setSettingsPanelOpen(false)} />}
 
       <main
         className="sg-grid-wrapper"
-        onClick={() => { setAddMenuOpen(false); setBgEditorOpen(false); }}
+        onClick={() => { setAddMenuOpen(false); setSettingsPanelOpen(false); }}
       >
         <div
           ref={gridRef}
