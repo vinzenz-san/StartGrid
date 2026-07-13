@@ -335,3 +335,43 @@
 }
 
 .sg-ql-upload-label:hover { background: rgba(128, 128, 128, 0.2); }
+
+/* ── Drag-sort ─────────────────────────────────────── */
+
+.sg-ql-item {
+  position: relative;
+}
+
+/* List: item becomes a row so the handle sits inline before the link */
+.sg-ql-links--list .sg-ql-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* Explorer-style: entire tile is draggable when settings panel is open */
+.sg-ql-item--sortable,
+.sg-ql-item--sortable * {
+  cursor: grab !important;
+  touch-action: none;
+  user-select: none;
+}
+
+.sg-ql-item--sortable.sg-ql-item--dragging,
+.sg-ql-item--sortable.sg-ql-item--dragging * { cursor: grabbing !important; }
+
+/* Dragged item: ghost — pointer-events:none lets elementFromPoint see through it */
+.sg-ql-item--dragging {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Drop indicators via box-shadow (zero layout shift) */
+.sg-ql-links--list .sg-ql-item--drop-before { box-shadow:  0 -2px 0 var(--accent); }
+.sg-ql-links--list .sg-ql-item--drop-after  { box-shadow:  0  2px 0 var(--accent); }
+
+.sg-ql-links--grid .sg-ql-item--drop-before,
+.sg-ql-links--row  .sg-ql-item--drop-before { box-shadow: -2px 0 0 var(--accent); }
+
+.sg-ql-links--grid .sg-ql-item--drop-after,
+.sg-ql-links--row  .sg-ql-item--drop-after  { box-shadow:  2px 0 0 var(--accent); }

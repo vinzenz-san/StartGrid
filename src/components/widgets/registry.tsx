@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
-import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, GmailData, CalendarData, PlaceholderData } from '../../types/widget';
+import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, GmailData, CalendarData, NotesData, PlaceholderData } from '../../types/widget';
 import Clock, { ClockSettings } from './Clock/Clock';
 import Quicklinks, { QuicklinksSettings } from './Quicklinks/Quicklinks';
 import Bookmarks, { BookmarksSettings } from './Bookmarks/Bookmarks';
 import Gmail, { GmailSettings } from './Gmail/Gmail';
 import Calendar, { CalendarSettings } from './Calendar/Calendar';
+import Notes, { NotesSettings } from './Notes/Notes';
 import WidgetPlaceholder from '../shared/WidgetPlaceholder';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -15,7 +16,7 @@ interface TypedEntry<T> {
   icon:        string;
   defaultSize: { w: number; h: number };
   defaultData: T;
-  renderComponent: (data: T, onUpdateData: (patch: Partial<T>) => void) => ReactNode;
+  renderComponent: (data: T, onUpdateData: (patch: Partial<T>) => void, isSettingsOpen?: boolean) => ReactNode;
   renderSettings:  ((data: T, onUpdateData: (patch: Partial<T>) => void) => ReactNode) | null;
 }
 
@@ -27,7 +28,7 @@ export interface WidgetEntry {
   defaultSize: { w: number; h: number };
   defaultData: unknown;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  renderComponent: (data: any, onUpdateData: (patch: any) => void) => ReactNode;
+  renderComponent: (data: any, onUpdateData: (patch: any) => void, isSettingsOpen?: boolean) => ReactNode;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   renderSettings:  ((data: any, onUpdateData: (patch: any) => void) => ReactNode) | null;
 }
@@ -49,7 +50,7 @@ const _registry = {
     icon:        '🔗',
     defaultSize: { w: 2, h: 2 },
     defaultData: { links: [], layout: 'grid' } satisfies QuicklinksData,
-    renderComponent: (data, onUpdateData) => <Quicklinks data={data} onUpdateData={onUpdateData} />,
+    renderComponent: (data, onUpdateData, isSettingsOpen) => <Quicklinks data={data} onUpdateData={onUpdateData} isSettingsOpen={isSettingsOpen} />,
     renderSettings:  (data, onUpdateData) => <QuicklinksSettings data={data} onUpdateData={onUpdateData} />,
   } satisfies TypedEntry<QuicklinksData>,
 
@@ -80,6 +81,15 @@ const _registry = {
     renderSettings:  (data, onUpdateData) => <CalendarSettings data={data} onUpdateData={onUpdateData} />,
   } satisfies TypedEntry<CalendarData>,
 
+  notes: {
+    label:       'Notes',
+    icon:        '📝',
+    defaultSize: { w: 2, h: 2 },
+    defaultData: { content: '', fontSize: 'M' } satisfies NotesData,
+    renderComponent: (data, onUpdateData) => <Notes data={data} onUpdateData={onUpdateData} />,
+    renderSettings:  (data, onUpdateData) => <NotesSettings data={data} onUpdateData={onUpdateData} />,
+  } satisfies TypedEntry<NotesData>,
+
   placeholder: {
     label:       'Placeholder',
     icon:        '⬜',
@@ -95,5 +105,5 @@ export const WIDGET_REGISTRY = _registry as Record<WidgetType, WidgetEntry>;
 
 // Ordered list for the "Add Widget" menu (excludes placeholder handled separately if desired).
 export const WIDGET_MENU_TYPES: WidgetType[] = [
-  'clock', 'quicklinks', 'bookmarks', 'gmail', 'calendar', 'placeholder',
+  'clock', 'quicklinks', 'bookmarks', 'gmail', 'calendar', 'notes', 'placeholder',
 ];
