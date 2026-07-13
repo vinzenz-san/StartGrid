@@ -1,5 +1,7 @@
 .sg-widget {
   position: relative;
+  display: flex;
+  flex-direction: column;
   background: none;
   border-radius: var(--radius);
   overflow: hidden;
@@ -121,12 +123,35 @@
 .sg-widget-action.active     { background: rgba(99,102,241,0.2); color: var(--accent-hover); }
 .sg-widget-action.danger:hover { background: rgba(239,68,68,0.2); color: var(--danger); }
 
+/* ── Widget header (optional title) ──────────────── */
+.sg-widget-header {
+  position: relative;
+  z-index: 3;
+  flex-shrink: 0;
+  padding: 8px 12px 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.sg-widget-title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: none;
+}
+
 /* ── Widget content ──────────────────────────────── */
 .sg-widget-body {
   position: relative;
   z-index: 2;
+  flex: 1;
+  min-height: 0;
   width: 100%;
-  height: 100%;
 }
 
 /* Push body below the controls bar in edit mode */
@@ -188,6 +213,40 @@
   cursor: pointer;
 }
 .sg-widget-float-close:hover { background: rgba(239,68,68,0.15); color: var(--danger); }
+
+/* ── Title settings section ──────────────────────── */
+.sg-widget-title-section {
+  padding: 7px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sg-widget-title-input-wrap {
+  padding-top: 2px;
+}
+
+.sg-widget-title-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 12px;
+  padding: 4px 7px;
+  outline: none;
+  transition: border-color 0.12s;
+}
+
+.sg-widget-title-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.sg-widget-title-input:focus {
+  border-color: var(--accent);
+}
 
 /* ── Widget appearance bar ───────────────────────── */
 .sg-widget-appearance {

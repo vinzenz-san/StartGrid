@@ -8,6 +8,7 @@ import { darkenHex } from '../../lib/colorUtils';
 import { dragState } from '../../lib/dragState';
 import type { Widget } from '../../types/widget';
 import { WIDGET_REGISTRY } from '../widgets/registry';
+import { SettingsRow, SettingsSwitch } from './Form';
 import SwatchPicker from './SwatchPicker';
 import './WidgetContainer.css';
 
@@ -29,8 +30,15 @@ export default function WidgetContainer({ widget }: Props) {
 
   // ── Registry lookup ───────────────────────────────────────────────────────
 
-  const entry      = WIDGET_REGISTRY[widget.type];
+  const entry       = WIDGET_REGISTRY[widget.type];
   const hasSettings = entry.renderSettings !== null;
+
+  // ── Title / header ────────────────────────────────────────────────────────
+
+  const showCustomTitle = widget.showCustomTitle ?? entry.defaultShowCustomTitle ?? false;
+  const showHeader      = entry.titleBehavior === 'optional' && showCustomTitle;
+  const titlePlaceholder = entry.resolveDynamicTitle?.(widget.data) ?? entry.defaultTitle ?? entry.label;
+  const resolvedTitle    = widget.customTitle || titlePlaceholder;
 
   // ── Floating panel positioning ────────────────────────────────────────────
 
@@ -143,7 +151,34 @@ export default function WidgetContainer({ widget }: Props) {
         <button className="sg-widget-float-close" onClick={() => setSettingsOpen(false)} title="Close">✕</button>
       </div>
 
+      {/* Title settings — only for 'optional' behavior */}
+      {entry.titleBehavior === 'optional' && (
+        <div className="sg-widget-title-section">
+          <SettingsRow label="Show title">
+            <SettingsSwitch
+              checked={showCustomTitle}
+              onChange={v => updateWidget(widget.id, { showCustomTitle: v })}
+            />
+          </SettingsRow>
+          {showCustomTitle && (
+            <div className="sg-widget-title-input-wrap">
+              <input
+                className="sg-widget-title-input"
+                type="text"
+                value={widget.customTitle ?? ''}
+                placeholder={titlePlaceholder}
+                onChange={e => updateWidget(widget.id, { customTitle: e.target.value || undefined })}
+                onPointerDown={e => e.stopPropagation()}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Widget-specific settings — resolved from registry */}
+      {entry.titleBehavior === 'optional' && entry.renderSettings && (
+        <div className="sg-widget-float-divider" />
+      )}
       {entry.renderSettings?.(widget.data, handleUpdateData)}
 
       {/* Appearance section — shared across all widgets */}
@@ -246,6 +281,12 @@ export default function WidgetContainer({ widget }: Props) {
                 title="Remove widget">✕</button>
             </div>
           </div>
+        )}
+
+        {showHeader && (
+          <header className="sg-widget-header">
+            <h3 className="sg-widget-title">{resolvedTitle}</h3>
+          </header>
         )}
 
         <div className="sg-widget-body">
