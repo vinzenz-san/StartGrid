@@ -1,13 +1,20 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useFloating, flip, shift, offset, autoUpdate } from '@floating-ui/react';
 import { useEditMode } from '../../contexts/EditModeContext';
 import { useWidgets } from '../../contexts/WidgetContext';
 import { dragState } from '../../lib/dragState';
 import type { Widget, ClockData, QuicklinksData, BookmarksData, GmailData, CalendarData } from '../../types/widget';
 import Clock from '../widgets/Clock/Clock';
+import { ClockSettings } from '../widgets/Clock/Clock';
 import Quicklinks from '../widgets/Quicklinks/Quicklinks';
+import { QuicklinksSettings } from '../widgets/Quicklinks/Quicklinks';
 import Bookmarks from '../widgets/Bookmarks/Bookmarks';
+import { BookmarksSettings } from '../widgets/Bookmarks/Bookmarks';
 import Gmail from '../widgets/Gmail/Gmail';
+import { GmailSettings } from '../widgets/Gmail/Gmail';
 import Calendar from '../widgets/Calendar/Calendar';
+import { CalendarSettings } from '../widgets/Calendar/Calendar';
 import WidgetPlaceholder from './WidgetPlaceholder';
 import './WidgetContainer.css';
 
@@ -35,6 +42,32 @@ export default function WidgetContainer({ widget }: Props) {
 
   const displayW = resizePreview?.w ?? widget.w;
   const displayH = resizePreview?.h ?? widget.h;
+
+  // ── Floating panel positioning ────────────────────────────────────────────
+
+  const { refs, floatingStyles } = useFloating({
+    placement: 'right-start',
+    middleware: [offset(8), flip(), shift({ padding: 8 })],
+    whileElementsMounted: autoUpdate,
+  });
+
+  const setRef = (node: HTMLDivElement | null) => {
+    (elRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+    refs.setReference(node);
+  };
+
+  // Outside-click to close
+  useEffect(() => {
+    if (!settingsOpen) return;
+    const handler = (e: PointerEvent) => {
+      const target = e.target as Node;
+      const insideWidget   = elRef.current?.contains(target);
+      const insideFloating = refs.floating.current?.contains(target);
+      if (!insideWidget && !insideFloating) setSettingsOpen(false);
+    };
+    document.addEventListener('pointerdown', handler, { capture: true });
+    return () => document.removeEventListener('pointerdown', handler, { capture: true });
+  }, [settingsOpen, refs.floating]);
 
   // ── Drag to move ──────────────────────────────────────────────────────────
 
@@ -66,8 +99,7 @@ export default function WidgetContainer({ widget }: Props) {
     const startW = widget.w;
     const startH = widget.h;
     const maxW   = 9 - widget.col;
-
-    const step = CELL + GAP;
+    const step   = CELL + GAP;
 
     const onMove = (ev: PointerEvent) => {
       const newW = Math.max(1, Math.min(maxW, Math.round((startW * step - GAP + ev.clientX - startX + GAP / 2) / step)));
@@ -95,50 +127,41 @@ export default function WidgetContainer({ widget }: Props) {
   };
 
   const hasSettings = HAS_SETTINGS.includes(widget.type);
-
-  // ── Widget surface background ─────────────────────────────────────────────
+  const opacityPct  = Math.round((widget.bgOpacity ?? 1) * 100);
 
   const bgStyle = widget.bgColor
     ? { background: hexToRgba(widget.bgColor, widget.bgOpacity ?? 1) }
     : {};
 
-  // ── Widget content ────────────────────────────────────────────────────────
+  // ── Widget content (always rendered normally) ─────────────────────────────
 
   const widgetContent = (
     <>
       {widget.type === 'clock' && (
-        <Clock
-          data={widget.data as unknown as ClockData}
-          isSettingsOpen={settingsOpen}
-          onUpdateData={handleUpdateData}
-        />
+        <Clock data={widget.data as unknown as ClockData} onUpdateData={handleUpdateData} />
       )}
       {widget.type === 'quicklinks' && (
         <Quicklinks
           key={`${widget.w}-${widget.h}`}
           data={widget.data as unknown as QuicklinksData}
-          isSettingsOpen={settingsOpen}
           onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
         />
       )}
       {widget.type === 'bookmarks' && (
         <Bookmarks
           data={widget.data as unknown as BookmarksData}
-          isSettingsOpen={settingsOpen}
           onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
         />
       )}
       {widget.type === 'gmail' && (
         <Gmail
           data={widget.data as unknown as GmailData}
-          isSettingsOpen={settingsOpen}
           onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
         />
       )}
       {widget.type === 'calendar' && (
         <Calendar
           data={widget.data as unknown as CalendarData}
-          isSettingsOpen={settingsOpen}
           onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
         />
       )}
@@ -146,107 +169,160 @@ export default function WidgetContainer({ widget }: Props) {
     </>
   );
 
-  const opacityPct = Math.round((widget.bgOpacity ?? 1) * 100);
+  // ── Widget-specific settings content ──────────────────────────────────────
+
+  const widgetSettings = (() => {
+    if (widget.type === 'clock') return (
+      <ClockSettings
+        data={widget.data as unknown as ClockData}
+        onUpdateData={handleUpdateData}
+      />
+    );
+    if (widget.type === 'quicklinks') return (
+      <QuicklinksSettings
+        data={widget.data as unknown as QuicklinksData}
+        onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
+      />
+    );
+    if (widget.type === 'bookmarks') return (
+      <BookmarksSettings
+        data={widget.data as unknown as BookmarksData}
+        onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
+      />
+    );
+    if (widget.type === 'gmail') return (
+      <GmailSettings
+        data={widget.data as unknown as GmailData}
+        onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
+      />
+    );
+    if (widget.type === 'calendar') return (
+      <CalendarSettings
+        data={widget.data as unknown as CalendarData}
+        onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
+      />
+    );
+    return null;
+  })();
+
+  // ── Floating panel (portalled) ────────────────────────────────────────────
+
+  const floatingPanel = settingsOpen && createPortal(
+    <div
+      ref={refs.setFloating}
+      className="sg-widget-float-panel"
+      style={floatingStyles}
+      onPointerDown={e => e.stopPropagation()}
+    >
+      <div className="sg-widget-float-header">
+        <span className="sg-widget-float-title">Widget Settings</span>
+        <button
+          className="sg-widget-float-close"
+          onClick={() => setSettingsOpen(false)}
+          title="Close"
+        >✕</button>
+      </div>
+
+      {/* Widget-specific settings */}
+      {widgetSettings}
+
+      {/* Appearance section */}
+      <div className="sg-widget-float-divider" />
+      <div className="sg-widget-appearance">
+        <span className="sg-widget-appearance-label">Widget Background</span>
+        <div className="sg-widget-appearance-row">
+          <input
+            type="color"
+            value={widget.bgColor ?? '#1a1d2e'}
+            onChange={e => updateWidget(widget.id, { bgColor: e.target.value })}
+            onPointerDown={e => e.stopPropagation()}
+            title="Background color"
+          />
+          <input
+            type="range"
+            min={0} max={100}
+            value={opacityPct}
+            onChange={e => updateWidget(widget.id, { bgOpacity: Number(e.target.value) / 100 })}
+            onPointerDown={e => e.stopPropagation()}
+            title="Opacity"
+          />
+          <span className="sg-widget-appearance-val">{opacityPct}%</span>
+          {widget.bgColor && (
+            <button
+              className="sg-widget-appearance-reset"
+              onClick={() => updateWidget(widget.id, { bgColor: undefined, bgOpacity: undefined })}
+              title="Reset to default"
+            >✕</button>
+          )}
+        </div>
+        <div className="sg-widget-appearance-row">
+          <button
+            className={`sg-widget-appearance-toggle${widget.invertText ? ' active' : ''}`}
+            onClick={() => updateWidget(widget.id, { invertText: !widget.invertText })}
+            onPointerDown={e => e.stopPropagation()}
+            title="Invert text colors"
+          >T̲ Text</button>
+          <button
+            className={`sg-widget-appearance-toggle${widget.invertFavicons ? ' active' : ''}`}
+            onClick={() => updateWidget(widget.id, { invertFavicons: !widget.invertFavicons })}
+            onPointerDown={e => e.stopPropagation()}
+            title="Invert favicon/icon colors"
+          >⬡ Icons</button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
 
   return (
-    <div
-      ref={elRef}
-      className={`sg-widget${isEditMode ? ' sg-widget--edit' : ''}`}
-      draggable={isEditMode && !resizePreview}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      style={{
-        gridColumn: `${widget.col} / span ${displayW}`,
-        gridRow:    `${widget.row} / span ${displayH}`,
-        ...bgStyle,
-      }}
-    >
-      {/* Gear button */}
-      {hasSettings && (
-        <button
-          className={`sg-widget-gear${settingsOpen ? ' active' : ''}`}
-          draggable={false}
-          onPointerDown={e => e.stopPropagation()}
-          onDragStart={e => e.stopPropagation()}
-          onClick={(e) => { e.stopPropagation(); setSettingsOpen(s => !s); }}
-          title="Settings"
-        >⚙</button>
-      )}
+    <>
+      <div
+        ref={setRef}
+        className={[
+          'sg-widget',
+          isEditMode   ? 'sg-widget--edit'            : '',
+          settingsOpen ? 'sg-widget--settings-active' : '',
+        ].filter(Boolean).join(' ')}
+        draggable={isEditMode && !resizePreview}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        style={{
+          gridColumn: `${widget.col} / span ${displayW}`,
+          gridRow:    `${widget.row} / span ${displayH}`,
+          ...bgStyle,
+        }}
+      >
+        {/* Gear button */}
+        {hasSettings && (
+          <button
+            className={`sg-widget-gear${settingsOpen ? ' active' : ''}`}
+            draggable={false}
+            onPointerDown={e => e.stopPropagation()}
+            onDragStart={e => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); setSettingsOpen(s => !s); }}
+            title="Widget Settings"
+          >⚙</button>
+        )}
 
-      {/* Edit-mode controls bar */}
-      {isEditMode && (
-        <div className="sg-widget-controls" draggable={false} onDragStart={e => e.stopPropagation()}>
-          <span className="sg-widget-size">{displayW}×{displayH}</span>
-          <div className="sg-widget-actions">
-            <button
-              className="sg-widget-action danger"
-              onPointerDown={e => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (window.confirm('Remove this widget?')) removeWidget(widget.id);
-              }}
-              title="Remove widget"
-            >✕</button>
-          </div>
-        </div>
-      )}
-
-      {/* Body — split layout when settings open to fit appearance bar below */}
-      {settingsOpen ? (
-        <div className="sg-widget-body sg-widget-body--settings-open">
-          <div
-            className={[
-              'sg-widget-settings-wrap',
-              widget.invertText     ? 'sg-invert-text'     : '',
-              widget.invertFavicons ? 'sg-invert-favicons' : '',
-            ].filter(Boolean).join(' ')}
-          >
-            {widgetContent}
-          </div>
-          <div className="sg-widget-appearance">
-            <span className="sg-widget-appearance-label">Widget Background</span>
-            <div className="sg-widget-appearance-row">
-              <input
-                type="color"
-                value={widget.bgColor ?? '#1a1d2e'}
-                onChange={e => updateWidget(widget.id, { bgColor: e.target.value })}
-                onPointerDown={e => e.stopPropagation()}
-                title="Background color"
-              />
-              <input
-                type="range"
-                min={0} max={100}
-                value={opacityPct}
-                onChange={e => updateWidget(widget.id, { bgOpacity: Number(e.target.value) / 100 })}
-                onPointerDown={e => e.stopPropagation()}
-                title="Opacity"
-              />
-              <span className="sg-widget-appearance-val">{opacityPct}%</span>
-              {widget.bgColor && (
-                <button
-                  className="sg-widget-appearance-reset"
-                  onClick={() => updateWidget(widget.id, { bgColor: undefined, bgOpacity: undefined })}
-                  title="Reset to default"
-                >✕</button>
-              )}
-            </div>
-            <div className="sg-widget-appearance-row">
+        {/* Edit-mode controls bar */}
+        {isEditMode && (
+          <div className="sg-widget-controls" draggable={false} onDragStart={e => e.stopPropagation()}>
+            <span className="sg-widget-size">{displayW}×{displayH}</span>
+            <div className="sg-widget-actions">
               <button
-                className={`sg-widget-appearance-toggle${widget.invertText ? ' active' : ''}`}
-                onClick={() => updateWidget(widget.id, { invertText: !widget.invertText })}
+                className="sg-widget-action danger"
                 onPointerDown={e => e.stopPropagation()}
-                title="Invert text colors"
-              >T̲ Text</button>
-              <button
-                className={`sg-widget-appearance-toggle${widget.invertFavicons ? ' active' : ''}`}
-                onClick={() => updateWidget(widget.id, { invertFavicons: !widget.invertFavicons })}
-                onPointerDown={e => e.stopPropagation()}
-                title="Invert favicon/icon colors"
-              >⬡ Icons</button>
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (window.confirm('Remove this widget?')) removeWidget(widget.id);
+                }}
+                title="Remove widget"
+              >✕</button>
             </div>
           </div>
-        </div>
-      ) : (
+        )}
+
+        {/* Widget body — always renders normally */}
         <div
           className={[
             'sg-widget-body',
@@ -256,18 +332,20 @@ export default function WidgetContainer({ widget }: Props) {
         >
           {widgetContent}
         </div>
-      )}
 
-      {/* Resize handle */}
-      {isEditMode && (
-        <div
-          className="sg-widget-resize"
-          onPointerDown={handleResizeStart}
-          draggable={false}
-          onDragStart={e => e.stopPropagation()}
-          title="Resize"
-        />
-      )}
-    </div>
+        {/* Resize handle */}
+        {isEditMode && (
+          <div
+            className="sg-widget-resize"
+            onPointerDown={handleResizeStart}
+            draggable={false}
+            onDragStart={e => e.stopPropagation()}
+            title="Resize"
+          />
+        )}
+      </div>
+
+      {floatingPanel}
+    </>
   );
 }

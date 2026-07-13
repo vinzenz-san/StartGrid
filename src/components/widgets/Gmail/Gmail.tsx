@@ -113,7 +113,7 @@ interface SettingsProps {
   onUpdateData: (patch: Partial<GmailData>) => void;
 }
 
-function GmailSettings({ data, onUpdateData }: SettingsProps) {
+export function GmailSettings({ data, onUpdateData }: SettingsProps) {
   const maxEmails    = data.maxEmails   ?? 5;
   const showSnippets = data.showSnippets ?? true;
   const { isConnected, isConnecting, email, error, connect, disconnect } = useGoogleAuth();
@@ -179,26 +179,18 @@ function GmailSettings({ data, onUpdateData }: SettingsProps) {
 
 interface Props {
   data: GmailData;
-  isSettingsOpen: boolean;
   onUpdateData: (patch: Partial<GmailData>) => void;
 }
 
-export default function Gmail({ data, isSettingsOpen, onUpdateData }: Props) {
+export default function Gmail({ data, onUpdateData: _onUpdateData }: Props) {
   const { status, emails, unreadCount, refresh } = useGmail();
   const { isConnected } = useGoogleAuth();
 
   const maxEmails    = data.maxEmails   ?? 5;
   const showSnippets = data.showSnippets ?? true;
 
-  // Initial fetch on mount
   useEffect(() => { refresh(maxEmails); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Re-fetch whenever the user connects or disconnects their account
   useEffect(() => { refresh(maxEmails); }, [isConnected]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  if (isSettingsOpen) {
-    return <GmailSettings data={data} onUpdateData={onUpdateData} />;
-  }
 
   const isLoading      = status === 'idle' || status === 'loading';
   const isUnauthed     = status === 'unauthenticated';

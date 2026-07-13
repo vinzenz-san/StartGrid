@@ -12,9 +12,8 @@ const MONTHS   = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function toLocalDateKey(event: CalendarEvent): string {
-  // All-day events use a plain date string; timed events use dateTime.
   const raw = event.start.date ?? event.start.dateTime!;
-  return raw.slice(0, 10); // "YYYY-MM-DD"
+  return raw.slice(0, 10);
 }
 
 function localDateKey(d: Date): string {
@@ -49,7 +48,7 @@ function eventColor(colorId?: string): string {
   return colorId ? (GCAL_COLORS[colorId] ?? DEFAULT_EVENT_COLOR) : DEFAULT_EVENT_COLOR;
 }
 
-// ── Group events by day, filtered to maxDays window ───────────────────────────
+// ── Group events by day ───────────────────────────────────────────────────────
 
 interface DayGroup {
   dateKey: string;
@@ -84,7 +83,6 @@ function groupEventsByDay(
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([dateKey, evts]) => ({
       dateKey,
-      // within a day: all-day first, then timed chronologically
       events: evts.sort((a, b) => {
         const aVal = a.start.date ? '' : (a.start.dateTime ?? '');
         const bVal = b.start.date ? '' : (b.start.dateTime ?? '');
@@ -200,7 +198,7 @@ interface SettingsProps {
   onUpdateData: (patch: Partial<CalendarData>) => void;
 }
 
-function CalendarSettings({ data, onUpdateData }: SettingsProps) {
+export function CalendarSettings({ data, onUpdateData }: SettingsProps) {
   const maxDays    = data.maxDays   ?? 3;
   const showAllDay = data.showAllDay ?? true;
   const viewMode   = data.viewMode  ?? 'agenda';
@@ -372,11 +370,10 @@ function MonthlyCalendar({ events, showAllDay }: MonthlyProps) {
 
 interface Props {
   data: CalendarData;
-  isSettingsOpen: boolean;
   onUpdateData: (patch: Partial<CalendarData>) => void;
 }
 
-export default function Calendar({ data, isSettingsOpen, onUpdateData }: Props) {
+export default function Calendar({ data, onUpdateData: _onUpdateData }: Props) {
   const { status, events, refresh } = useCalendar();
   const { isConnected } = useGoogleAuth();
 
@@ -386,10 +383,6 @@ export default function Calendar({ data, isSettingsOpen, onUpdateData }: Props) 
 
   useEffect(() => { refresh(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { refresh(); }, [isConnected]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  if (isSettingsOpen) {
-    return <CalendarSettings data={data} onUpdateData={onUpdateData} />;
-  }
 
   const isLoading  = status === 'idle' || status === 'loading';
   const isUnauthed = status === 'unauthenticated';

@@ -75,7 +75,7 @@ interface SettingsProps {
   onUpdateData: (patch: Partial<BookmarksData>) => void;
 }
 
-function BookmarksSettings({ data, onUpdateData }: SettingsProps) {
+export function BookmarksSettings({ data, onUpdateData }: SettingsProps) {
   const [tree, setTree] = useState<BmNode[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -191,19 +191,16 @@ function BmItem({ node, iconSize, onFolderClick }: BmItemProps) {
 
 interface Props {
   data: BookmarksData;
-  isSettingsOpen: boolean;
   onUpdateData: (patch: Partial<BookmarksData>) => void;
 }
 
-export default function Bookmarks({ data, isSettingsOpen, onUpdateData }: Props) {
+export default function Bookmarks({ data, onUpdateData: _onUpdateData }: Props) {
   const [items, setItems] = useState<BmNode[]>([]);
   const [loading, setLoading] = useState(false);
-  // navStack tracks navigation deeper than the root folder
   const [navStack, setNavStack] = useState<NavEntry[]>([]);
 
   const currentId = navStack.length > 0 ? navStack[navStack.length - 1].id : data.folderId;
 
-  // Reset nav stack when root folder changes
   useEffect(() => { setNavStack([]); }, [data.folderId]);
 
   useEffect(() => {
@@ -216,10 +213,6 @@ export default function Bookmarks({ data, isSettingsOpen, onUpdateData }: Props)
       }).catch(() => setLoading(false));
     });
   }, [currentId]);
-
-  if (isSettingsOpen) {
-    return <BookmarksSettings data={data} onUpdateData={onUpdateData} />;
-  }
 
   if (!isExtension) {
     return (
@@ -234,7 +227,7 @@ export default function Bookmarks({ data, isSettingsOpen, onUpdateData }: Props)
     return (
       <div className="sg-bm sg-bm--empty">
         <span className="sg-bm-empty-icon">📁</span>
-        <span className="sg-bm-empty-text">Open ⚙ in edit mode to pick a folder</span>
+        <span className="sg-bm-empty-text">Open ⚙ to pick a folder</span>
       </div>
     );
   }
@@ -252,12 +245,11 @@ export default function Bookmarks({ data, isSettingsOpen, onUpdateData }: Props)
   };
 
   const breadcrumbTo = (idx: number) => {
-    setNavStack(prev => prev.slice(0, idx)); // idx 0 = root folder → clear stack
+    setNavStack(prev => prev.slice(0, idx));
   };
 
   return (
     <div className="sg-bm">
-      {/* Breadcrumb — only show when navigated deeper */}
       {breadcrumb.length > 1 && (
         <div className="sg-bm-breadcrumb">
           {breadcrumb.map((entry, idx) => (

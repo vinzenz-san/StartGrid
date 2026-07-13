@@ -18,13 +18,44 @@ function formatTime(d: Date, fmt: '12h'|'24h', secs: boolean) {
   return secs ? `${h12}:${m}:${s} ${period}` : `${h12}:${m} ${period}`;
 }
 
-interface Props {
+// ── Settings ───────────────────────────────────────────────────────────────
+
+interface SettingsProps {
   data: ClockData;
-  isSettingsOpen: boolean;
   onUpdateData: (patch: Partial<ClockData>) => void;
 }
 
-export default function Clock({ data, isSettingsOpen, onUpdateData }: Props) {
+export function ClockSettings({ data, onUpdateData }: SettingsProps) {
+  const { format = '24h', showSeconds = true, showDate = true } = data;
+  return (
+    <div className="sg-clock-settings" onClick={e => e.stopPropagation()}>
+      <label className="sg-clock-toggle">
+        <input type="checkbox" checked={format === '12h'}
+          onChange={e => onUpdateData({ format: e.target.checked ? '12h' : '24h' })} />
+        12-hour format
+      </label>
+      <label className="sg-clock-toggle">
+        <input type="checkbox" checked={showSeconds}
+          onChange={e => onUpdateData({ showSeconds: e.target.checked })} />
+        Show seconds
+      </label>
+      <label className="sg-clock-toggle">
+        <input type="checkbox" checked={showDate}
+          onChange={e => onUpdateData({ showDate: e.target.checked })} />
+        Show date
+      </label>
+    </div>
+  );
+}
+
+// ── Main widget ────────────────────────────────────────────────────────────
+
+interface Props {
+  data: ClockData;
+  onUpdateData: (patch: Partial<ClockData>) => void;
+}
+
+export default function Clock({ data, onUpdateData: _onUpdateData }: Props) {
   const { format = '24h', showSeconds = true, showDate = true } = data;
   const [now, setNow] = useState(() => new Date());
 
@@ -39,26 +70,6 @@ export default function Clock({ data, isSettingsOpen, onUpdateData }: Props) {
     <div className="sg-clock">
       <div className="sg-clock-time">{formatTime(now, format, showSeconds)}</div>
       {showDate && <div className="sg-clock-date">{dateStr}</div>}
-
-      {isSettingsOpen && (
-        <div className="sg-clock-settings" onClick={e => e.stopPropagation()}>
-          <label className="sg-clock-toggle">
-            <input type="checkbox" checked={format === '12h'}
-              onChange={e => onUpdateData({ format: e.target.checked ? '12h' : '24h' })} />
-            12-hour format
-          </label>
-          <label className="sg-clock-toggle">
-            <input type="checkbox" checked={showSeconds}
-              onChange={e => onUpdateData({ showSeconds: e.target.checked })} />
-            Show seconds
-          </label>
-          <label className="sg-clock-toggle">
-            <input type="checkbox" checked={showDate}
-              onChange={e => onUpdateData({ showDate: e.target.checked })} />
-            Show date
-          </label>
-        </div>
-      )}
     </div>
   );
 }
