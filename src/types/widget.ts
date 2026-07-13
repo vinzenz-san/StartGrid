@@ -44,8 +44,9 @@ export interface CalendarData {
 }
 
 export interface NotesData {
-  content:   string;
-  fontSize?: 'S' | 'M' | 'L';
+  content:      string;
+  fontSize?:    'S' | 'M' | 'L';
+  storageMode?: 'local' | 'synced';
 }
 
 export interface PlaceholderData {
