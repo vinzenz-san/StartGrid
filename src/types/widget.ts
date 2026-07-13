@@ -64,6 +64,9 @@ interface WidgetBase {
   h: number;
   bgColor?: string;
   bgOpacity?: number;
+  bgDim?: number;
+  localOverrideEnabled?: boolean;
+  localGradientOverride?: boolean;
 }
 
 // Discriminated union — TypeScript narrows `data` automatically when `type` is checked.

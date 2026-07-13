@@ -1,14 +1,21 @@
 import { useRef, useState } from 'react';
 import { useBackground } from '../../contexts/BackgroundContext';
-import { PRESETS, BackgroundMode } from '../../types/background';
+import { PRESETS } from '../../types/background';
+import { generateGradient } from '../../lib/colorUtils';
+import CustomColorPicker from '../shared/CustomColorPicker';
 import './BackgroundEditor.css';
 
 const SIZE_LIMIT_MB = 5;
+const RAINBOW_BG = 'linear-gradient(135deg, #6366f1 0%, #ec4899 40%, #f59e0b 70%, #10b981 100%)';
 
 export default function BackgroundEditor() {
   const { config, customImageUrl, setConfig, setCustomImage, clearCustomImage } = useBackground();
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [dragOver, setDragOver] = useState(false);
+  const fileRef          = useRef<HTMLInputElement>(null);
+  const customSwatchRef   = useRef<HTMLDivElement>(null);
+  const letterboxBtnRef   = useRef<HTMLButtonElement>(null);
+  const [dragOver, setDragOver]             = useState(false);
+  const [pickerOpen, setPickerOpen]         = useState(false);
+  const [lbPickerOpen, setLbPickerOpen]     = useState(false);
 
   const processFile = (file: File) => {
     if (file.size > SIZE_LIMIT_MB * 1024 * 1024) {
@@ -36,51 +43,113 @@ export default function BackgroundEditor() {
     if (file && file.type.startsWith('image/')) processFile(file);
   };
 
-  const isActive = (mode: BackgroundMode, value = '') =>
-    config.mode === mode && (value === '' || config.value === value);
-
   const dimPct = Math.round((config.dimAmount ?? 0) * 100);
+
+  const isCustomActive = config.mode === 'color' || config.mode === 'gradient';
+  const isPresetActive  = (id: string) => config.mode === 'preset' && config.value === id;
+
+  const gradientOn = isCustomActive
+    ? config.mode === 'gradient'
+    : config.customGradient ?? true;
+
+  const customThumbBg = isCustomActive && config.customColor
+    ? (gradientOn ? generateGradient(config.customColor) : config.customColor)
+    : RAINBOW_BG;
+
+  // Initial color for the picker: persisted custom color, or first hex from active preset
+  const pickerValue = config.customColor
+    ?? PRESETS.find(p => p.id === config.value)?.css.match(/#[0-9a-f]{6}/i)?.[0]
+    ?? '#6366f1';
+
+  const handleCustomColorPick = (hex: string) => {
+    const useGrad = config.customGradient ?? true;
+    setConfig({
+      ...config,
+      mode:           useGrad ? 'gradient' : 'color',
+      value:          useGrad ? generateGradient(hex) : hex,
+      customColor:    hex,
+      customGradient: useGrad,
+    });
+  };
+
+  const handleGradientToggle = () => {
+    const next = !gradientOn;
+    if (isCustomActive && config.customColor) {
+      setConfig({
+        ...config,
+        mode:           next ? 'gradient' : 'color',
+        value:          next ? generateGradient(config.customColor) : config.customColor,
+        customGradient: next,
+      });
+    } else {
+      setConfig({ ...config, customGradient: next });
+    }
+  };
 
   return (
     <div className="bg-editor" onClick={e => e.stopPropagation()}>
 
-      {/* Solid color */}
-      <section className="bg-section">
-        <div className="bg-section-label">Color</div>
-        <div className="bg-color-row">
-          <input
-            type="color"
-            className="bg-color-swatch"
-            value={config.mode === 'color' ? config.value : '#0f1117'}
-            onChange={e => setConfig({ ...config, mode: 'color', value: e.target.value })}
-          />
-          <span className="bg-color-hint">
-            {config.mode === 'color' ? config.value : 'Pick a color'}
-          </span>
-        </div>
-      </section>
-
-      {/* Presets */}
-      <section className="bg-section">
-        <div className="bg-section-label">Presets</div>
-        <div className="bg-presets">
+      {/* Presets + custom swatch */}
+      <section className="settings-section">
+        <div className="settings-section-label">Presets</div>
+        <div className="preset-grid">
           {PRESETS.map(preset => (
             <button
               key={preset.id}
-              className={`bg-preset-thumb${isActive('preset', preset.id) ? ' active' : ''}`}
+              className={`preset-tile${isPresetActive(preset.id) ? ' active' : ''}`}
               style={{ background: preset.css }}
-              title={preset.label}
               onClick={() => setConfig({ ...config, mode: 'preset', value: preset.id })}
             >
-              <span className="bg-preset-label">{preset.label}</span>
+              {isPresetActive(preset.id) && <span className="sg-swatch-check-lg">✓</span>}
+              <span className="preset-tile-label">{preset.label}</span>
             </button>
           ))}
+
+          {/* Custom swatch — 6th cell */}
+          <div
+            ref={customSwatchRef}
+            className={`preset-tile bg-preset-thumb--custom${isCustomActive ? ' active' : ''}`}
+            style={{ background: customThumbBg }}
+            onClick={() => setPickerOpen(true)}
+          >
+            {isCustomActive
+              ? <span className="sg-swatch-check-lg">✓</span>
+              : <span className="preset-tile-label">Custom</span>
+            }
+          </div>
+        </div>
+
+        {/* Gradient toggle — always visible */}
+        <div className="settings-gradient-row">
+          <span className="settings-gradient-label">Gradient Effect</span>
+          <button
+            role="switch"
+            aria-checked={gradientOn}
+            className={`sg-form-switch${gradientOn ? ' sg-form-switch--on' : ''}`}
+            onClick={handleGradientToggle}
+          >
+            <span className="sg-form-switch-thumb" />
+          </button>
+        </div>
+      </section>
+
+      {/* Global Dimming */}
+      <section className="settings-section">
+        <div className="settings-section-label">Global Dimming</div>
+        <div className="settings-slider-row">
+          <input
+            type="range"
+            min={0} max={100} step={5}
+            value={dimPct}
+            onChange={e => setConfig({ ...config, dimAmount: Number(e.target.value) / 100 })}
+          />
+          <span className="settings-slider-val">{dimPct}%</span>
         </div>
       </section>
 
       {/* Custom image / GIF */}
-      <section className="bg-section">
-        <div className="bg-section-label">Custom Image / GIF</div>
+      <section className="settings-section" style={{ paddingBottom: 12 }}>
+        <div className="settings-section-label">Custom Image / GIF</div>
         {customImageUrl ? (
           <div className="bg-custom-preview">
             <img src={customImageUrl} className="bg-custom-thumb" alt="custom background" />
@@ -129,11 +198,11 @@ export default function BackgroundEditor() {
             {(config.scalingMode ?? 'fit') === 'fit' && (
               <div className="bg-scaling-row">
                 <span className="bg-scaling-label">Bar color</span>
-                <input
-                  type="color"
+                <button
+                  ref={letterboxBtnRef}
                   className="bg-color-swatch bg-letterbox-swatch"
-                  value={config.letterboxColor ?? '#000000'}
-                  onChange={e => setConfig({ ...config, letterboxColor: e.target.value })}
+                  style={{ background: config.letterboxColor ?? '#000000' }}
+                  onClick={() => setLbPickerOpen(true)}
                 />
                 <span className="bg-color-hint">{config.letterboxColor ?? '#000000'}</span>
               </div>
@@ -142,21 +211,21 @@ export default function BackgroundEditor() {
         )}
       </section>
 
-      {/* Dim overlay */}
-      <section className="bg-section">
-        <div className="bg-section-label">Dim</div>
-        <div className="bg-dim-row">
-          <input
-            type="range"
-            className="bg-dim-slider"
-            min={0} max={90} step={5}
-            value={dimPct}
-            onChange={e => setConfig({ ...config, dimAmount: Number(e.target.value) / 100 })}
-          />
-          <span className="bg-dim-val">{dimPct}%</span>
-        </div>
-      </section>
+      <CustomColorPicker
+        value={config.letterboxColor ?? '#000000'}
+        onChange={hex => setConfig({ ...config, letterboxColor: hex })}
+        anchorRef={letterboxBtnRef}
+        open={lbPickerOpen}
+        onClose={() => setLbPickerOpen(false)}
+      />
 
+      <CustomColorPicker
+        value={pickerValue}
+        onChange={handleCustomColorPick}
+        anchorRef={customSwatchRef}
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+      />
     </div>
   );
 }

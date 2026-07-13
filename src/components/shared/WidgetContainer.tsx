@@ -3,27 +3,23 @@ import { createPortal } from 'react-dom';
 import { useFloating, flip, shift, offset, autoUpdate } from '@floating-ui/react';
 import { useEditMode } from '../../contexts/EditModeContext';
 import { useWidgets } from '../../contexts/WidgetContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { darkenHex } from '../../lib/colorUtils';
 import { dragState } from '../../lib/dragState';
 import type { Widget } from '../../types/widget';
 import { WIDGET_REGISTRY } from '../widgets/registry';
+import SwatchPicker from './SwatchPicker';
 import './WidgetContainer.css';
 
 const CELL = 120;
 const GAP  = 12;
-
-function hexToRgba(hex: string, alpha: number): string {
-  const h = hex.replace('#', '');
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
 
 interface Props { widget: Widget; }
 
 export default function WidgetContainer({ widget }: Props) {
   const { isEditMode } = useEditMode();
   const { removeWidget, updateWidget } = useWidgets();
+  const { globalColor, globalOpacity, globalDim, globalGradient } = useTheme();
   const elRef = useRef<HTMLDivElement>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [resizePreview, setResizePreview] = useState<{ w: number; h: number } | null>(null);
@@ -114,9 +110,23 @@ export default function WidgetContainer({ widget }: Props) {
     updateWidget(widget.id, { data: { ...widget.data, ...patch } });
   };
 
-  const opacityPct = Math.round((widget.bgOpacity ?? 1) * 100);
-  const bgStyle    = widget.bgColor
-    ? { background: hexToRgba(widget.bgColor, widget.bgOpacity ?? 1) }
+  const overrideEnabled      = widget.localOverrideEnabled  ?? false;
+  const localGradientEnabled = widget.localGradientOverride ?? false;
+  const localOpacityPct     = Math.round((widget.bgOpacity ?? globalOpacity) * 100);
+  const localDimPct         = Math.round(widget.bgDim ?? globalDim);
+  const effectiveColor      = widget.bgColor ?? globalColor;
+
+  // Local override: set CSS variables on the element so ::before / ::after pick them up.
+  // --widget-bg-preset-css overrides the `:root` preset (or formula fallback) for this widget only.
+  const localOverrideStyle: React.CSSProperties = overrideEnabled
+    ? (() => {
+        const colorEnd = localGradientEnabled ? darkenHex(effectiveColor) : effectiveColor;
+        return {
+          '--widget-bg-preset-css': `linear-gradient(135deg, ${effectiveColor}, ${colorEnd})`,
+          '--widget-bg-opacity':    String(widget.bgOpacity ?? globalOpacity),
+          '--widget-dim':           String(widget.bgDim ?? globalDim),
+        } as React.CSSProperties;
+      })()
     : {};
 
   // ── Floating panel (portalled) ────────────────────────────────────────────
@@ -139,28 +149,59 @@ export default function WidgetContainer({ widget }: Props) {
       {/* Appearance section — shared across all widgets */}
       <div className="sg-widget-float-divider" />
       <div className="sg-widget-appearance">
-        <span className="sg-widget-appearance-label">Widget Background</span>
         <div className="sg-widget-appearance-row">
-          <input
-            type="color"
-            value={widget.bgColor ?? '#1a1d2e'}
-            onChange={e => updateWidget(widget.id, { bgColor: e.target.value })}
+          <span className="sg-widget-appearance-label">Override global style</span>
+          <button
+            role="switch"
+            aria-checked={overrideEnabled}
+            className={`sg-form-switch${overrideEnabled ? ' sg-form-switch--on' : ''}`}
+            onClick={() => updateWidget(widget.id, { localOverrideEnabled: !overrideEnabled })}
             onPointerDown={e => e.stopPropagation()}
-            title="Background color"
-          />
-          <input
-            type="range" min={0} max={100} value={opacityPct}
-            onChange={e => updateWidget(widget.id, { bgOpacity: Number(e.target.value) / 100 })}
-            onPointerDown={e => e.stopPropagation()}
-            title="Opacity"
-          />
-          <span className="sg-widget-appearance-val">{opacityPct}%</span>
-          {widget.bgColor && (
-            <button className="sg-widget-appearance-reset"
-              onClick={() => updateWidget(widget.id, { bgColor: undefined, bgOpacity: undefined })}
-              title="Reset to default">✕</button>
-          )}
+          >
+            <span className="sg-form-switch-thumb" />
+          </button>
         </div>
+
+        {overrideEnabled && (
+          <>
+            <div className="sg-widget-appearance-row">
+              <span className="sg-widget-appearance-label">Gradient effect</span>
+              <button
+                role="switch"
+                aria-checked={localGradientEnabled}
+                className={`sg-form-switch${localGradientEnabled ? ' sg-form-switch--on' : ''}`}
+                onClick={() => updateWidget(widget.id, { localGradientOverride: !localGradientEnabled })}
+                onPointerDown={e => e.stopPropagation()}
+              >
+                <span className="sg-form-switch-thumb" />
+              </button>
+            </div>
+            <SwatchPicker
+              value={widget.bgColor ?? globalColor}
+              onChange={color => updateWidget(widget.id, { bgColor: color })}
+            />
+            <div className="sg-widget-appearance-row">
+              <span className="sg-widget-appearance-label">Dimming</span>
+              <input
+                type="range" min={0} max={80} value={localDimPct}
+                onChange={e => updateWidget(widget.id, { bgDim: Number(e.target.value) })}
+                onPointerDown={e => e.stopPropagation()}
+                title="Dimming"
+              />
+              <span className="sg-widget-appearance-val">{localDimPct}%</span>
+            </div>
+            <div className="sg-widget-appearance-row">
+              <span className="sg-widget-appearance-label">Opacity</span>
+              <input
+                type="range" min={0} max={100} value={localOpacityPct}
+                onChange={e => updateWidget(widget.id, { bgOpacity: Number(e.target.value) / 100 })}
+                onPointerDown={e => e.stopPropagation()}
+                title="Opacity"
+              />
+              <span className="sg-widget-appearance-val">{localOpacityPct}%</span>
+            </div>
+          </>
+        )}
       </div>
     </div>,
     document.body
@@ -181,7 +222,7 @@ export default function WidgetContainer({ widget }: Props) {
         style={{
           gridColumn: `${widget.col} / span ${displayW}`,
           gridRow:    `${widget.row} / span ${displayH}`,
-          ...bgStyle,
+          ...localOverrideStyle,
         }}
       >
         {hasSettings && (
