@@ -8,8 +8,8 @@ export interface QuickLink {
   id: string;
   url: string;
   title?: string;
-  customIcon?: string;             // data-URL (upload), external URL (custom-url), or legacy emoji
-  iconSource?: 'auto' | 'custom-url' | 'upload';  // default 'auto'
+  customIcon?: string;
+  iconSource?: 'auto' | 'custom-url' | 'upload';
   showTitle: boolean;
 }
 
@@ -35,18 +35,42 @@ export interface GmailData {
 export interface CalendarData {
   maxDays: number;
   showAllDay: boolean;
+  viewMode?: 'agenda' | 'monthly';
 }
 
-export interface Widget {
-  id: string;
-  type: 'placeholder' | 'clock' | 'quicklinks' | 'bookmarks' | 'background' | 'gmail' | 'calendar';
-  col: number;  // 1-based CSS Grid column
-  row: number;  // 1-based CSS Grid row
-  w: number;    // column span
-  h: number;    // row span
-  bgColor?: string;         // hex color for widget surface, e.g. '#1a1d2e'
-  bgOpacity?: number;       // 0.0–1.0, default 1
-  invertText?: boolean;     // invert text/title colors in widget content
-  invertFavicons?: boolean; // invert favicon/icon images in widget content
-  data: Record<string, unknown>;
+export interface PlaceholderData {
+  title?: string;
 }
+
+// Maps each widget type string to its strongly-typed data interface.
+export interface WidgetDataMap {
+  clock:       ClockData;
+  quicklinks:  QuicklinksData;
+  bookmarks:   BookmarksData;
+  gmail:       GmailData;
+  calendar:    CalendarData;
+  placeholder: PlaceholderData;
+}
+
+export type WidgetType = keyof WidgetDataMap;
+
+interface WidgetBase {
+  id: string;
+  col: number;
+  row: number;
+  w: number;
+  h: number;
+  bgColor?: string;
+  bgOpacity?: number;
+  invertText?: boolean;
+  invertFavicons?: boolean;
+}
+
+// Discriminated union — TypeScript narrows `data` automatically when `type` is checked.
+export type Widget =
+  | (WidgetBase & { type: 'clock';       data: ClockData })
+  | (WidgetBase & { type: 'quicklinks';  data: QuicklinksData })
+  | (WidgetBase & { type: 'bookmarks';   data: BookmarksData })
+  | (WidgetBase & { type: 'gmail';       data: GmailData })
+  | (WidgetBase & { type: 'calendar';    data: CalendarData })
+  | (WidgetBase & { type: 'placeholder'; data: PlaceholderData });

@@ -4,21 +4,9 @@ import { useFloating, flip, shift, offset, autoUpdate } from '@floating-ui/react
 import { useEditMode } from '../../contexts/EditModeContext';
 import { useWidgets } from '../../contexts/WidgetContext';
 import { dragState } from '../../lib/dragState';
-import type { Widget, ClockData, QuicklinksData, BookmarksData, GmailData, CalendarData } from '../../types/widget';
-import Clock from '../widgets/Clock/Clock';
-import { ClockSettings } from '../widgets/Clock/Clock';
-import Quicklinks from '../widgets/Quicklinks/Quicklinks';
-import { QuicklinksSettings } from '../widgets/Quicklinks/Quicklinks';
-import Bookmarks from '../widgets/Bookmarks/Bookmarks';
-import { BookmarksSettings } from '../widgets/Bookmarks/Bookmarks';
-import Gmail from '../widgets/Gmail/Gmail';
-import { GmailSettings } from '../widgets/Gmail/Gmail';
-import Calendar from '../widgets/Calendar/Calendar';
-import { CalendarSettings } from '../widgets/Calendar/Calendar';
-import WidgetPlaceholder from './WidgetPlaceholder';
+import type { Widget } from '../../types/widget';
+import { WIDGET_REGISTRY } from '../widgets/registry';
 import './WidgetContainer.css';
-
-const HAS_SETTINGS: Widget['type'][] = ['clock', 'quicklinks', 'bookmarks', 'gmail', 'calendar'];
 
 const CELL = 120;
 const GAP  = 12;
@@ -43,6 +31,11 @@ export default function WidgetContainer({ widget }: Props) {
   const displayW = resizePreview?.w ?? widget.w;
   const displayH = resizePreview?.h ?? widget.h;
 
+  // ── Registry lookup ───────────────────────────────────────────────────────
+
+  const entry      = WIDGET_REGISTRY[widget.type];
+  const hasSettings = entry.renderSettings !== null;
+
   // ── Floating panel positioning ────────────────────────────────────────────
 
   const { refs, floatingStyles } = useFloating({
@@ -61,9 +54,8 @@ export default function WidgetContainer({ widget }: Props) {
     if (!settingsOpen) return;
     const handler = (e: PointerEvent) => {
       const target = e.target as Node;
-      const insideWidget   = elRef.current?.contains(target);
-      const insideFloating = refs.floating.current?.contains(target);
-      if (!insideWidget && !insideFloating) setSettingsOpen(false);
+      if (!elRef.current?.contains(target) && !refs.floating.current?.contains(target))
+        setSettingsOpen(false);
     };
     document.addEventListener('pointerdown', handler, { capture: true });
     return () => document.removeEventListener('pointerdown', handler, { capture: true });
@@ -93,117 +85,39 @@ export default function WidgetContainer({ widget }: Props) {
     e.preventDefault();
     const handle = e.currentTarget;
     handle.setPointerCapture(e.pointerId);
+    const startX = e.clientX, startY = e.clientY;
+    const startW = widget.w, startH = widget.h;
+    const maxW = 9 - widget.col;
+    const step = CELL + GAP;
 
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startW = widget.w;
-    const startH = widget.h;
-    const maxW   = 9 - widget.col;
-    const step   = CELL + GAP;
+    const calc = (ev: PointerEvent) => ({
+      w: Math.max(1, Math.min(maxW, Math.round((startW * step - GAP + ev.clientX - startX + GAP / 2) / step))),
+      h: Math.max(1,              Math.round((startH * step - GAP + ev.clientY - startY + GAP / 2) / step)),
+    });
 
-    const onMove = (ev: PointerEvent) => {
-      const newW = Math.max(1, Math.min(maxW, Math.round((startW * step - GAP + ev.clientX - startX + GAP / 2) / step)));
-      const newH = Math.max(1,              Math.round((startH * step - GAP + ev.clientY - startY + GAP / 2) / step));
-      setResizePreview({ w: newW, h: newH });
-    };
-
-    const onUp = (ev: PointerEvent) => {
+    const onMove = (ev: PointerEvent) => setResizePreview(calc(ev));
+    const onUp   = (ev: PointerEvent) => {
       handle.removeEventListener('pointermove', onMove);
       handle.removeEventListener('pointerup', onUp);
-      const finalW = Math.max(1, Math.min(maxW, Math.round((startW * step - GAP + ev.clientX - startX + GAP / 2) / step)));
-      const finalH = Math.max(1,              Math.round((startH * step - GAP + ev.clientY - startY + GAP / 2) / step));
-      updateWidget(widget.id, { w: finalW, h: finalH });
+      const { w, h } = calc(ev);
+      updateWidget(widget.id, { w, h });
       setResizePreview(null);
     };
-
     handle.addEventListener('pointermove', onMove);
     handle.addEventListener('pointerup', onUp);
   };
 
   // ── Data update helper ────────────────────────────────────────────────────
 
-  const handleUpdateData = (patch: Record<string, unknown>) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleUpdateData = (patch: any) => {
     updateWidget(widget.id, { data: { ...widget.data, ...patch } });
   };
 
-  const hasSettings = HAS_SETTINGS.includes(widget.type);
-  const opacityPct  = Math.round((widget.bgOpacity ?? 1) * 100);
-
-  const bgStyle = widget.bgColor
+  const opacityPct = Math.round((widget.bgOpacity ?? 1) * 100);
+  const bgStyle    = widget.bgColor
     ? { background: hexToRgba(widget.bgColor, widget.bgOpacity ?? 1) }
     : {};
-
-  // ── Widget content (always rendered normally) ─────────────────────────────
-
-  const widgetContent = (
-    <>
-      {widget.type === 'clock' && (
-        <Clock data={widget.data as unknown as ClockData} onUpdateData={handleUpdateData} />
-      )}
-      {widget.type === 'quicklinks' && (
-        <Quicklinks
-          key={`${widget.w}-${widget.h}`}
-          data={widget.data as unknown as QuicklinksData}
-          onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
-        />
-      )}
-      {widget.type === 'bookmarks' && (
-        <Bookmarks
-          data={widget.data as unknown as BookmarksData}
-          onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
-        />
-      )}
-      {widget.type === 'gmail' && (
-        <Gmail
-          data={widget.data as unknown as GmailData}
-          onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
-        />
-      )}
-      {widget.type === 'calendar' && (
-        <Calendar
-          data={widget.data as unknown as CalendarData}
-          onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
-        />
-      )}
-      {widget.type === 'placeholder' && <WidgetPlaceholder widget={widget} />}
-    </>
-  );
-
-  // ── Widget-specific settings content ──────────────────────────────────────
-
-  const widgetSettings = (() => {
-    if (widget.type === 'clock') return (
-      <ClockSettings
-        data={widget.data as unknown as ClockData}
-        onUpdateData={handleUpdateData}
-      />
-    );
-    if (widget.type === 'quicklinks') return (
-      <QuicklinksSettings
-        data={widget.data as unknown as QuicklinksData}
-        onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
-      />
-    );
-    if (widget.type === 'bookmarks') return (
-      <BookmarksSettings
-        data={widget.data as unknown as BookmarksData}
-        onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
-      />
-    );
-    if (widget.type === 'gmail') return (
-      <GmailSettings
-        data={widget.data as unknown as GmailData}
-        onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
-      />
-    );
-    if (widget.type === 'calendar') return (
-      <CalendarSettings
-        data={widget.data as unknown as CalendarData}
-        onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
-      />
-    );
-    return null;
-  })();
 
   // ── Floating panel (portalled) ────────────────────────────────────────────
 
@@ -216,17 +130,13 @@ export default function WidgetContainer({ widget }: Props) {
     >
       <div className="sg-widget-float-header">
         <span className="sg-widget-float-title">Widget Settings</span>
-        <button
-          className="sg-widget-float-close"
-          onClick={() => setSettingsOpen(false)}
-          title="Close"
-        >✕</button>
+        <button className="sg-widget-float-close" onClick={() => setSettingsOpen(false)} title="Close">✕</button>
       </div>
 
-      {/* Widget-specific settings */}
-      {widgetSettings}
+      {/* Widget-specific settings — resolved from registry */}
+      {entry.renderSettings?.(widget.data, handleUpdateData)}
 
-      {/* Appearance section */}
+      {/* Appearance section — shared across all widgets */}
       <div className="sg-widget-float-divider" />
       <div className="sg-widget-appearance">
         <span className="sg-widget-appearance-label">Widget Background</span>
@@ -239,20 +149,16 @@ export default function WidgetContainer({ widget }: Props) {
             title="Background color"
           />
           <input
-            type="range"
-            min={0} max={100}
-            value={opacityPct}
+            type="range" min={0} max={100} value={opacityPct}
             onChange={e => updateWidget(widget.id, { bgOpacity: Number(e.target.value) / 100 })}
             onPointerDown={e => e.stopPropagation()}
             title="Opacity"
           />
           <span className="sg-widget-appearance-val">{opacityPct}%</span>
           {widget.bgColor && (
-            <button
-              className="sg-widget-appearance-reset"
+            <button className="sg-widget-appearance-reset"
               onClick={() => updateWidget(widget.id, { bgColor: undefined, bgOpacity: undefined })}
-              title="Reset to default"
-            >✕</button>
+              title="Reset to default">✕</button>
           )}
         </div>
         <div className="sg-widget-appearance-row">
@@ -292,56 +198,43 @@ export default function WidgetContainer({ widget }: Props) {
           ...bgStyle,
         }}
       >
-        {/* Gear button */}
         {hasSettings && (
           <button
             className={`sg-widget-gear${settingsOpen ? ' active' : ''}`}
             draggable={false}
             onPointerDown={e => e.stopPropagation()}
             onDragStart={e => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); setSettingsOpen(s => !s); }}
+            onClick={e => { e.stopPropagation(); setSettingsOpen(s => !s); }}
             title="Widget Settings"
           >⚙</button>
         )}
 
-        {/* Edit-mode controls bar */}
         {isEditMode && (
           <div className="sg-widget-controls" draggable={false} onDragStart={e => e.stopPropagation()}>
             <span className="sg-widget-size">{displayW}×{displayH}</span>
             <div className="sg-widget-actions">
-              <button
-                className="sg-widget-action danger"
+              <button className="sg-widget-action danger"
                 onPointerDown={e => e.stopPropagation()}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (window.confirm('Remove this widget?')) removeWidget(widget.id);
-                }}
-                title="Remove widget"
-              >✕</button>
+                onClick={e => { e.stopPropagation(); if (window.confirm('Remove this widget?')) removeWidget(widget.id); }}
+                title="Remove widget">✕</button>
             </div>
           </div>
         )}
 
-        {/* Widget body — always renders normally */}
-        <div
-          className={[
-            'sg-widget-body',
-            widget.invertText     ? 'sg-invert-text'     : '',
-            widget.invertFavicons ? 'sg-invert-favicons' : '',
-          ].filter(Boolean).join(' ')}
-        >
-          {widgetContent}
+        <div className={[
+          'sg-widget-body',
+          widget.invertText     ? 'sg-invert-text'     : '',
+          widget.invertFavicons ? 'sg-invert-favicons' : '',
+        ].filter(Boolean).join(' ')}>
+          {entry.renderComponent(widget.data, handleUpdateData)}
         </div>
 
-        {/* Resize handle */}
         {isEditMode && (
-          <div
-            className="sg-widget-resize"
+          <div className="sg-widget-resize"
             onPointerDown={handleResizeStart}
             draggable={false}
             onDragStart={e => e.stopPropagation()}
-            title="Resize"
-          />
+            title="Resize" />
         )}
       </div>
 
