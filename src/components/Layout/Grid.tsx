@@ -3,6 +3,8 @@ import { useEditMode } from '../../contexts/EditModeContext';
 import { useWidgets } from '../../contexts/WidgetContext';
 import { dragState } from '../../lib/dragState';
 import { findFreePosition, isPositionFree } from '../../lib/gridUtils';
+import type { WidgetType } from '../../types/widget';
+import { WIDGET_REGISTRY, WIDGET_MENU_TYPES } from '../widgets/registry';
 import WidgetContainer from '../shared/WidgetContainer';
 import SettingsPanel from './SettingsPanel';
 import './Grid.css';
@@ -14,21 +16,12 @@ const PADDING = 12;
 
 interface DropTarget { col: number; row: number; w: number; h: number; valid: boolean; }
 
-const WIDGET_MENU = [
-  { type: 'clock' as const,       label: 'Clock',        icon: '🕐', w: 2, h: 2, defaultData: { format: '24h', showSeconds: true, showDate: true } },
-  { type: 'quicklinks' as const,  label: 'Quicklinks',   icon: '🔗', w: 2, h: 2, defaultData: { links: [], layout: 'grid' } },
-  { type: 'bookmarks' as const,   label: 'Bookmarks',    icon: '🔖', w: 2, h: 2, defaultData: { folderId: '', layout: 'grid' } },
-  { type: 'gmail' as const,        label: 'Gmail',        icon: '✉', w: 2, h: 3, defaultData: { maxEmails: 5, showSnippets: true } },
-  { type: 'calendar' as const,    label: 'Calendar',     icon: '📅', w: 2, h: 3, defaultData: { maxDays: 3, showAllDay: true } },
-  { type: 'placeholder' as const, label: 'Placeholder',  icon: '⬜', w: 2, h: 2, defaultData: { title: 'New' } },
-];
-
 export default function Grid() {
   const { isEditMode, toggleEditMode } = useEditMode();
   const { widgets, addWidget, updateWidget, loaded } = useWidgets();
-  const gridRef  = useRef<HTMLDivElement>(null);
-  const [dropTarget,    setDropTarget]    = useState<DropTarget | null>(null);
-  const [addMenuOpen,      setAddMenuOpen]      = useState(false);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [dropTarget,        setDropTarget]        = useState<DropTarget | null>(null);
+  const [addMenuOpen,       setAddMenuOpen]       = useState(false);
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
 
   const cellFromPoint = (clientX: number, clientY: number) => {
@@ -63,9 +56,10 @@ export default function Grid() {
     if (!gridRef.current?.contains(e.relatedTarget as Node)) setDropTarget(null);
   };
 
-  const handleAddWidget = (item: typeof WIDGET_MENU[number]) => {
-    const { col, row } = findFreePosition(widgets, item.w, item.h);
-    addWidget({ type: item.type, col, row, w: item.w, h: item.h, data: item.defaultData });
+  const handleAddWidget = (type: WidgetType) => {
+    const { defaultSize, defaultData } = WIDGET_REGISTRY[type];
+    const { col, row } = findFreePosition(widgets, defaultSize.w, defaultSize.h);
+    addWidget({ type, col, row, w: defaultSize.w, h: defaultSize.h, data: defaultData });
     setAddMenuOpen(false);
   };
 
@@ -78,16 +72,20 @@ export default function Grid() {
             <div className="sg-add-wrap">
               <button
                 className={`sg-btn-add${addMenuOpen ? ' active' : ''}`}
-                onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); setAddMenuOpen(s => !s); setSettingsPanelOpen(false); }}
+                onPointerDown={e => { e.stopPropagation(); e.preventDefault(); setAddMenuOpen(s => !s); setSettingsPanelOpen(false); }}
               >＋ Widget</button>
               {addMenuOpen && (
                 <div className="sg-add-menu">
-                  {WIDGET_MENU.map(item => (
-                    <button key={item.type} className="sg-add-item" onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); handleAddWidget(item); }}>
-                      <span className="sg-add-icon">{item.icon}</span>
-                      {item.label}
-                    </button>
-                  ))}
+                  {WIDGET_MENU_TYPES.map(type => {
+                    const { label, icon } = WIDGET_REGISTRY[type];
+                    return (
+                      <button key={type} className="sg-add-item"
+                        onPointerDown={e => { e.stopPropagation(); e.preventDefault(); handleAddWidget(type); }}>
+                        <span className="sg-add-icon">{icon}</span>
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -95,27 +93,20 @@ export default function Grid() {
           {isEditMode && <span className="sg-edit-hint">Drag to move</span>}
           <button
             className={`sg-btn-edit${settingsPanelOpen ? ' active' : ''}`}
-            onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); setSettingsPanelOpen(s => !s); setAddMenuOpen(false); }}
+            onPointerDown={e => { e.stopPropagation(); e.preventDefault(); setSettingsPanelOpen(s => !s); setAddMenuOpen(false); }}
             title="Settings"
-          >
-            ⚙ Settings
-          </button>
+          >⚙ Settings</button>
           <button
             className={`sg-btn-edit${isEditMode ? ' active' : ''}`}
             onPointerDown={() => { setAddMenuOpen(false); setSettingsPanelOpen(false); toggleEditMode(); }}
             title="Edit mode (Ctrl+E)"
-          >
-            {isEditMode ? '🔒 Lock' : '🔓 Unlock'}
-          </button>
+          >{isEditMode ? '🔒 Lock' : '🔓 Unlock'}</button>
         </div>
       </header>
 
       {settingsPanelOpen && <SettingsPanel onClose={() => setSettingsPanelOpen(false)} />}
 
-      <main
-        className="sg-grid-wrapper"
-        onClick={() => { setAddMenuOpen(false); setSettingsPanelOpen(false); }}
-      >
+      <main className="sg-grid-wrapper" onClick={() => { setAddMenuOpen(false); setSettingsPanelOpen(false); }}>
         <div
           ref={gridRef}
           className="sg-grid"
@@ -123,16 +114,11 @@ export default function Grid() {
           onDrop={isEditMode ? handleDrop : undefined}
           onDragLeave={isEditMode ? handleDragLeave : undefined}
         >
-          {loaded && widgets.map(widget => (
-            <WidgetContainer key={widget.id} widget={widget} />
-          ))}
+          {loaded && widgets.map(widget => <WidgetContainer key={widget.id} widget={widget} />)}
           {isEditMode && dropTarget && (
             <div
               className={`sg-drop-ghost${dropTarget.valid ? '' : ' sg-drop-ghost--invalid'}`}
-              style={{
-                gridColumn: `${dropTarget.col} / span ${dropTarget.w}`,
-                gridRow:    `${dropTarget.row} / span ${dropTarget.h}`,
-              }}
+              style={{ gridColumn: `${dropTarget.col} / span ${dropTarget.w}`, gridRow: `${dropTarget.row} / span ${dropTarget.h}` }}
             />
           )}
         </div>

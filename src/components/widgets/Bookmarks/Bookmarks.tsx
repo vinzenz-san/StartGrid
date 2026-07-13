@@ -1,16 +1,12 @@
 import { useState, useEffect } from 'react';
 import type { BookmarksData } from '../../../types/widget';
+import { SettingsRow, SegmentedControl } from '../../shared/Form';
 import './Bookmarks.css';
 
 const isExtension = typeof chrome !== 'undefined' && !!chrome.storage;
 
 function hostnameOf(url: string): string {
-  try {
-    const { hostname } = new URL(url);
-    return hostname;
-  } catch {
-    return '';
-  }
+  try { return new URL(url).hostname; } catch { return ''; }
 }
 
 function faviconChain(hostname: string): string[] {
@@ -22,37 +18,22 @@ function faviconChain(hostname: string): string[] {
   ];
 }
 
-// ── Types ──────────────────────────────────────────────────────────────────
-
-interface BmNode {
-  id: string;
-  title: string;
-  url?: string;
-  children?: BmNode[];
-}
-
+interface BmNode { id: string; title: string; url?: string; children?: BmNode[]; }
 interface NavEntry { id: string; name: string; }
 
-// ── Folder tree picker (settings) ─────────────────────────────────────────
+// ── Folder tree ────────────────────────────────────────────────────────────
 
-interface FolderNodeProps {
-  node: BmNode;
-  selectedId: string;
-  onSelect: (id: string, name: string) => void;
-  depth: number;
-}
-
-function FolderNode({ node, selectedId, onSelect, depth }: FolderNodeProps) {
+function FolderNode({ node, selectedId, onSelect, depth }: {
+  node: BmNode; selectedId: string;
+  onSelect: (id: string, name: string) => void; depth: number;
+}) {
   const [open, setOpen] = useState(depth < 2);
   const folders = node.children?.filter(c => !c.url) ?? [];
   if (!node.id) return null;
-
   return (
     <div className="sg-bm-folder-node" style={{ paddingLeft: depth > 0 ? 12 : 0 }}>
-      <div
-        className={`sg-bm-folder-row${selectedId === node.id ? ' selected' : ''}`}
-        onClick={() => onSelect(node.id, node.title)}
-      >
+      <div className={`sg-bm-folder-row${selectedId === node.id ? ' selected' : ''}`}
+        onClick={() => onSelect(node.id, node.title)}>
         {folders.length > 0 && (
           <span className="sg-bm-folder-toggle" onClick={e => { e.stopPropagation(); setOpen(s => !s); }}>
             {open ? '▾' : '▸'}
@@ -68,7 +49,7 @@ function FolderNode({ node, selectedId, onSelect, depth }: FolderNodeProps) {
   );
 }
 
-// ── Settings panel ─────────────────────────────────────────────────────────
+// ── Settings ───────────────────────────────────────────────────────────────
 
 interface SettingsProps {
   data: BookmarksData;
@@ -78,48 +59,33 @@ interface SettingsProps {
 export function BookmarksSettings({ data, onUpdateData }: SettingsProps) {
   const [tree, setTree] = useState<BmNode[]>([]);
   const [loading, setLoading] = useState(true);
+  const iconSize = data.iconSize ?? 'medium';
 
   useEffect(() => {
     if (!isExtension) { setLoading(false); return; }
     import('webextension-polyfill').then(({ default: browser }) => {
-      browser.bookmarks.getTree().then(nodes => {
-        setTree(nodes as BmNode[]);
-        setLoading(false);
-      });
+      browser.bookmarks.getTree().then(nodes => { setTree(nodes as BmNode[]); setLoading(false); });
     });
   }, []);
 
-  const iconSize = data.iconSize ?? 'medium';
-
   return (
     <div className="sg-bm-settings" onClick={e => e.stopPropagation()}>
-
-      <div className="sg-bm-settings-row">
-        <span className="sg-bm-settings-label">Layout</span>
-        <div className="sg-bm-toggle-group">
-          {(['grid', 'list'] as const).map(v => (
-            <button key={v} className={`sg-bm-toggle-btn${data.layout === v ? ' active' : ''}`}
-              onClick={() => onUpdateData({ layout: v })}>
-              {v === 'grid' ? 'Grid' : 'List'}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="sg-bm-settings-row">
-        <span className="sg-bm-settings-label">Icon size</span>
-        <div className="sg-bm-toggle-group">
-          {(['small', 'medium', 'large'] as const).map(v => (
-            <button key={v} className={`sg-bm-toggle-btn${iconSize === v ? ' active' : ''}`}
-              onClick={() => onUpdateData({ iconSize: v })}>
-              {v === 'small' ? 'S' : v === 'medium' ? 'M' : 'L'}
-            </button>
-          ))}
-        </div>
-      </div>
+      <SettingsRow label="Layout">
+        <SegmentedControl
+          options={[{ value: 'grid', label: 'Grid' }, { value: 'list', label: 'List' }]}
+          value={data.layout ?? 'grid'}
+          onChange={v => onUpdateData({ layout: v })}
+        />
+      </SettingsRow>
+      <SettingsRow label="Icon size">
+        <SegmentedControl
+          options={[{ value: 'small', label: 'S' }, { value: 'medium', label: 'M' }, { value: 'large', label: 'L' }]}
+          value={iconSize}
+          onChange={v => onUpdateData({ iconSize: v })}
+        />
+      </SettingsRow>
 
       <span className="sg-bm-settings-label">Root folder</span>
-
       {!isExtension ? (
         <p className="sg-bm-unavailable">Bookmarks are only available in the Firefox extension.</p>
       ) : loading ? (
@@ -128,8 +94,7 @@ export function BookmarksSettings({ data, onUpdateData }: SettingsProps) {
         <div className="sg-bm-folder-tree">
           {tree[0]?.children?.map(n => (
             <FolderNode key={n.id} node={n} selectedId={data.folderId}
-              onSelect={(id, name) => onUpdateData({ folderId: id, folderName: name })}
-              depth={0} />
+              onSelect={(id, name) => onUpdateData({ folderId: id, folderName: name })} depth={0} />
           ))}
         </div>
       )}
@@ -137,54 +102,32 @@ export function BookmarksSettings({ data, onUpdateData }: SettingsProps) {
   );
 }
 
-// ── Single item (bookmark or folder) ──────────────────────────────────────
+// ── Single item ────────────────────────────────────────────────────────────
 
-interface BmItemProps {
-  node: BmNode;
-  iconSize: 'small' | 'medium' | 'large';
+function BmItem({ node, iconSize, onFolderClick }: {
+  node: BmNode; iconSize: 'small' | 'medium' | 'large';
   onFolderClick?: (node: BmNode) => void;
-}
-
-function BmItem({ node, iconSize, onFolderClick }: BmItemProps) {
+}) {
   const [faviconIdx, setFaviconIdx] = useState(0);
   const isFolder = !node.url;
   const title = node.title || (node.url ? (() => { try { return new URL(node.url!).hostname; } catch { return node.url!; } })() : '');
-
-  const hostname = node.url ? hostnameOf(node.url) : '';
-  const chain = faviconChain(hostname);
+  const chain = faviconChain(node.url ? hostnameOf(node.url) : '');
   const faviconSrc = chain[faviconIdx] ?? null;
-
   const showFaviconImg = !isFolder && !!faviconSrc;
 
   const content = (
     <>
       <span className={`sg-bm-icon sg-bm-icon--${iconSize}${showFaviconImg ? ' sg-bm-icon--favicon' : ''}`}>
-        {isFolder ? (
-          <span className="sg-bm-folder-emoji">📁</span>
-        ) : faviconSrc ? (
-          <img src={faviconSrc} alt="" onError={() => setFaviconIdx(i => i + 1)} />
-        ) : (
-          <span className="sg-bm-fallback">{title.charAt(0).toUpperCase()}</span>
-        )}
+        {isFolder ? <span className="sg-bm-folder-emoji">📁</span>
+          : faviconSrc ? <img src={faviconSrc} alt="" onError={() => setFaviconIdx(i => i + 1)} />
+          : <span className="sg-bm-fallback">{title.charAt(0).toUpperCase()}</span>}
       </span>
       <span className="sg-bm-title">{title}</span>
     </>
   );
 
-  if (isFolder) {
-    return (
-      <div className="sg-bm-link sg-bm-link--folder" title={title}
-        onClick={() => onFolderClick?.(node)}>
-        {content}
-      </div>
-    );
-  }
-
-  return (
-    <a className="sg-bm-link" href={node.url} title={title}>
-      {content}
-    </a>
-  );
+  if (isFolder) return <div className="sg-bm-link sg-bm-link--folder" title={title} onClick={() => onFolderClick?.(node)}>{content}</div>;
+  return <a className="sg-bm-link" href={node.url} title={title}>{content}</a>;
 }
 
 // ── Main widget ────────────────────────────────────────────────────────────
@@ -198,7 +141,6 @@ export default function Bookmarks({ data, onUpdateData: _onUpdateData }: Props) 
   const [items, setItems] = useState<BmNode[]>([]);
   const [loading, setLoading] = useState(false);
   const [navStack, setNavStack] = useState<NavEntry[]>([]);
-
   const currentId = navStack.length > 0 ? navStack[navStack.length - 1].id : data.folderId;
 
   useEffect(() => { setNavStack([]); }, [data.folderId]);
@@ -207,46 +149,29 @@ export default function Bookmarks({ data, onUpdateData: _onUpdateData }: Props) 
     if (!currentId || !isExtension) return;
     setLoading(true);
     import('webextension-polyfill').then(({ default: browser }) => {
-      browser.bookmarks.getChildren(currentId).then(children => {
-        setItems(children as BmNode[]);
-        setLoading(false);
-      }).catch(() => setLoading(false));
+      browser.bookmarks.getChildren(currentId)
+        .then(children => { setItems(children as BmNode[]); setLoading(false); })
+        .catch(() => setLoading(false));
     });
   }, [currentId]);
 
-  if (!isExtension) {
-    return (
-      <div className="sg-bm sg-bm--empty">
-        <span className="sg-bm-empty-icon">🔖</span>
-        <span className="sg-bm-empty-text">Only available in the Firefox extension</span>
-      </div>
-    );
-  }
+  if (!isExtension) return (
+    <div className="sg-bm sg-bm--empty">
+      <span className="sg-bm-empty-icon">🔖</span>
+      <span className="sg-bm-empty-text">Only available in the Firefox extension</span>
+    </div>
+  );
 
-  if (!data.folderId) {
-    return (
-      <div className="sg-bm sg-bm--empty">
-        <span className="sg-bm-empty-icon">📁</span>
-        <span className="sg-bm-empty-text">Open ⚙ to pick a folder</span>
-      </div>
-    );
-  }
+  if (!data.folderId) return (
+    <div className="sg-bm sg-bm--empty">
+      <span className="sg-bm-empty-icon">📁</span>
+      <span className="sg-bm-empty-text">Open ⚙ to pick a folder</span>
+    </div>
+  );
 
-  const layout = data.layout ?? 'grid';
+  const layout   = data.layout   ?? 'grid';
   const iconSize = data.iconSize ?? 'medium';
-
-  const breadcrumb: NavEntry[] = [
-    { id: data.folderId, name: data.folderName || '📁' },
-    ...navStack,
-  ];
-
-  const navigate = (node: BmNode) => {
-    setNavStack(prev => [...prev, { id: node.id, name: node.title }]);
-  };
-
-  const breadcrumbTo = (idx: number) => {
-    setNavStack(prev => prev.slice(0, idx));
-  };
+  const breadcrumb: NavEntry[] = [{ id: data.folderId, name: data.folderName || '📁' }, ...navStack];
 
   return (
     <div className="sg-bm">
@@ -257,24 +182,23 @@ export default function Bookmarks({ data, onUpdateData: _onUpdateData }: Props) 
               {idx > 0 && <span className="sg-bm-breadcrumb-sep">›</span>}
               <button
                 className={`sg-bm-breadcrumb-btn${idx === breadcrumb.length - 1 ? ' current' : ''}`}
-                onClick={() => breadcrumbTo(idx)}
+                onClick={() => setNavStack(prev => prev.slice(0, idx))}
               >{entry.name}</button>
             </span>
           ))}
         </div>
       )}
-
       {loading ? (
         <div className="sg-bm sg-bm--empty"><span className="sg-bm-empty-text">Loading…</span></div>
       ) : (
         <div className={`sg-bm-links sg-bm-links--${layout}`}>
-          {items.length === 0 ? (
-            <span className="sg-bm-empty-text">Folder is empty</span>
-          ) : (
-            items.map(item => (
-              <BmItem key={item.id} node={item} iconSize={iconSize} onFolderClick={navigate} />
-            ))
-          )}
+          {items.length === 0
+            ? <span className="sg-bm-empty-text">Folder is empty</span>
+            : items.map(item => (
+                <BmItem key={item.id} node={item} iconSize={iconSize}
+                  onFolderClick={node => setNavStack(prev => [...prev, { id: node.id, name: node.title }])} />
+              ))
+          }
         </div>
       )}
     </div>
