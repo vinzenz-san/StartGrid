@@ -1,0 +1,166 @@
+.sg-root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Toolbar ─────────────────────────────────────── */
+.sg-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: var(--toolbar-h);
+  background: rgba(26, 29, 46, 0.85);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.sg-logo {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--accent-hover);
+}
+
+.sg-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sg-edit-hint {
+  font-size: 12px;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+.sg-btn-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.sg-btn-edit:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.sg-btn-edit.active {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent-hover);
+  border-color: var(--accent);
+}
+
+/* ── Grid ────────────────────────────────────────── */
+.sg-grid-wrapper {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  z-index: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.sg-grid {
+  display: grid;
+  /* Fixed 8-column layout: 8 cells + 7 inner gaps + 2 side paddings */
+  grid-template-columns: repeat(8, var(--cell));
+  grid-auto-rows: var(--cell);
+  gap: var(--gap);
+  padding: var(--gap);
+  align-content: start;
+  min-height: 100%;
+  width: calc(8 * var(--cell) + 9 * var(--gap));
+  flex-shrink: 0;
+}
+
+/* Edit-mode: dot-grid background */
+.sg-root--edit .sg-grid {
+  background-image: radial-gradient(circle, rgba(99,102,241,0.2) 1px, transparent 1px);
+  background-size: calc((100% - 12px) / 8) calc(var(--cell) + var(--gap));
+  background-position: calc(12px + (100% - 12px) / 16) calc(12px + var(--cell) / 2);
+}
+
+/* ── Add widget menu ─────────────────────────────── */
+.sg-add-wrap {
+  position: relative;
+}
+
+.sg-btn-add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid var(--accent);
+  color: var(--accent-hover);
+  transition: background 0.15s;
+  cursor: pointer;
+}
+
+.sg-btn-add:hover,
+.sg-btn-add.active { background: rgba(99, 102, 241, 0.28); }
+
+.sg-add-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 160px;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.sg-add-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.12s;
+  text-align: left;
+  width: 100%;
+}
+
+.sg-add-item:hover { background: var(--surface-hover); }
+
+.sg-add-icon { font-size: 16px; }
+
+/* ── Drop ghost ──────────────────────────────────── */
+.sg-drop-ghost {
+  border-radius: var(--radius);
+  background: rgba(99, 102, 241, 0.12);
+  border: 2px dashed var(--accent);
+  pointer-events: none;
+  transition: grid-column 0.05s, grid-row 0.05s;
+}
+
+.sg-drop-ghost--invalid {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: var(--danger);
+}

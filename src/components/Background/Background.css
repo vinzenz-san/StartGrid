@@ -1,0 +1,6 @@
+.sg-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  transition: background 0.4s ease;
+}
