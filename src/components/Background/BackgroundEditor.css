@@ -93,10 +93,15 @@
   font-size: 13px;
   transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
-.bg-upload-btn:hover {
+.bg-upload-btn:hover,
+.bg-upload-btn--drag-over {
   background: var(--surface-hover);
   border-color: var(--accent);
   color: var(--text);
+}
+
+.bg-upload-btn--drag-over {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .bg-upload-hint {
