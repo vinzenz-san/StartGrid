@@ -109,7 +109,10 @@
 .sg-ql-links--row  .sg-ql-link--large { width: 70px; }
 
 /* White container for favicon images so dark logos show on any background */
-.sg-ql-icon--favicon { background: rgba(255, 255, 255, 0.9); }
+.sg-ql-icon--favicon { background: transparent; }
+
+/* Optional per-link solid white badge (overrides the semi-transparent default) */
+.sg-ql-icon--white-badge { background: #ffffff; }
 
 /* ── Icon content ── */
 
@@ -119,7 +122,6 @@
 /* ── Title ── */
 
 .sg-ql-title {
-  font-size: 11px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -128,7 +130,9 @@
   line-height: 1.2;
 }
 
-.sg-ql-links--list .sg-ql-title { font-size: 12px; }
+.sg-ql-text--s { font-size: 9px; }
+.sg-ql-text--m { font-size: 11px; }
+.sg-ql-text--l { font-size: 13px; }
 
 /* ── Empty state ── */
 

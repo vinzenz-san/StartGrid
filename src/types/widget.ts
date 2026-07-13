@@ -11,6 +11,7 @@ export interface QuickLink {
   customIcon?: string;
   iconSource?: 'auto' | 'custom-url' | 'upload';
   showTitle: boolean;
+  showWhiteBadge?: boolean;
 }
 
 export interface QuicklinksData {
@@ -18,6 +19,7 @@ export interface QuicklinksData {
   layout: 'grid' | 'list';
   iconSize?: 'small' | 'medium' | 'large';
   showTitles?: boolean;
+  textSize?: 'S' | 'M' | 'L';
 }
 
 export interface BookmarksData {
@@ -62,8 +64,6 @@ interface WidgetBase {
   h: number;
   bgColor?: string;
   bgOpacity?: number;
-  invertText?: boolean;
-  invertFavicons?: boolean;
 }
 
 // Discriminated union — TypeScript narrows `data` automatically when `type` is checked.

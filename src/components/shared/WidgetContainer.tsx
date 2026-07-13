@@ -161,20 +161,6 @@ export default function WidgetContainer({ widget }: Props) {
               title="Reset to default">✕</button>
           )}
         </div>
-        <div className="sg-widget-appearance-row">
-          <button
-            className={`sg-widget-appearance-toggle${widget.invertText ? ' active' : ''}`}
-            onClick={() => updateWidget(widget.id, { invertText: !widget.invertText })}
-            onPointerDown={e => e.stopPropagation()}
-            title="Invert text colors"
-          >T̲ Text</button>
-          <button
-            className={`sg-widget-appearance-toggle${widget.invertFavicons ? ' active' : ''}`}
-            onClick={() => updateWidget(widget.id, { invertFavicons: !widget.invertFavicons })}
-            onPointerDown={e => e.stopPropagation()}
-            title="Invert favicon/icon colors"
-          >⬡ Icons</button>
-        </div>
       </div>
     </div>,
     document.body
@@ -221,11 +207,7 @@ export default function WidgetContainer({ widget }: Props) {
           </div>
         )}
 
-        <div className={[
-          'sg-widget-body',
-          widget.invertText     ? 'sg-invert-text'     : '',
-          widget.invertFavicons ? 'sg-invert-favicons' : '',
-        ].filter(Boolean).join(' ')}>
+        <div className="sg-widget-body">
           {entry.renderComponent(widget.data, handleUpdateData)}
         </div>
 

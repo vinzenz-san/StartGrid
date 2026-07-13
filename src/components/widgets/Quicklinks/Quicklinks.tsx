@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import type { QuickLink, QuicklinksData } from '../../../types/widget';
-import { SettingsRow, SegmentedControl } from '../../shared/Form';
+import { SettingsRow, SegmentedControl, SettingsSwitch } from '../../shared/Form';
 import './Quicklinks.css';
 
 function hostnameOf(url: string): string {
@@ -52,6 +52,8 @@ interface LinkItemProps {
   link: QuickLink;
   iconSize: 'small' | 'medium' | 'large';
   showTitle: boolean;
+  showWhiteBadge: boolean;
+  textSize: 'S' | 'M' | 'L';
 }
 
 const INTERNAL_URL = /^(about|chrome|edge|moz-extension):/i;
@@ -69,7 +71,7 @@ function openInternalUrl(url: string, newTab: boolean) {
   } else { clipboardFallback(url); }
 }
 
-function LinkItem({ link, iconSize, showTitle }: LinkItemProps) {
+function LinkItem({ link, iconSize, showTitle, showWhiteBadge, textSize }: LinkItemProps) {
   const [faviconIdx, setFaviconIdx] = useState(0);
   const [customImgError, setCustomImgError] = useState(false);
   const isInternal = INTERNAL_URL.test(link.url);
@@ -96,7 +98,7 @@ function LinkItem({ link, iconSize, showTitle }: LinkItemProps) {
   }
 
   const iconContent = (
-    <span className={`sg-ql-icon sg-ql-icon--${iconSize}${isFaviconImg ? ' sg-ql-icon--favicon' : ''}`}>
+    <span className={`sg-ql-icon sg-ql-icon--${iconSize}${isFaviconImg ? ' sg-ql-icon--favicon' : ''}${showWhiteBadge && isFaviconImg ? ' sg-ql-icon--white-badge' : ''}`}>
       {iconInner}
     </span>
   );
@@ -110,7 +112,7 @@ function LinkItem({ link, iconSize, showTitle }: LinkItemProps) {
         onClick={() => openInternalUrl(link.url, false)}
       >
         {iconContent}
-        {showTitle && <span className="sg-ql-title">{label}</span>}
+        {showTitle && <span className={`sg-ql-title sg-ql-text--${textSize.toLowerCase()}`}>{label}</span>}
       </button>
     );
   }
@@ -118,7 +120,7 @@ function LinkItem({ link, iconSize, showTitle }: LinkItemProps) {
   return (
     <a className={`sg-ql-link sg-ql-link--${iconSize}`} href={link.url} title={label}>
       {iconContent}
-      {showTitle && <span className="sg-ql-title">{label}</span>}
+      {showTitle && <span className={`sg-ql-title sg-ql-text--${textSize.toLowerCase()}`}>{label}</span>}
     </a>
   );
 }
@@ -137,6 +139,7 @@ export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
   const iconSize   = data.iconSize   ?? 'medium';
   const showTitles = data.showTitles ?? true;
   const layout     = data.layout     ?? 'grid';
+  const textSize   = data.textSize   ?? 'M';
 
   const updateLink = (id: string, patch: Partial<QuickLink>) =>
     onUpdateData({ links: data.links.map(l => l.id === id ? { ...l, ...patch } : l) });
@@ -190,6 +193,14 @@ export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
         />
       </SettingsRow>
 
+      <SettingsRow label="Text size">
+        <SegmentedControl
+          options={[{ value: 'S', label: 'S' }, { value: 'M', label: 'M' }, { value: 'L', label: 'L' }]}
+          value={textSize}
+          onChange={v => onUpdateData({ textSize: v as 'S' | 'M' | 'L' })}
+        />
+      </SettingsRow>
+
       <div className="sg-ql-link-list">
         {data.links.map((link, idx) => (
           <div key={link.id} className="sg-ql-link-row">
@@ -237,6 +248,13 @@ export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
                     )}
                   </div>
                 )}
+                <SettingsRow label="White badge">
+                  <SettingsSwitch
+                    checked={link.showWhiteBadge ?? false}
+                    onChange={v => updateLink(link.id, { showWhiteBadge: v })}
+                    label="Add white background badge"
+                  />
+                </SettingsRow>
                 <button className="sg-ql-action-btn" onClick={() => setEditingId(null)}>Done</button>
               </div>
             ) : (
@@ -281,6 +299,7 @@ export default function Quicklinks({ data, onUpdateData: _onUpdateData }: Props)
   const { links = [], layout = 'grid' } = data;
   const iconSize    = data.iconSize   ?? 'medium';
   const showTitles  = data.showTitles ?? true;
+  const textSize    = data.textSize   ?? 'M';
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [compact, setCompact] = useState(false);
@@ -308,7 +327,7 @@ export default function Quicklinks({ data, onUpdateData: _onUpdateData }: Props)
       ) : (
         <div className={`sg-ql-links sg-ql-links--${effectiveLayout}`}>
           {links.map(link => (
-            <LinkItem key={link.id} link={link} iconSize={effectiveIconSize} showTitle={effectiveShowTitles} />
+            <LinkItem key={link.id} link={link} iconSize={effectiveIconSize} showTitle={effectiveShowTitles} showWhiteBadge={link.showWhiteBadge ?? false} textSize={textSize} />
           ))}
         </div>
       )}
