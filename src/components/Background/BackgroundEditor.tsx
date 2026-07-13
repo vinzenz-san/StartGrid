@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useBackground } from '../../contexts/BackgroundContext';
 import { PRESETS, BackgroundMode } from '../../types/background';
 import './BackgroundEditor.css';
@@ -8,13 +8,11 @@ const SIZE_LIMIT_MB = 5;
 export default function BackgroundEditor() {
   const { config, customImageUrl, setConfig, setCustomImage, clearCustomImage } = useBackground();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [dragOver, setDragOver] = useState(false);
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const processFile = (file: File) => {
     if (file.size > SIZE_LIMIT_MB * 1024 * 1024) {
       alert(`Image must be under ${SIZE_LIMIT_MB} MB (got ${(file.size / 1024 / 1024).toFixed(1)} MB).`);
-      e.target.value = '';
       return;
     }
     const reader = new FileReader();
@@ -22,7 +20,20 @@ export default function BackgroundEditor() {
       if (typeof ev.target?.result === 'string') setCustomImage(ev.target.result);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processFile(file);
     e.target.value = '';
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) processFile(file);
   };
 
   const isActive = (mode: BackgroundMode, value = '') =>
@@ -83,10 +94,16 @@ export default function BackgroundEditor() {
             </div>
           </div>
         ) : (
-          <button className="bg-upload-btn" onClick={() => fileRef.current?.click()}>
+          <div
+            className={`bg-upload-btn${dragOver ? ' bg-upload-btn--drag-over' : ''}`}
+            onClick={() => fileRef.current?.click()}
+            onDragOver={e => { e.preventDefault(); e.stopPropagation(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={handleDrop}
+          >
             ＋ Upload image or GIF
-            <span className="bg-upload-hint">max {SIZE_LIMIT_MB} MB · jpg · png · gif · webp</span>
-          </button>
+            <span className="bg-upload-hint">drag & drop or click · max {SIZE_LIMIT_MB} MB · jpg · png · gif · webp</span>
+          </div>
         )}
         <input
           ref={fileRef}
@@ -102,14 +119,14 @@ export default function BackgroundEditor() {
               <span className="bg-scaling-label">Scaling</span>
               <select
                 className="bg-scaling-select"
-                value={config.scalingMode ?? 'cover'}
+                value={config.scalingMode ?? 'fit'}
                 onChange={e => setConfig({ ...config, scalingMode: e.target.value as 'cover' | 'fit' })}
               >
                 <option value="cover">Cover (crop to fill)</option>
                 <option value="fit">Fit (preserve ratio)</option>
               </select>
             </div>
-            {config.scalingMode === 'fit' && (
+            {(config.scalingMode ?? 'fit') === 'fit' && (
               <div className="bg-scaling-row">
                 <span className="bg-scaling-label">Bar color</span>
                 <input

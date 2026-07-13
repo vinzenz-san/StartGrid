@@ -4,7 +4,7 @@ import './Background.css';
 export default function Background() {
   const { backgroundCss, config } = useBackground();
   const dimAmount = config.dimAmount ?? 0;
-  const isFit = config.mode === 'custom' && config.scalingMode === 'fit';
+  const isFit = config.mode === 'custom' && (config.scalingMode ?? 'fit') === 'fit';
 
   return (
     <>
