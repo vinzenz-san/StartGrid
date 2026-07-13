@@ -8,6 +8,7 @@
     "preview": "npx serve dist -p 4747 --no-clipboard"
   },
   "dependencies": {
+    "@floating-ui/react": "^0.27.20",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "webextension-polyfill": "^0.12.0"

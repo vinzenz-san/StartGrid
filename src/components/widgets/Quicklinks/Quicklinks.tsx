@@ -174,7 +174,7 @@ function Toggle({ options, value, onChange }: {
   );
 }
 
-function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
+export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newUrl, setNewUrl] = useState('');
 
@@ -336,17 +336,14 @@ function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
 
 interface Props {
   data: QuicklinksData;
-  isSettingsOpen: boolean;
   onUpdateData: (patch: Partial<QuicklinksData>) => void;
 }
 
-export default function Quicklinks({ data, isSettingsOpen, onUpdateData }: Props) {
+export default function Quicklinks({ data, onUpdateData: _onUpdateData }: Props) {
   const { links = [], layout = 'grid' } = data;
   const iconSize = data.iconSize ?? 'medium';
   const showTitles = data.showTitles ?? true;
 
-  // Auto-compact: measured on the persistent container so the observer
-  // is never torn down when settings open/close.
   const containerRef = useRef<HTMLDivElement>(null);
   const [compact, setCompact] = useState(false);
 
@@ -354,27 +351,21 @@ export default function Quicklinks({ data, isSettingsOpen, onUpdateData }: Props
     const el = containerRef.current;
     if (!el) return;
     const ro = new ResizeObserver(entries => {
-      // Ignore measurements while settings are covering the widget body
-      // (padding-top 40px shrinks visible area, producing false compact reads).
-      if (el.closest('.sg-widget-body--settings-open')) return;
       setCompact(entries[0].contentRect.height < 96);
     });
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
-  const effectiveLayout   = compact ? 'row'   : layout;
-  const effectiveIconSize = compact ? 'small' : iconSize;
+  const effectiveLayout    = compact ? 'row'   : layout;
+  const effectiveIconSize  = compact ? 'small' : iconSize;
   const effectiveShowTitles = compact ? false  : showTitles;
 
   return (
-    // Keep this wrapper always mounted so ResizeObserver is never torn down.
     <div className="sg-ql" ref={containerRef}>
-      {isSettingsOpen ? (
-        <QuicklinksSettings data={data} onUpdateData={onUpdateData} />
-      ) : links.length === 0 ? (
+      {links.length === 0 ? (
         <div className="sg-ql sg-ql--empty">
-          <span className="sg-ql-empty">No links. Open ⚙ in edit mode to add some.</span>
+          <span className="sg-ql-empty">No links. Open ⚙ to add some.</span>
         </div>
       ) : (
         <div className={`sg-ql-links sg-ql-links--${effectiveLayout}`}>

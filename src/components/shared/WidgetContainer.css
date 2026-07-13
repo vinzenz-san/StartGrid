@@ -107,22 +107,60 @@
   padding-top: 28px;
 }
 
-/* Settings open: push content below the gear button, split layout for appearance bar */
-.sg-widget-body--settings-open {
-  padding-top: 40px;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: flex-start !important;
-  align-items: stretch !important;
-  height: 100%;
-  box-sizing: border-box;
+/* ── Settings-active highlight ───────────────────── */
+.sg-widget--settings-active {
+  box-shadow: 0 0 0 2px var(--accent), 0 0 0 4px var(--edit-ring);
+  outline: none;
 }
 
-.sg-widget-settings-wrap {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
+/* ── Floating appearance panel ───────────────────── */
+.sg-widget-float-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.3);
+  min-width: 240px;
+  max-width: 300px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  z-index: 9999;
 }
+
+.sg-widget-float-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0;
+}
+
+.sg-widget-float-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sg-widget-float-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.sg-widget-float-close {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+  transition: background 0.12s, color 0.12s;
+  cursor: pointer;
+}
+.sg-widget-float-close:hover { background: rgba(239,68,68,0.15); color: var(--danger); }
 
 /* ── Widget appearance bar ───────────────────────── */
 .sg-widget-appearance {
