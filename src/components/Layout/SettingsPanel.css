@@ -1,0 +1,70 @@
+.sg-settings-panel {
+  position: absolute;
+  top: calc(var(--toolbar-h) + 8px);
+  right: 12px;
+  width: 290px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - var(--toolbar-h) - 24px);
+  overflow: hidden;
+}
+
+.sg-settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sg-settings-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sg-settings-close {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.12s, color 0.12s;
+}
+.sg-settings-close:hover { background: var(--surface-hover); color: var(--text); }
+
+.sg-settings-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sg-settings-tab {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.12s, border-color 0.12s;
+}
+
+.sg-settings-tab:hover { color: var(--text); }
+
+.sg-settings-tab--active {
+  color: var(--accent-hover);
+  border-bottom-color: var(--accent);
+}
+
+.sg-settings-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  min-height: 0;
+}

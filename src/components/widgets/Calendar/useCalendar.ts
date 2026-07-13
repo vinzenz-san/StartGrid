@@ -103,7 +103,7 @@ export function useCalendar() {
 
   const fetchingRef = useRef(false);
 
-  const refresh = useCallback(async (maxResults = 25) => {
+  const refresh = useCallback(async (maxResults = 50) => {
     if (fetchingRef.current) return;
     fetchingRef.current = true;
     setState(s => ({ ...s, status: 'loading', error: null }));

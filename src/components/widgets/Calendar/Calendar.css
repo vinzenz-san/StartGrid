@@ -14,7 +14,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 10px 6px;
+  padding: 8px 36px 6px 10px; /* right padding reserves space for the gear button */
   flex-shrink: 0;
   border-bottom: 1px solid rgba(128, 128, 128, 0.12);
 }
@@ -365,4 +365,147 @@
   color: #f87171;
   line-height: 1.5;
   text-align: center;
+}
+
+/* Segmented view-mode control */
+
+.sg-cal-seg {
+  display: flex;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+.sg-cal-seg-btn {
+  flex: 1;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  transition: background 0.12s, color 0.12s;
+  cursor: pointer;
+}
+
+.sg-cal-seg-btn + .sg-cal-seg-btn {
+  border-left: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+.sg-cal-seg-btn--active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ── Monthly calendar grid ─────────────────────────────────────────────────── */
+
+.sg-cal-monthly {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 6px 6px 4px;
+  box-sizing: border-box;
+}
+
+.sg-cal-monthly-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+}
+
+.sg-cal-monthly-nav-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sg-cal-monthly-nav-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.sg-cal-monthly-nav-btn:hover {
+  background: rgba(128, 128, 128, 0.15);
+  color: var(--text);
+}
+
+.sg-cal-monthly-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  flex: 1;
+  min-height: 0;
+}
+
+.sg-cal-monthly-dow {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.35;
+  text-align: center;
+  padding-bottom: 3px;
+}
+
+.sg-cal-monthly-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2px 1px;
+  border-radius: 4px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sg-cal-monthly-cell--empty {
+  background: transparent;
+}
+
+.sg-cal-monthly-cell--today .sg-cal-monthly-day-num {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+}
+
+.sg-cal-monthly-day-num {
+  font-size: 10px;
+  font-weight: 500;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.sg-cal-monthly-dots {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.sg-cal-monthly-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sg-cal-monthly-more {
+  font-size: 8px;
+  opacity: 0.5;
+  line-height: 1;
 }

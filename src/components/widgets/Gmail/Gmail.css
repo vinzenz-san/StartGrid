@@ -14,7 +14,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 10px 6px;
+  padding: 8px 36px 6px 10px; /* right padding reserves space for the gear button */
   flex-shrink: 0;
   border-bottom: 1px solid rgba(128, 128, 128, 0.12);
 }

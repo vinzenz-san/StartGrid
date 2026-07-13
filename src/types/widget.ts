@@ -8,7 +8,8 @@ export interface QuickLink {
   id: string;
   url: string;
   title?: string;
-  customIcon?: string;  // Emoji or data-URL
+  customIcon?: string;             // data-URL (upload), external URL (custom-url), or legacy emoji
+  iconSource?: 'auto' | 'custom-url' | 'upload';  // default 'auto'
   showTitle: boolean;
 }
 
@@ -43,5 +44,9 @@ export interface Widget {
   row: number;  // 1-based CSS Grid row
   w: number;    // column span
   h: number;    // row span
+  bgColor?: string;         // hex color for widget surface, e.g. '#1a1d2e'
+  bgOpacity?: number;       // 0.0–1.0, default 1
+  invertText?: boolean;     // invert text/title colors in widget content
+  invertFavicons?: boolean; // invert favicon/icon images in widget content
   data: Record<string, unknown>;
 }

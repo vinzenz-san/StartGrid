@@ -2,13 +2,48 @@ import { useState, useEffect, useRef } from 'react';
 import type { QuickLink, QuicklinksData } from '../../../types/widget';
 import './Quicklinks.css';
 
-function faviconUrl(url: string): string {
+function hostnameOf(url: string): string {
   try {
-    const domain = new URL(url).hostname;
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+    const { hostname } = new URL(url);
+    return hostname;
   } catch {
     return '';
   }
+}
+
+function faviconChain(hostname: string): string[] {
+  if (!hostname) return [];
+  return [
+    `https://icons.duckduckgo.com/ip3/${hostname}.ico`,
+    `https://www.google.com/s2/favicons?sz=64&domain=${hostname}&default=404`,
+    `https://unavatar.io/${hostname}?fallback=clear`,
+  ];
+}
+
+async function processIconUpload(file: File): Promise<string | null> {
+  if (file.size > 32 * 1024) {
+    alert('Image must be 32 KB or smaller.');
+    return null;
+  }
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const dataUrl = e.target?.result as string;
+      const img = new Image();
+      img.onload = () => {
+        if (img.width > 64 || img.height > 64) {
+          alert(`Image must be 64×64 px or smaller (got ${img.width}×${img.height}).`);
+          resolve(null);
+        } else {
+          resolve(dataUrl);
+        }
+      };
+      img.onerror = () => { alert('Could not read image.'); resolve(null); };
+      img.src = dataUrl;
+    };
+    reader.onerror = () => { alert('Could not read file.'); resolve(null); };
+    reader.readAsDataURL(file);
+  });
 }
 
 function displayTitle(link: QuickLink): string {
@@ -39,38 +74,52 @@ function clipboardFallback(url: string) {
   alert(`Firefox security restricts opening 'about:' pages directly. The URL '${url}' has been copied to your clipboard. Please paste it into a new tab manually!`);
 }
 
-function openInternalUrl(url: string) {
+function openInternalUrl(url: string, newTab: boolean) {
   const inExtension = typeof browser !== 'undefined' && !!browser.tabs;
-  console.log('Opening internal URL:', url, 'Extension context:', inExtension);
   if (inExtension) {
-    browser.tabs.create({ url }).catch((err: unknown) => {
-      console.error('browser.tabs.create failed for', url, err);
-      clipboardFallback(url);
-    });
+    const action = newTab
+      ? browser.tabs.create({ url })
+      : browser.tabs.update({ url });
+    action.catch(() => clipboardFallback(url));
   } else {
     clipboardFallback(url);
   }
 }
 
 function LinkItem({ link, iconSize, showTitle }: LinkItemProps) {
-  const [imgError, setImgError] = useState(false);
-  const favicon = faviconUrl(link.url);
+  const [faviconIdx, setFaviconIdx] = useState(0);
+  const [customImgError, setCustomImgError] = useState(false);
   const isInternal = INTERNAL_URL.test(link.url);
   const label = displayTitle(link);
+  const iconSource = link.iconSource ?? 'auto';
+
+  const hostname = hostnameOf(link.url);
+  const chain = faviconChain(hostname);
+  const faviconSrc = chain[faviconIdx] ?? null;
+  const fallback = <span className="sg-ql-fallback">{label.charAt(0).toUpperCase()}</span>;
+
+  let iconInner: React.ReactNode;
+  let isFaviconImg = false;
+  if (iconSource !== 'auto' && link.customIcon) {
+    iconInner = customImgError
+      ? fallback
+      : <img src={link.customIcon} alt="" onError={() => setCustomImgError(true)} />;
+    isFaviconImg = !customImgError;
+  } else if (iconSource === 'auto' && link.customIcon) {
+    iconInner = link.customIcon.startsWith('data:')
+      ? <img src={link.customIcon} alt="" />
+      : <span className="sg-ql-emoji">{link.customIcon}</span>;
+    isFaviconImg = link.customIcon.startsWith('data:');
+  } else {
+    iconInner = faviconSrc
+      ? <img src={faviconSrc} alt="" onError={() => setFaviconIdx(i => i + 1)} />
+      : fallback;
+    isFaviconImg = !!faviconSrc;
+  }
 
   const iconContent = (
-    <span className={`sg-ql-icon sg-ql-icon--${iconSize}`}>
-      {link.customIcon ? (
-        link.customIcon.startsWith('data:') ? (
-          <img src={link.customIcon} alt="" />
-        ) : (
-          <span className="sg-ql-emoji">{link.customIcon}</span>
-        )
-      ) : favicon && !imgError ? (
-        <img src={favicon} alt="" onError={() => setImgError(true)} />
-      ) : (
-        <span className="sg-ql-fallback">{label.charAt(0).toUpperCase()}</span>
-      )}
+    <span className={`sg-ql-icon sg-ql-icon--${iconSize}${isFaviconImg ? ' sg-ql-icon--favicon' : ''}`}>
+      {iconInner}
     </span>
   );
 
@@ -79,7 +128,8 @@ function LinkItem({ link, iconSize, showTitle }: LinkItemProps) {
       <button
         className={`sg-ql-link sg-ql-link--${iconSize}`}
         title={label}
-        onClick={() => openInternalUrl(link.url)}
+        onMouseDown={e => { if (e.button === 1) { e.preventDefault(); openInternalUrl(link.url, true); } }}
+        onClick={() => openInternalUrl(link.url, false)}
       >
         {iconContent}
         {showTitle && <span className="sg-ql-title">{label}</span>}
@@ -92,8 +142,6 @@ function LinkItem({ link, iconSize, showTitle }: LinkItemProps) {
       className={`sg-ql-link sg-ql-link--${iconSize}`}
       href={link.url}
       title={label}
-      target="_blank"
-      rel="noopener noreferrer"
     >
       {iconContent}
       {showTitle && <span className="sg-ql-title">{label}</span>}
@@ -204,10 +252,47 @@ function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
                   value={link.title ?? ''} onChange={e => updateLink(link.id, { title: e.target.value || undefined })}
                   onPointerDown={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}
                   onDragStart={e => e.stopPropagation()} />
-                <input className="sg-ql-input" placeholder="Icon (emoji or leave empty)" draggable={false}
-                  value={link.customIcon ?? ''} onChange={e => updateLink(link.id, { customIcon: e.target.value || undefined })}
-                  onPointerDown={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}
-                  onDragStart={e => e.stopPropagation()} />
+                <div className="sg-ql-icon-source-row">
+                  <span className="sg-ql-settings-label">Icon</span>
+                  <div className="sg-ql-toggle-group">
+                    {(['auto', 'custom-url', 'upload'] as const).map(src => (
+                      <button key={src}
+                        className={`sg-ql-toggle-btn${(link.iconSource ?? 'auto') === src ? ' active' : ''}`}
+                        onClick={() => updateLink(link.id, { iconSource: src, customIcon: undefined })}
+                      >{src === 'auto' ? 'Auto' : src === 'custom-url' ? 'URL' : 'Upload'}</button>
+                    ))}
+                  </div>
+                </div>
+                {link.iconSource === 'custom-url' && (
+                  <input className="sg-ql-input" placeholder="Image URL" draggable={false}
+                    value={link.customIcon ?? ''}
+                    onChange={e => updateLink(link.id, { customIcon: e.target.value || undefined })}
+                    onPointerDown={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}
+                    onDragStart={e => e.stopPropagation()} />
+                )}
+                {link.iconSource === 'upload' && (
+                  <div className="sg-ql-upload-row">
+                    {link.customIcon && <img className="sg-ql-upload-preview" src={link.customIcon} alt="" />}
+                    <label className="sg-ql-upload-label">
+                      {link.customIcon ? 'Change…' : 'Choose image…'}
+                      <input type="file" accept="image/*" style={{ display: 'none' }}
+                        onChange={async e => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const dataUrl = await processIconUpload(file);
+                          if (dataUrl) updateLink(link.id, { customIcon: dataUrl });
+                          e.target.value = '';
+                        }}
+                        onPointerDown={e => e.stopPropagation()}
+                        onMouseDown={e => e.stopPropagation()}
+                      />
+                    </label>
+                    {link.customIcon && (
+                      <button className="sg-ql-action-btn danger"
+                        onClick={() => updateLink(link.id, { customIcon: undefined })}>✕</button>
+                    )}
+                  </div>
+                )}
                 <button className="sg-ql-action-btn" onClick={() => setEditingId(null)}>Done</button>
               </div>
             ) : (

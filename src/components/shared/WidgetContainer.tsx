@@ -13,9 +13,16 @@ import './WidgetContainer.css';
 
 const HAS_SETTINGS: Widget['type'][] = ['clock', 'quicklinks', 'bookmarks', 'gmail', 'calendar'];
 
-// Must match CSS variables --cell and --gap
 const CELL = 120;
 const GAP  = 12;
+
+function hexToRgba(hex: string, alpha: number): string {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 interface Props { widget: Widget; }
 
@@ -25,7 +32,6 @@ export default function WidgetContainer({ widget }: Props) {
   const elRef = useRef<HTMLDivElement>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [resizePreview, setResizePreview] = useState<{ w: number; h: number } | null>(null);
-
 
   const displayW = resizePreview?.w ?? widget.w;
   const displayH = resizePreview?.h ?? widget.h;
@@ -59,7 +65,7 @@ export default function WidgetContainer({ widget }: Props) {
     const startY = e.clientY;
     const startW = widget.w;
     const startH = widget.h;
-    const maxW   = 9 - widget.col; // can't overflow 8 columns
+    const maxW   = 9 - widget.col;
 
     const step = CELL + GAP;
 
@@ -90,6 +96,58 @@ export default function WidgetContainer({ widget }: Props) {
 
   const hasSettings = HAS_SETTINGS.includes(widget.type);
 
+  // ── Widget surface background ─────────────────────────────────────────────
+
+  const bgStyle = widget.bgColor
+    ? { background: hexToRgba(widget.bgColor, widget.bgOpacity ?? 1) }
+    : {};
+
+  // ── Widget content ────────────────────────────────────────────────────────
+
+  const widgetContent = (
+    <>
+      {widget.type === 'clock' && (
+        <Clock
+          data={widget.data as unknown as ClockData}
+          isSettingsOpen={settingsOpen}
+          onUpdateData={handleUpdateData}
+        />
+      )}
+      {widget.type === 'quicklinks' && (
+        <Quicklinks
+          key={`${widget.w}-${widget.h}`}
+          data={widget.data as unknown as QuicklinksData}
+          isSettingsOpen={settingsOpen}
+          onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
+        />
+      )}
+      {widget.type === 'bookmarks' && (
+        <Bookmarks
+          data={widget.data as unknown as BookmarksData}
+          isSettingsOpen={settingsOpen}
+          onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
+        />
+      )}
+      {widget.type === 'gmail' && (
+        <Gmail
+          data={widget.data as unknown as GmailData}
+          isSettingsOpen={settingsOpen}
+          onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
+        />
+      )}
+      {widget.type === 'calendar' && (
+        <Calendar
+          data={widget.data as unknown as CalendarData}
+          isSettingsOpen={settingsOpen}
+          onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
+        />
+      )}
+      {widget.type === 'placeholder' && <WidgetPlaceholder widget={widget} />}
+    </>
+  );
+
+  const opacityPct = Math.round((widget.bgOpacity ?? 1) * 100);
+
   return (
     <div
       ref={elRef}
@@ -100,9 +158,10 @@ export default function WidgetContainer({ widget }: Props) {
       style={{
         gridColumn: `${widget.col} / span ${displayW}`,
         gridRow:    `${widget.row} / span ${displayH}`,
+        ...bgStyle,
       }}
     >
-      {/* Gear button: always in DOM, shown on hover via CSS, works outside edit mode */}
+      {/* Gear button */}
       {hasSettings && (
         <button
           className={`sg-widget-gear${settingsOpen ? ' active' : ''}`}
@@ -114,7 +173,7 @@ export default function WidgetContainer({ widget }: Props) {
         >⚙</button>
       )}
 
-      {/* Edit-mode controls: size label + remove button */}
+      {/* Edit-mode controls bar */}
       {isEditMode && (
         <div className="sg-widget-controls" draggable={false} onDragStart={e => e.stopPropagation()}>
           <span className="sg-widget-size">{displayW}×{displayH}</span>
@@ -132,47 +191,74 @@ export default function WidgetContainer({ widget }: Props) {
         </div>
       )}
 
-      <div className={`sg-widget-body${settingsOpen ? ' sg-widget-body--settings-open' : ''}`}>
-        {widget.type === 'clock' && (
-          <Clock
-            data={widget.data as unknown as ClockData}
-            isSettingsOpen={settingsOpen}
-            onUpdateData={handleUpdateData}
-          />
-        )}
-        {widget.type === 'quicklinks' && (
-          <Quicklinks
-            key={`${widget.w}-${widget.h}`}
-            data={widget.data as unknown as QuicklinksData}
-            isSettingsOpen={settingsOpen}
-            onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
-          />
-        )}
-        {widget.type === 'bookmarks' && (
-          <Bookmarks
-            data={widget.data as unknown as BookmarksData}
-            isSettingsOpen={settingsOpen}
-            onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
-          />
-        )}
-        {widget.type === 'gmail' && (
-          <Gmail
-            data={widget.data as unknown as GmailData}
-            isSettingsOpen={settingsOpen}
-            onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
-          />
-        )}
-        {widget.type === 'calendar' && (
-          <Calendar
-            data={widget.data as unknown as CalendarData}
-            isSettingsOpen={settingsOpen}
-            onUpdateData={patch => handleUpdateData(patch as Record<string, unknown>)}
-          />
-        )}
-        {widget.type === 'placeholder' && <WidgetPlaceholder widget={widget} />}
-      </div>
+      {/* Body — split layout when settings open to fit appearance bar below */}
+      {settingsOpen ? (
+        <div className="sg-widget-body sg-widget-body--settings-open">
+          <div
+            className={[
+              'sg-widget-settings-wrap',
+              widget.invertText     ? 'sg-invert-text'     : '',
+              widget.invertFavicons ? 'sg-invert-favicons' : '',
+            ].filter(Boolean).join(' ')}
+          >
+            {widgetContent}
+          </div>
+          <div className="sg-widget-appearance">
+            <span className="sg-widget-appearance-label">Widget Background</span>
+            <div className="sg-widget-appearance-row">
+              <input
+                type="color"
+                value={widget.bgColor ?? '#1a1d2e'}
+                onChange={e => updateWidget(widget.id, { bgColor: e.target.value })}
+                onPointerDown={e => e.stopPropagation()}
+                title="Background color"
+              />
+              <input
+                type="range"
+                min={0} max={100}
+                value={opacityPct}
+                onChange={e => updateWidget(widget.id, { bgOpacity: Number(e.target.value) / 100 })}
+                onPointerDown={e => e.stopPropagation()}
+                title="Opacity"
+              />
+              <span className="sg-widget-appearance-val">{opacityPct}%</span>
+              {widget.bgColor && (
+                <button
+                  className="sg-widget-appearance-reset"
+                  onClick={() => updateWidget(widget.id, { bgColor: undefined, bgOpacity: undefined })}
+                  title="Reset to default"
+                >✕</button>
+              )}
+            </div>
+            <div className="sg-widget-appearance-row">
+              <button
+                className={`sg-widget-appearance-toggle${widget.invertText ? ' active' : ''}`}
+                onClick={() => updateWidget(widget.id, { invertText: !widget.invertText })}
+                onPointerDown={e => e.stopPropagation()}
+                title="Invert text colors"
+              >T̲ Text</button>
+              <button
+                className={`sg-widget-appearance-toggle${widget.invertFavicons ? ' active' : ''}`}
+                onClick={() => updateWidget(widget.id, { invertFavicons: !widget.invertFavicons })}
+                onPointerDown={e => e.stopPropagation()}
+                title="Invert favicon/icon colors"
+              >⬡ Icons</button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div
+          className={[
+            'sg-widget-body',
+            widget.invertText     ? 'sg-invert-text'     : '',
+            widget.invertFavicons ? 'sg-invert-favicons' : '',
+          ].filter(Boolean).join(' ')}
+        >
+          {widgetContent}
+        </div>
+      )}
 
-      {/* Resize handle — only in edit mode */}
+      {/* Resize handle */}
       {isEditMode && (
         <div
           className="sg-widget-resize"

@@ -108,6 +108,9 @@
 .sg-ql-links--grid .sg-ql-link--large,
 .sg-ql-links--row  .sg-ql-link--large { width: 70px; }
 
+/* White container for favicon images so dark logos show on any background */
+.sg-ql-icon--favicon { background: rgba(255, 255, 255, 0.9); }
+
 /* ── Icon content ── */
 
 .sg-ql-emoji    { font-size: 16px; line-height: 1; }
@@ -288,3 +291,43 @@
 }
 
 .sg-ql-add-row .sg-ql-input { flex: 1; }
+
+/* ── Icon source editor ── */
+
+.sg-ql-icon-source-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.sg-ql-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.sg-ql-upload-preview {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: rgba(128, 128, 128, 0.1);
+  flex-shrink: 0;
+}
+
+.sg-ql-upload-label {
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.1s;
+  white-space: nowrap;
+}
+
+.sg-ql-upload-label:hover { background: rgba(128, 128, 128, 0.2); }

@@ -66,7 +66,12 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
 
   const backgroundCss = (() => {
     switch (config.mode) {
-      case 'custom':   return customImageUrl ? `url("${customImageUrl}") center/cover no-repeat` : DEFAULT_BG.value;
+      case 'custom': {
+        if (!customImageUrl) return DEFAULT_BG.value;
+        // 'fit' uses contain so the letterbox div behind handles the bar color
+        const size = config.scalingMode === 'fit' ? 'contain' : 'cover';
+        return `url("${customImageUrl}") center/${size} no-repeat`;
+      }
       case 'preset':   return PRESETS.find(p => p.id === config.value)?.css ?? DEFAULT_BG.value;
       case 'gradient': return config.value;
       case 'color':
