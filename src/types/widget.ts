@@ -73,6 +73,8 @@ interface WidgetBase {
   bgDim?: number;
   localOverrideEnabled?: boolean;
   localGradientOverride?: boolean;
+  showCustomTitle?: boolean;
+  customTitle?: string;
 }
 
 // Discriminated union — TypeScript narrows `data` automatically when `type` is checked.

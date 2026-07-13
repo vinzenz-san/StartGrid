@@ -16,6 +16,10 @@ interface TypedEntry<T> {
   icon:        string;
   defaultSize: { w: number; h: number };
   defaultData: T;
+  titleBehavior:        'optional' | 'auto' | 'none';
+  defaultTitle?:        string;
+  defaultShowCustomTitle?: boolean;
+  resolveDynamicTitle?: (data: T) => string | undefined;
   renderComponent: (data: T, onUpdateData: (patch: Partial<T>) => void, isSettingsOpen?: boolean) => ReactNode;
   renderSettings:  ((data: T, onUpdateData: (patch: Partial<T>) => void) => ReactNode) | null;
 }
@@ -27,6 +31,10 @@ export interface WidgetEntry {
   icon:        string;
   defaultSize: { w: number; h: number };
   defaultData: unknown;
+  titleBehavior:        'optional' | 'auto' | 'none';
+  defaultTitle?:        string;
+  defaultShowCustomTitle?: boolean;
+  resolveDynamicTitle?: (data: unknown) => string | undefined;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   renderComponent: (data: any, onUpdateData: (patch: any) => void, isSettingsOpen?: boolean) => ReactNode;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -37,64 +45,78 @@ export interface WidgetEntry {
 
 const _registry = {
   clock: {
-    label:       'Clock',
-    icon:        '🕐',
-    defaultSize: { w: 2, h: 2 },
-    defaultData: { format: '24h', showSeconds: true, showDate: true } satisfies ClockData,
+    label:         'Clock',
+    icon:          '🕐',
+    defaultSize:   { w: 2, h: 2 },
+    defaultData:   { format: '24h', showSeconds: true, showDate: true } satisfies ClockData,
+    titleBehavior: 'none',
     renderComponent: (data, onUpdateData) => <Clock data={data} onUpdateData={onUpdateData} />,
     renderSettings:  (data, onUpdateData) => <ClockSettings data={data} onUpdateData={onUpdateData} />,
   } satisfies TypedEntry<ClockData>,
 
   quicklinks: {
-    label:       'Quicklinks',
-    icon:        '🔗',
-    defaultSize: { w: 2, h: 2 },
-    defaultData: { links: [], layout: 'grid' } satisfies QuicklinksData,
+    label:                 'Quicklinks',
+    icon:                  '🔗',
+    defaultSize:           { w: 2, h: 2 },
+    defaultData:           { links: [], layout: 'grid' } satisfies QuicklinksData,
+    titleBehavior:         'optional',
+    defaultTitle:          'Quicklinks',
+    defaultShowCustomTitle: false,
     renderComponent: (data, onUpdateData, isSettingsOpen) => <Quicklinks data={data} onUpdateData={onUpdateData} isSettingsOpen={isSettingsOpen} />,
     renderSettings:  (data, onUpdateData) => <QuicklinksSettings data={data} onUpdateData={onUpdateData} />,
   } satisfies TypedEntry<QuicklinksData>,
 
   bookmarks: {
-    label:       'Bookmarks',
-    icon:        '🔖',
-    defaultSize: { w: 2, h: 2 },
-    defaultData: { folderId: '', layout: 'grid' } satisfies BookmarksData,
+    label:                 'Bookmarks',
+    icon:                  '🔖',
+    defaultSize:           { w: 2, h: 2 },
+    defaultData:           { folderId: '', layout: 'grid' } satisfies BookmarksData,
+    titleBehavior:         'optional',
+    defaultTitle:          'Bookmarks',
+    defaultShowCustomTitle: true,
+    resolveDynamicTitle:   (data) => (data as BookmarksData).folderName,
     renderComponent: (data, onUpdateData) => <Bookmarks data={data} onUpdateData={onUpdateData} />,
     renderSettings:  (data, onUpdateData) => <BookmarksSettings data={data} onUpdateData={onUpdateData} />,
   } satisfies TypedEntry<BookmarksData>,
 
   gmail: {
-    label:       'Gmail',
-    icon:        '✉',
-    defaultSize: { w: 2, h: 3 },
-    defaultData: { maxEmails: 5, showSnippets: true } satisfies GmailData,
+    label:         'Gmail',
+    icon:          '✉',
+    defaultSize:   { w: 2, h: 3 },
+    defaultData:   { maxEmails: 5, showSnippets: true } satisfies GmailData,
+    titleBehavior: 'auto',
     renderComponent: (data, onUpdateData) => <Gmail data={data} onUpdateData={onUpdateData} />,
     renderSettings:  (data, onUpdateData) => <GmailSettings data={data} onUpdateData={onUpdateData} />,
   } satisfies TypedEntry<GmailData>,
 
   calendar: {
-    label:       'Calendar',
-    icon:        '📅',
-    defaultSize: { w: 2, h: 3 },
-    defaultData: { maxDays: 3, showAllDay: true } satisfies CalendarData,
+    label:         'Calendar',
+    icon:          '📅',
+    defaultSize:   { w: 2, h: 3 },
+    defaultData:   { maxDays: 3, showAllDay: true } satisfies CalendarData,
+    titleBehavior: 'auto',
     renderComponent: (data, onUpdateData) => <Calendar data={data} onUpdateData={onUpdateData} />,
     renderSettings:  (data, onUpdateData) => <CalendarSettings data={data} onUpdateData={onUpdateData} />,
   } satisfies TypedEntry<CalendarData>,
 
   notes: {
-    label:       'Notes',
-    icon:        '📝',
-    defaultSize: { w: 2, h: 2 },
-    defaultData: { content: '', fontSize: 'M' } satisfies NotesData,
+    label:                 'Notes',
+    icon:                  '📝',
+    defaultSize:           { w: 2, h: 2 },
+    defaultData:           { content: '', fontSize: 'M' } satisfies NotesData,
+    titleBehavior:         'optional',
+    defaultTitle:          'Notes',
+    defaultShowCustomTitle: false,
     renderComponent: (data, onUpdateData) => <Notes data={data} onUpdateData={onUpdateData} />,
     renderSettings:  (data, onUpdateData) => <NotesSettings data={data} onUpdateData={onUpdateData} />,
   } satisfies TypedEntry<NotesData>,
 
   placeholder: {
-    label:       'Placeholder',
-    icon:        '⬜',
-    defaultSize: { w: 2, h: 2 },
-    defaultData: { title: 'New' } satisfies PlaceholderData,
+    label:         'Placeholder',
+    icon:          '⬜',
+    defaultSize:   { w: 2, h: 2 },
+    defaultData:   { title: 'New' } satisfies PlaceholderData,
+    titleBehavior: 'none',
     renderComponent: (data, onUpdateData) => <WidgetPlaceholder widget={{ type: 'placeholder', data, id: '', col: 1, row: 1, w: 1, h: 1 }} />,
     renderSettings:  null,
   } satisfies TypedEntry<PlaceholderData>,
