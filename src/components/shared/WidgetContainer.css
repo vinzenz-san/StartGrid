@@ -365,3 +365,67 @@
 }
 
 .sg-widget-resize:hover { opacity: 1; }
+
+/* ── Orphan / unsupported widget ─────────────────── */
+.sg-widget--orphan {
+  border: 1px dashed rgba(239, 68, 68, 0.5);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.30), 0 1px 6px rgba(0, 0, 0, 0.18),
+              inset 0 0 0 1px rgba(239, 68, 68, 0.08);
+}
+
+.sg-widget--orphan::before {
+  background: linear-gradient(135deg, rgba(40, 20, 20, 0.85), rgba(30, 15, 15, 0.95));
+  opacity: 1;
+}
+
+.sg-widget-orphan-body {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px;
+  text-align: center;
+}
+
+.sg-widget-orphan-icon {
+  font-size: 20px;
+  line-height: 1;
+  color: rgba(239, 68, 68, 0.75);
+}
+
+.sg-widget-orphan-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+}
+
+.sg-widget-orphan-type {
+  font-size: 10px;
+  font-family: monospace;
+  color: rgba(239, 68, 68, 0.6);
+  word-break: break-all;
+}
+
+.sg-widget-orphan-remove {
+  margin-top: 6px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.sg-widget-orphan-remove:hover {
+  background: rgba(239, 68, 68, 0.28);
+  border-color: rgba(239, 68, 68, 0.55);
+}
