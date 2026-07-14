@@ -22,6 +22,95 @@
   --widget-dim:           0;
 }
 
+/* ════════════════════════════════════════════════════
+   Theme-aware preset system
+   ── Global background presets (data-bg-preset) ────── */
+
+/* Dark / system defaults */
+.sg-background[data-bg-preset="midnight"] { background: linear-gradient(135deg, #0f1117 0%, #1a1d2e 100%); }
+.sg-background[data-bg-preset="aurora"]   { background: linear-gradient(135deg, #0d1b2a 0%, #1b4332 50%, #081c15 100%); }
+.sg-background[data-bg-preset="dusk"]     { background: linear-gradient(135deg, #1a0533 0%, #2d1b69 50%, #11032e 100%); }
+.sg-background[data-bg-preset="ocean"]    { background: linear-gradient(135deg, #03071e 0%, #023e8a 100%); }
+.sg-background[data-bg-preset="ember"]    { background: linear-gradient(135deg, #1a0a00 0%, #7c2d12 50%, #450a00 100%); }
+
+/* Light overrides — richer, more colorful pastels */
+[data-scheme="light"] .sg-background[data-bg-preset="midnight"] { background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%); }
+[data-scheme="light"] .sg-background[data-bg-preset="aurora"]   { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); }
+[data-scheme="light"] .sg-background[data-bg-preset="dusk"]     { background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); }
+[data-scheme="light"] .sg-background[data-bg-preset="ocean"]    { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+[data-scheme="light"] .sg-background[data-bg-preset="ember"]    { background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%); }
+
+/* Gradient-off flat preset backgrounds */
+.sg-background[data-bg-preset-flat="midnight"] { background: #1a1d2e; }
+.sg-background[data-bg-preset-flat="aurora"]   { background: #1b4332; }
+.sg-background[data-bg-preset-flat="dusk"]     { background: #2d1b69; }
+.sg-background[data-bg-preset-flat="ocean"]    { background: #023e8a; }
+.sg-background[data-bg-preset-flat="ember"]    { background: #7c2d12; }
+[data-scheme="light"] .sg-background[data-bg-preset-flat="midnight"] { background: #cbd5e1; }
+[data-scheme="light"] .sg-background[data-bg-preset-flat="aurora"]   { background: #bbf7d0; }
+[data-scheme="light"] .sg-background[data-bg-preset-flat="dusk"]     { background: #e9d5ff; }
+[data-scheme="light"] .sg-background[data-bg-preset-flat="ocean"]    { background: #bfdbfe; }
+[data-scheme="light"] .sg-background[data-bg-preset-flat="ember"]    { background: #fed7aa; }
+
+/* Theme-aware preset thumbnails in BackgroundEditor */
+.preset-tile[data-preset-id="midnight"] { background: linear-gradient(135deg, #0f1117 0%, #1a1d2e 100%); }
+.preset-tile[data-preset-id="aurora"]   { background: linear-gradient(135deg, #0d1b2a 0%, #1b4332 50%, #081c15 100%); }
+.preset-tile[data-preset-id="dusk"]     { background: linear-gradient(135deg, #1a0533 0%, #2d1b69 50%, #11032e 100%); }
+.preset-tile[data-preset-id="ocean"]    { background: linear-gradient(135deg, #03071e 0%, #023e8a 100%); }
+.preset-tile[data-preset-id="ember"]    { background: linear-gradient(135deg, #1a0a00 0%, #7c2d12 50%, #450a00 100%); }
+[data-scheme="light"] .preset-tile[data-preset-id="midnight"] { background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%); }
+[data-scheme="light"] .preset-tile[data-preset-id="aurora"]   { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); }
+[data-scheme="light"] .preset-tile[data-preset-id="dusk"]     { background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); }
+[data-scheme="light"] .preset-tile[data-preset-id="ocean"]    { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+[data-scheme="light"] .preset-tile[data-preset-id="ember"]    { background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%); }
+
+/* ── Widget presets (data-preset) ─────────────────── */
+
+/* Dark / system defaults */
+.sg-widget[data-preset="midnight"] { --preset-bg: linear-gradient(135deg, #1a1d2e 0%, #2a2d3d 100%); }
+.sg-widget[data-preset="aurora"]   { --preset-bg: linear-gradient(135deg, #1b4332 0%, #166534 100%); }
+.sg-widget[data-preset="dusk"]     { --preset-bg: linear-gradient(135deg, #2d1b69 0%, #4c1d95 100%); }
+.sg-widget[data-preset="ocean"]    { --preset-bg: linear-gradient(135deg, #023e8a 0%, #1e40af 100%); }
+.sg-widget[data-preset="ember"]    { --preset-bg: linear-gradient(135deg, #7c2d12 0%, #9a3412 100%); }
+
+html[data-scheme="light"] .sg-widget {
+  background: var(--preset-bg, var(--widget-bg-preset-css, linear-gradient(135deg,
+    var(--widget-bg-color, #e2e8f0),
+    var(--widget-bg-color-end, #e2e8f0)
+  )));
+  color: var(--text);
+  backdrop-filter: blur(12px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, calc(0.60 * var(--widget-bg-opacity, 1)));
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+html[data-scheme="light"] .sg-widget::before {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, calc(0.90 * (1 - var(--widget-bg-opacity, 1)))) 0%,
+    rgba(255, 255, 255, calc(0.70 * (1 - var(--widget-bg-opacity, 1)))) 100%
+  );
+  opacity: 1;
+}
+
+/* ════════════════════════════════════════════════════ */
+
+/* ── Light scheme overrides (Slate palette) ──────── */
+[data-scheme="light"] {
+  --bg:             #f1f5f9;
+  --surface:        #ffffff;
+  --surface-hover:  #f8fafc;
+  --border:         #e2e8f0;
+  --text:           #0f172a;
+  --text-muted:     #475569;
+  --edit-ring:      rgba(99, 102, 241, 0.4);
+
+  /* Widget surfaces: pure white with a subtle shadow */
+  --widget-bg-color:     rgba(255, 255, 255, 0.72);
+  --widget-bg-color-end: rgba(255, 255, 255, 0.72);
+  --widget-bg-shadow:    rgba(0, 0, 0, 0.05) 0px 1px 3px, rgba(0, 0, 0, 0.03) 0px 1px 2px;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;

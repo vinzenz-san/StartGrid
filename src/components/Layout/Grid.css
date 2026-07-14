@@ -182,6 +182,38 @@
 
 .sg-add-icon { font-size: 16px; }
 
+/* ── Floating gear anchor ────────────────────────── */
+.sg-gear-anchor {
+  position: fixed;
+  z-index: 150;
+}
+
+.sg-gear--bottom-right { bottom: 24px; right: 24px; }
+.sg-gear--bottom-left  { bottom: 24px; left:  24px; }
+.sg-gear--top-right    { top: calc(var(--toolbar-h) + 12px); right: 24px; }
+
+/* ── Sun/Moon theme toggle ───────────────────────── */
+.sg-btn-theme {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.2s;
+  flex-shrink: 0;
+}
+
+.sg-btn-theme:hover {
+  background: var(--surface-hover);
+  color: var(--accent-hover);
+  border-color: var(--accent);
+  transform: rotate(20deg) scale(1.1);
+}
+
 /* ── Drop ghost ──────────────────────────────────── */
 .sg-drop-ghost {
   border-radius: var(--radius);

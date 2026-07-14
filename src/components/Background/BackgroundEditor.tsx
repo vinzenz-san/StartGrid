@@ -48,12 +48,10 @@ export default function BackgroundEditor() {
   const isCustomActive = config.mode === 'color' || config.mode === 'gradient';
   const isPresetActive  = (id: string) => config.mode === 'preset' && config.value === id;
 
-  const gradientOn = isCustomActive
-    ? config.mode === 'gradient'
-    : config.customGradient ?? true;
+  const intensity = config.gradientIntensity ?? (config.customGradient === false ? 0 : 100);
 
   const customThumbBg = isCustomActive && config.customColor
-    ? (gradientOn ? generateGradient(config.customColor) : config.customColor)
+    ? generateGradient(config.customColor)
     : RAINBOW_BG;
 
   // Initial color for the picker: persisted custom color, or first hex from active preset
@@ -62,28 +60,12 @@ export default function BackgroundEditor() {
     ?? '#6366f1';
 
   const handleCustomColorPick = (hex: string) => {
-    const useGrad = config.customGradient ?? true;
     setConfig({
       ...config,
-      mode:           useGrad ? 'gradient' : 'color',
-      value:          useGrad ? generateGradient(hex) : hex,
-      customColor:    hex,
-      customGradient: useGrad,
+      mode:        'gradient',
+      value:       generateGradient(hex),
+      customColor: hex,
     });
-  };
-
-  const handleGradientToggle = () => {
-    const next = !gradientOn;
-    if (isCustomActive && config.customColor) {
-      setConfig({
-        ...config,
-        mode:           next ? 'gradient' : 'color',
-        value:          next ? generateGradient(config.customColor) : config.customColor,
-        customGradient: next,
-      });
-    } else {
-      setConfig({ ...config, customGradient: next });
-    }
   };
 
   return (
@@ -97,7 +79,7 @@ export default function BackgroundEditor() {
             <button
               key={preset.id}
               className={`preset-tile${isPresetActive(preset.id) ? ' active' : ''}`}
-              style={{ background: preset.css }}
+              data-preset-id={preset.id}
               onClick={() => setConfig({ ...config, mode: 'preset', value: preset.id })}
             >
               {isPresetActive(preset.id) && <span className="sg-swatch-check-lg">✓</span>}
@@ -119,17 +101,16 @@ export default function BackgroundEditor() {
           </div>
         </div>
 
-        {/* Gradient toggle — always visible */}
-        <div className="settings-gradient-row">
-          <span className="settings-gradient-label">Gradient Effect</span>
-          <button
-            role="switch"
-            aria-checked={gradientOn}
-            className={`sg-form-switch${gradientOn ? ' sg-form-switch--on' : ''}`}
-            onClick={handleGradientToggle}
-          >
-            <span className="sg-form-switch-thumb" />
-          </button>
+        {/* Gradient intensity slider — applies to presets; 0 = flat, 100 = full gradient */}
+        <div className="settings-gradient-label">Gradient Intensity</div>
+        <div className="settings-slider-row">
+          <input
+            type="range"
+            min={0} max={100} step={5}
+            value={intensity}
+            onChange={e => setConfig({ ...config, gradientIntensity: Number(e.target.value) })}
+          />
+          <span className="settings-slider-val">{intensity}%</span>
         </div>
       </section>
 
