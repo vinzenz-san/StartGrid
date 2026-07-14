@@ -8,17 +8,17 @@ export type Language    = 'en' | 'de';
 export type ColorScheme = 'light' | 'dark' | 'system';
 
 export interface AppSettings {
-  language:     Language;
-  colorScheme:  ColorScheme;
-  accentColor:  string;
-  showDevPanel: boolean;
+  language:                Language;
+  colorScheme:             ColorScheme;
+  accentColor:             string;
+  developerOptionsEnabled: boolean;
 }
 
 export const SETTINGS_DEFAULTS = {
-  language:     'en',
-  colorScheme:  'system',
-  accentColor:  '#6366f1',
-  showDevPanel: false,
+  language:                'en',
+  colorScheme:             'system',
+  accentColor:             '#6366f1',
+  developerOptionsEnabled: false,
 } as const satisfies AppSettings;
 
 // GearPosition is retained as an alias so old backup envelopes with this key
@@ -36,10 +36,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   // Defensive: guard against undefined/null/partial from storage on first load or reset
   const s: AppSettings = {
-    language:     (settings ?? SETTINGS_DEFAULTS).language     ?? SETTINGS_DEFAULTS.language,
-    colorScheme:  (settings ?? SETTINGS_DEFAULTS).colorScheme  ?? SETTINGS_DEFAULTS.colorScheme,
-    accentColor:  (settings ?? SETTINGS_DEFAULTS).accentColor  ?? SETTINGS_DEFAULTS.accentColor,
-    showDevPanel: (settings ?? SETTINGS_DEFAULTS).showDevPanel ?? SETTINGS_DEFAULTS.showDevPanel,
+    language:                (settings ?? SETTINGS_DEFAULTS).language                ?? SETTINGS_DEFAULTS.language,
+    colorScheme:             (settings ?? SETTINGS_DEFAULTS).colorScheme             ?? SETTINGS_DEFAULTS.colorScheme,
+    accentColor:             (settings ?? SETTINGS_DEFAULTS).accentColor             ?? SETTINGS_DEFAULTS.accentColor,
+    developerOptionsEnabled: (settings ?? SETTINGS_DEFAULTS).developerOptionsEnabled ?? SETTINGS_DEFAULTS.developerOptionsEnabled,
   };
 
   // Inject --accent / --accent-hover CSS variables globally

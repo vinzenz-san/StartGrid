@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { SettingsRow } from '../shared/Form';
+import { useSettings, SETTINGS_DEFAULTS } from '../../contexts/SettingsContext';
 
 const isExtension = typeof chrome !== 'undefined' && !!chrome.storage;
 
@@ -81,6 +82,7 @@ function isValidEnvelope(data: unknown): data is BackupEnvelope {
 // ── Component ──────────────────────────────────────────────────────────────
 
 export default function BackupRestore() {
+  const { developerOptionsEnabled } = useSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importError,     setImportError]     = useState<string | null>(null);
   const [importOk,        setImportOk]        = useState(false);
@@ -173,11 +175,18 @@ export default function BackupRestore() {
   async function handleReset() {
     if (!confirmPending) {
       setConfirmPending(true);
-      setConfirmCooldown(true);
+      if (!developerOptionsEnabled) setConfirmCooldown(true);
       return;
     }
     if (confirmCooldown) return; // still locked — ignore click
+    const preserveDevOptions = developerOptionsEnabled;
     await clearAllStorage();
+    if (preserveDevOptions) {
+      await writeAllStorage(
+        { 'sg:settings': { ...SETTINGS_DEFAULTS, developerOptionsEnabled: true } },
+        {},
+      );
+    }
     setTimeout(() => window.location.reload(), 50);
   }
 

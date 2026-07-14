@@ -21,7 +21,7 @@ interface DropTarget { col: number; row: number; w: number; h: number; valid: bo
 export default function Grid() {
   const { isEditMode, toggleEditMode } = useEditMode();
   const { widgets, addWidget, updateWidget, loaded } = useWidgets();
-  const { showDevPanel, colorScheme, updateSettings } = useSettings();
+  const { developerOptionsEnabled, colorScheme, updateSettings } = useSettings();
   const isDark = colorScheme !== 'light';
   const toggleTheme = () => updateSettings({ colorScheme: isDark ? 'light' : 'dark' });
   const gridRef = useRef<HTMLDivElement>(null);
@@ -70,9 +70,10 @@ export default function Grid() {
     setAddMenuOpen(false);
   };
 
-  const focusClass = settingsPanelOpen
-    ? activeTab === 'appearance' ? ' sg-focus-bg' : ''
-    : '';
+  const focusClass =
+    settingsPanelOpen && activeTab === 'appearance'
+      ? activeSubTab === 'widgets' ? ' sg-focus-widgets' : ' sg-focus-bg'
+      : '';
 
   return (
     <div className={`sg-root${isEditMode ? ' sg-root--edit' : ''}${focusClass}`}>
@@ -153,7 +154,7 @@ export default function Grid() {
         </div>
       </main>
 
-      {showDevPanel && <DevPanel />}
+      {developerOptionsEnabled && <DevPanel />}
     </div>
   );
 }
