@@ -192,33 +192,6 @@
   cursor: default;
 }
 
-.sg-backup-btn--danger {
-  color: #e05252;
-  border-color: rgba(224, 82, 82, 0.35);
-  background: rgba(224, 82, 82, 0.08);
-  min-width: 196px;
-}
-
-.sg-backup-btn--danger:hover:not(:disabled) {
-  background: rgba(224, 82, 82, 0.16);
-  border-color: rgba(224, 82, 82, 0.6);
-}
-
-.sg-backup-btn--confirm {
-  color: #fff;
-  background: #c0392b;
-  border-color: #c0392b;
-}
-
-.sg-backup-btn--confirm:hover:not(:disabled) {
-  background: #a93226;
-  border-color: #a93226;
-}
-
-.sg-backup-btn--cooldown {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
 
 .sg-backup-error {
   font-size: 10px;
@@ -266,21 +239,6 @@
   background: var(--surface-hover);
 }
 
-.sg-appearance-reset-btn--confirm {
-  color: #e05252;
-  border-color: rgba(224, 82, 82, 0.45);
-  background: rgba(224, 82, 82, 0.08);
-}
-
-.sg-appearance-reset-btn--confirm:hover {
-  background: rgba(224, 82, 82, 0.15);
-  border-color: rgba(224, 82, 82, 0.7);
-}
-
-.sg-appearance-reset-btn--cooldown {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
 
 /* ── Developer Options confirmation dialog ── */
 .sg-dev-confirm-backdrop {

@@ -12,8 +12,8 @@
 }
 
 .sg-clock-time {
-  font-size: var(--clock-font-size, 28px);
-  font-weight: var(--clock-font-weight, 200);
+  font-size: 42px;
+  font-weight: 200;
   letter-spacing: 0.04em;
   color: var(--clock-color, var(--text));
   font-variant-numeric: tabular-nums;
@@ -22,7 +22,7 @@
 }
 
 .sg-clock-date {
-  font-size: 13px;
+  font-size: 15px;
   color: var(--clock-color, var(--text-muted));
   font-weight: 400;
   letter-spacing: 0.01em;
@@ -30,13 +30,18 @@
 }
 
 /* ── Size modifiers ──────────────────────────────── */
-.sg-clock--s  { --clock-font-size: clamp(28px, 3.5vw,  52px); }
-.sg-clock--m  { --clock-font-size: clamp(38px, 5vw,    72px); }
-.sg-clock--l  { --clock-font-size: clamp(52px, 7vw,   104px); }
-.sg-clock--xl { --clock-font-size: clamp(72px, 9.5vw, 140px); }
+.sg-clock-time--size-s { font-size: 28px; }
+.sg-clock-time--size-m { font-size: 42px; }
+.sg-clock-time--size-l  { font-size: 56px; }
+.sg-clock-time--size-xl { font-size: 72px; }
 
-/* ── Weight modifier ─────────────────────────────── */
-.sg-clock--bold { --clock-font-weight: 700; }
+.sg-clock-date--size-s { font-size: 12px; }
+.sg-clock-date--size-m { font-size: 15px; }
+.sg-clock-date--size-l { font-size: 18px; }
+
+/* ── Weight modifiers ────────────────────────────── */
+.sg-clock-time--bold { font-weight: 700; }
+.sg-clock-date--bold { font-weight: 600; }
 
 /* Wrapper is layout-neutral so rows flow into the float panel */
 .sg-clock-settings {

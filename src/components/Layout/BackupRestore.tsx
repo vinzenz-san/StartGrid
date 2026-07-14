@@ -1,5 +1,5 @@
-import { useRef, useState, useEffect } from 'react';
-import { SettingsRow } from '../shared/Form';
+import { useRef, useState } from 'react';
+import { SettingsRow, ActionButton } from '../shared/Form';
 import { useSettings, SETTINGS_DEFAULTS } from '../../contexts/SettingsContext';
 
 const isExtension = typeof chrome !== 'undefined' && !!chrome.storage;
@@ -84,38 +84,10 @@ function isValidEnvelope(data: unknown): data is BackupEnvelope {
 export default function BackupRestore() {
   const { developerOptionsEnabled } = useSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [importError,     setImportError]     = useState<string | null>(null);
-  const [importOk,        setImportOk]        = useState(false);
-  const [exporting,       setExporting]       = useState(false);
-  const [importing,       setImporting]       = useState(false);
-  const [confirmPending,  setConfirmPending]  = useState(false);
-  const [confirmCooldown, setConfirmCooldown] = useState(false);
-  const [countdown,       setCountdown]       = useState(3);
-
-  // 3-second safety lock: count down then unlock
-  useEffect(() => {
-    if (!confirmCooldown) return;
-    setCountdown(3);
-    const tick = setInterval(() => {
-      setCountdown(n => {
-        if (n <= 1) {
-          clearInterval(tick);
-          setConfirmCooldown(false);
-          return 3;
-        }
-        return n - 1;
-      });
-    }, 1000);
-    return () => clearInterval(tick);
-  }, [confirmCooldown]);
-
-  // Auto-cancel if user ignores after cooldown (3 s of inactivity)
-  useEffect(() => {
-    if (confirmPending && !confirmCooldown) {
-      const id = setTimeout(() => setConfirmPending(false), 3000);
-      return () => clearTimeout(id);
-    }
-  }, [confirmPending, confirmCooldown]);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importOk,    setImportOk]    = useState(false);
+  const [exporting,   setExporting]   = useState(false);
+  const [importing,   setImporting]   = useState(false);
 
   // ── Export ───────────────────────────────────────────────────────────────
   async function handleExport() {
@@ -159,7 +131,6 @@ export default function BackupRestore() {
           throw new Error('Invalid backup file. Expected a Startpage backup with version, sync, and local keys.');
         }
         await writeAllStorage(parsed.sync, parsed.local);
-        // Give storage writes a tick to settle before reloading
         setTimeout(() => window.location.reload(), 50);
       } catch (err) {
         setImportError(err instanceof Error ? err.message : 'Unknown error.');
@@ -167,18 +138,12 @@ export default function BackupRestore() {
       }
     };
     reader.readAsText(file);
-    // Reset so the same file can be re-imported if needed
     e.target.value = '';
   }
 
   // ── Factory Reset ─────────────────────────────────────────────────────────
-  async function handleReset() {
-    if (!confirmPending) {
-      setConfirmPending(true);
-      if (!developerOptionsEnabled) setConfirmCooldown(true);
-      return;
-    }
-    if (confirmCooldown) return; // still locked — ignore click
+  async function doReset() {
+    // Snapshot before the async wipe so dev mode survives the reload
     const preserveDevOptions = developerOptionsEnabled;
     await clearAllStorage();
     if (preserveDevOptions) {
@@ -188,6 +153,16 @@ export default function BackupRestore() {
       );
     }
     setTimeout(() => window.location.reload(), 50);
+  }
+
+  async function handleFactoryReset() {
+    if (!developerOptionsEnabled) {
+      const confirmed = window.confirm(
+        'Are you really sure you want to perform a factory reset? This will permanently delete all of your settings, widgets, and data.'
+      );
+      if (!confirmed) return;
+    }
+    await doReset();
   }
 
   return (
@@ -225,34 +200,18 @@ export default function BackupRestore() {
             onChange={handleFileChange}
           />
         </SettingsRow>
-        {importError && (
-          <p className="sg-backup-error">{importError}</p>
-        )}
-        {importOk && (
-          <p className="sg-backup-ok">Restored — reloading…</p>
-        )}
+        {importError && <p className="sg-backup-error">{importError}</p>}
+        {importOk    && <p className="sg-backup-ok">Restored — reloading…</p>}
       </section>
 
       {/* ── Danger Zone ── */}
       <section className="settings-section" style={{ paddingBottom: 12 }}>
         <div className="settings-section-label">Danger Zone</div>
         <SettingsRow label="Factory Reset">
-          <button
-            className={`sg-backup-btn sg-backup-btn--danger${confirmPending ? ' sg-backup-btn--confirm' : ''}${confirmCooldown ? ' sg-backup-btn--cooldown' : ''}`}
-            onClick={handleReset}
-          >
-            {confirmPending
-              ? confirmCooldown
-                ? `Confirm — wipe everything (${countdown}s)`
-                : 'Confirm — wipe everything'
-              : 'Reset all data'}
-          </button>
+          <ActionButton variant="danger" cooldownTime={3} onClick={handleFactoryReset}>
+            Factory Reset
+          </ActionButton>
         </SettingsRow>
-        {confirmPending && !confirmCooldown && (
-          <p className="sg-backup-error sg-backup-error--warn">
-            Click again to permanently erase all settings.
-          </p>
-        )}
       </section>
     </div>
   );

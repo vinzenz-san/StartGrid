@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, GmailData, CalendarData, NotesData, PlaceholderData } from '../../types/widget';
 import Clock, { ClockSettings } from './Clock/Clock';
 import Quicklinks, { QuicklinksSettings } from './Quicklinks/Quicklinks';
-import Bookmarks, { BookmarksSettings } from './Bookmarks/Bookmarks';
+import BookmarkExplorer, { BookmarkExplorerSettings } from './BookmarkExplorer/BookmarkExplorer';
 import Gmail, { GmailSettings } from './Gmail/Gmail';
 import Calendar, { CalendarSettings } from './Calendar/Calendar';
 import Notes, { NotesSettings } from './Notes/Notes';
@@ -69,14 +69,13 @@ const _registry = {
   bookmarks: {
     label:                 'Bookmarks',
     icon:                  '🔖',
-    defaultSize:           { w: 2, h: 2 },
-    defaultData:           { folderId: '', layout: 'grid' } satisfies BookmarksData,
+    defaultSize:           { w: 2, h: 3 },
+    defaultData:           { showIcons: true, compactMode: false } satisfies BookmarksData,
     titleBehavior:         'optional',
     defaultTitle:          'Bookmarks',
-    defaultShowCustomTitle: true,
-    resolveDynamicTitle:   (data) => (data as BookmarksData).folderName,
-    renderComponent: (data, onUpdateData) => <Bookmarks data={data} onUpdateData={onUpdateData} />,
-    renderSettings:  (data, onUpdateData) => <BookmarksSettings data={data} onUpdateData={onUpdateData} />,
+    defaultShowCustomTitle: false,
+    renderComponent: (data, onUpdateData) => <BookmarkExplorer data={data} onUpdateData={onUpdateData} />,
+    renderSettings:  (data, onUpdateData) => <BookmarkExplorerSettings data={data} onUpdateData={onUpdateData} />,
   } satisfies TypedEntry<BookmarksData>,
 
   gmail: {
@@ -120,6 +119,8 @@ const _registry = {
     renderComponent: (data, onUpdateData) => <WidgetPlaceholder widget={{ type: 'placeholder', data, id: '', col: 1, row: 1, w: 1, h: 1 }} />,
     renderSettings:  null,
   } satisfies TypedEntry<PlaceholderData>,
+
+
 } satisfies { [K in WidgetType]: TypedEntry<WidgetDataMap[K]> };
 
 // One cast total — lets WidgetContainer index by dynamic widget.type.

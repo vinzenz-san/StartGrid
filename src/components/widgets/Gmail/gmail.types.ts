@@ -1,7 +1,7 @@
 // ── Persistent widget data (stored in browser.storage.sync) ──────────────────
 
 export interface GmailData {
-  maxEmails: number;       // 3–10, default 5
+  maxEmails: number;       // 5–30, default 5
   showSnippets: boolean;   // show preview text under subject
 }
 

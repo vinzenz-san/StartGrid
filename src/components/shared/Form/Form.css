@@ -79,6 +79,56 @@
   box-sizing: border-box;
 }
 
+/* ── ActionButton ────────────────────────────────────────────────────────── */
+.sg-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(128, 128, 128, 0.25);
+  background: rgba(128, 128, 128, 0.08);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.1s, border-color 0.1s, opacity 0.1s;
+}
+
+.sg-action-btn:hover:not(:disabled):not(.sg-action-btn--cooldown) {
+  background: rgba(128, 128, 128, 0.15);
+  border-color: rgba(128, 128, 128, 0.4);
+}
+
+.sg-action-btn--danger {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.08);
+  color: #f87171;
+}
+
+.sg-action-btn--danger:hover:not(:disabled):not(.sg-action-btn--cooldown) {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.sg-action-btn--confirm {
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.sg-action-btn--cooldown {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.sg-action-btn-countdown {
+  margin-left: 4px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
 /* ── SettingsSwitch ──────────────────────────────────────────────────────── */
 .sg-form-switch {
   position: relative;
