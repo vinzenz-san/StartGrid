@@ -3,10 +3,39 @@ import { useStorage } from '../hooks/useStorage';
 import type { Widget } from '../types/widget';
 
 const DEFAULT_WIDGETS: Widget[] = [
-  { id: 'demo-1', type: 'placeholder', col: 1, row: 1, w: 2, h: 2, data: { title: 'Small (2×2)' } },
-  { id: 'demo-2', type: 'placeholder', col: 3, row: 1, w: 4, h: 3, data: { title: 'Medium (4×3)' } },
-  { id: 'demo-3', type: 'placeholder', col: 7, row: 1, w: 2, h: 2, data: { title: 'Small (2×2)' } },
-  { id: 'demo-4', type: 'placeholder', col: 1, row: 3, w: 3, h: 2, data: { title: 'Wide (3×2)' } },
+  {
+    id: 'default-quicklinks',
+    type: 'quicklinks',
+    col: 1, row: 1, w: 2, h: 2,
+    data: {
+      links: [
+        { id: 'ql-github', url: 'https://github.com', title: 'GitHub', showTitle: true, iconSource: 'auto' },
+      ],
+      layout: 'grid',
+      iconSize: 'medium',
+      showTitles: true,
+    },
+  },
+  {
+    id: 'default-clock',
+    type: 'clock',
+    col: 3, row: 1, w: 4, h: 1,
+    data: {
+      format: '24h',
+      showSeconds: false,
+      showDate: true,
+      isBold: true,
+    },
+  },
+  {
+    id: 'default-notes',
+    type: 'notes',
+    col: 7, row: 1, w: 2, h: 2,
+    data: {
+      content: '',
+      storageMode: 'synced',
+    },
+  },
 ];
 
 interface WidgetContextType {

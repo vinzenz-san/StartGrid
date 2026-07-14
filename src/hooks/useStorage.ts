@@ -10,7 +10,7 @@ export function useStorage<T>(key: string, defaultValue: T) {
   // ── Initial load ────────────────────────────────
   useEffect(() => {
     storage.get(key).then((stored) => {
-      if (stored !== undefined) {
+      if (stored !== undefined && stored !== null) {
         lastSaved.current = JSON.stringify(stored);
         setValue(stored as T);
       }

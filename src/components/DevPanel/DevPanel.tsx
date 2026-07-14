@@ -140,7 +140,7 @@ function DevPanelInner() {
       <div className="dev-row">
         <span className="dev-label">Widgets</span>
         <span className={`dev-badge ${loaded ? 'ok' : 'warn'}`}>
-          {loaded ? widgets.length : '…'}
+          {loaded ? (widgets?.length ?? 0) : '…'}
         </span>
       </div>
 
