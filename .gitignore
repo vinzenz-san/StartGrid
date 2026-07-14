@@ -9,3 +9,7 @@ dist/
 *.log
 .vscode/
 .idea/
+
+# Extension builds / zip files
+*.zip
+dist.zip
