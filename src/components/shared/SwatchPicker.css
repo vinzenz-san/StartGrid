@@ -58,6 +58,19 @@
 .sg-swatch--lg-custom:hover { border-color: var(--text-muted); }
 .sg-swatch--lg-custom.active { border-color: var(--accent); border-style: solid; }
 
+/* ── Compact swatch colors (theme-aware, no inline style) ── */
+.sg-swatch[data-swatch-id="midnight"] { background: #2a2d3d; }
+.sg-swatch[data-swatch-id="aurora"]   { background: #1a3327; }
+.sg-swatch[data-swatch-id="dusk"]     { background: #2d2445; }
+.sg-swatch[data-swatch-id="ocean"]    { background: #1a2d55; }
+.sg-swatch[data-swatch-id="ember"]    { background: #3d2420; }
+
+html[data-scheme="light"] .sg-swatch[data-swatch-id="midnight"] { background: #cbd5e1; }
+html[data-scheme="light"] .sg-swatch[data-swatch-id="aurora"]   { background: #bbf7d0; }
+html[data-scheme="light"] .sg-swatch[data-swatch-id="dusk"]     { background: #e9d5ff; }
+html[data-scheme="light"] .sg-swatch[data-swatch-id="ocean"]    { background: #bfdbfe; }
+html[data-scheme="light"] .sg-swatch[data-swatch-id="ember"]    { background: #fed7aa; }
+
 .sg-swatch-check-lg {
   position: absolute;
   top: 50%;

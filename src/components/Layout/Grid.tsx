@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useEditMode } from '../../contexts/EditModeContext';
 import { useWidgets } from '../../contexts/WidgetContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import { dragState } from '../../lib/dragState';
 import { findFreePosition, isPositionFree } from '../../lib/gridUtils';
 import type { WidgetType } from '../../types/widget';
@@ -19,11 +20,14 @@ interface DropTarget { col: number; row: number; w: number; h: number; valid: bo
 export default function Grid() {
   const { isEditMode, toggleEditMode } = useEditMode();
   const { widgets, addWidget, updateWidget, loaded } = useWidgets();
+  const { gearPosition, colorScheme, updateSettings } = useSettings();
+  const isDark = colorScheme !== 'light';
+  const toggleTheme = () => updateSettings({ colorScheme: isDark ? 'light' : 'dark' });
   const gridRef = useRef<HTMLDivElement>(null);
   const [dropTarget,        setDropTarget]        = useState<DropTarget | null>(null);
   const [addMenuOpen,       setAddMenuOpen]       = useState(false);
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
-  const [activeTab,         setActiveTab]         = useState<SettingsTab>('background');
+  const [activeTab,         setActiveTab]         = useState<SettingsTab>('general');
 
   const cellFromPoint = (clientX: number, clientY: number) => {
     const rect = gridRef.current!.getBoundingClientRect();
@@ -73,6 +77,16 @@ export default function Grid() {
       <header className="sg-toolbar">
         <span className="sg-logo">⬡ StartGrid</span>
         <div className="sg-toolbar-actions">
+          <button
+            className="sg-btn-theme"
+            onClick={toggleTheme}
+            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {isDark
+              ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+              : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            }
+          </button>
           {isEditMode && (
             <div className="sg-add-wrap">
               <button
@@ -97,11 +111,6 @@ export default function Grid() {
           )}
           {isEditMode && <span className="sg-edit-hint">Drag to move</span>}
           <button
-            className={`sg-btn-edit${settingsPanelOpen ? ' active' : ''}`}
-            onPointerDown={e => { e.stopPropagation(); e.preventDefault(); setSettingsPanelOpen(s => !s); setAddMenuOpen(false); }}
-            title="Settings"
-          >⚙ Settings</button>
-          <button
             className={`sg-btn-edit${isEditMode ? ' active' : ''}`}
             onPointerDown={() => { setAddMenuOpen(false); setSettingsPanelOpen(false); toggleEditMode(); }}
             title="Edit mode (Ctrl+E)"
@@ -116,6 +125,14 @@ export default function Grid() {
           onTabChange={setActiveTab}
         />
       )}
+
+      <div className={`sg-gear-anchor sg-gear--${gearPosition}`}>
+        <button
+          className={`sg-btn-edit${settingsPanelOpen ? ' active' : ''}`}
+          onPointerDown={e => { e.stopPropagation(); e.preventDefault(); setSettingsPanelOpen(s => !s); setAddMenuOpen(false); }}
+          title="Settings"
+        >⚙ Settings</button>
+      </div>
 
       <main className="sg-grid-wrapper" onClick={() => { setAddMenuOpen(false); setSettingsPanelOpen(false); }}>
         <div

@@ -32,6 +32,23 @@ export function darkenHex(hex: string, factor = 0.45): string {
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
+export function mixHex(a: string, b: string, t: number): string {
+  const ha = a.replace('#', '').padEnd(6, '0');
+  const hb = b.replace('#', '').padEnd(6, '0');
+  const r  = Math.round(parseInt(ha.slice(0, 2), 16) * (1 - t) + parseInt(hb.slice(0, 2), 16) * t);
+  const g  = Math.round(parseInt(ha.slice(2, 4), 16) * (1 - t) + parseInt(hb.slice(2, 4), 16) * t);
+  const bl = Math.round(parseInt(ha.slice(4, 6), 16) * (1 - t) + parseInt(hb.slice(4, 6), 16) * t);
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${bl.toString(16).padStart(2, '0')}`;
+}
+
+export function lightenHex(hex: string, factor = 0.2): string {
+  const h = hex.replace('#', '');
+  const r = Math.min(255, Math.round(parseInt(h.slice(0, 2), 16) + (255 - parseInt(h.slice(0, 2), 16)) * factor));
+  const g = Math.min(255, Math.round(parseInt(h.slice(2, 4), 16) + (255 - parseInt(h.slice(2, 4), 16)) * factor));
+  const b = Math.min(255, Math.round(parseInt(h.slice(4, 6), 16) + (255 - parseInt(h.slice(4, 6), 16)) * factor));
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
 export function generateGradient(hex: string): string {
   return `linear-gradient(135deg, ${darkenHex(hex, 0.5)} 0%, ${hex} 50%, ${darkenHex(hex, 0.35)} 100%)`;
 }

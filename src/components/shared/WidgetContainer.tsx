@@ -4,7 +4,9 @@ import { useFloating, flip, shift, offset, autoUpdate } from '@floating-ui/react
 import { useEditMode } from '../../contexts/EditModeContext';
 import { useWidgets } from '../../contexts/WidgetContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { darkenHex } from '../../lib/colorUtils';
+import { useSettings } from '../../contexts/SettingsContext';
+import { darkenHex, mixHex } from '../../lib/colorUtils';
+import { THEME_SWATCHES } from './SwatchPicker';
 import { dragState } from '../../lib/dragState';
 import type { Widget } from '../../types/widget';
 import { WIDGET_REGISTRY } from '../widgets/registry';
@@ -20,7 +22,8 @@ interface Props { widget: Widget; }
 export default function WidgetContainer({ widget }: Props) {
   const { isEditMode } = useEditMode();
   const { removeWidget, updateWidget } = useWidgets();
-  const { globalColor, globalOpacity, globalDim, globalGradient } = useTheme();
+  const { globalColor, globalOpacity, globalDim, globalGradientIntensity } = useTheme();
+  const { colorScheme } = useSettings();
   const elRef = useRef<HTMLDivElement>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [resizePreview, setResizePreview] = useState<{ w: number; h: number } | null>(null);
@@ -119,23 +122,40 @@ export default function WidgetContainer({ widget }: Props) {
     updateWidget(widget.id, { data: { ...widget.data, ...patch } });
   };
 
-  const overrideEnabled       = widget.localOverrideEnabled  ?? false;
-  const localGradientEnabled  = widget.localGradientOverride ?? false;
-  const localOpacityPct       = Math.round((widget.bgOpacity ?? globalOpacity) * 100);
-  const localTransparencyPct  = 100 - localOpacityPct;
-  const localDimPct           = Math.round(widget.bgDim ?? globalDim);
-  const effectiveColor        = widget.bgColor ?? globalColor;
+  const overrideEnabled      = widget.localOverrideEnabled ?? false;
+  const localOpacityPct      = Math.round((widget.bgOpacity ?? globalOpacity) * 100);
+  const localTransparencyPct = 100 - localOpacityPct;
+  const localDimPct          = Math.round(widget.bgDim ?? globalDim);
+  const effectiveColor       = widget.bgColor ?? globalColor;
+
+  // Effective intensity: per-widget value if set, else backwards-compat from old boolean, else global
+  const localIntensity = widget.bgGradientIntensity
+    ?? (widget.localGradientOverride === false ? 0 : globalGradientIntensity);
 
   // Local override: set CSS variables on the element so ::before / ::after pick them up.
-  // --widget-bg-preset-css overrides the `:root` preset (or formula fallback) for this widget only.
   const localOverrideStyle: React.CSSProperties = overrideEnabled
     ? (() => {
-        const colorEnd = localGradientEnabled ? darkenHex(effectiveColor) : effectiveColor;
-        return {
-          '--widget-bg-preset-css': `linear-gradient(135deg, ${effectiveColor}, ${colorEnd})`,
-          '--widget-bg-opacity':    String(widget.bgOpacity ?? globalOpacity),
-          '--widget-dim':           String(widget.bgDim ?? globalDim),
-        } as React.CSSProperties;
+        const base: Record<string, string> = {
+          '--widget-bg-opacity': String(widget.bgOpacity ?? globalOpacity),
+          '--widget-dim':        String(widget.bgDim ?? globalDim),
+        };
+        const t = localIntensity / 100;
+        if (widget.bgPresetId) {
+          // Named preset: compute intensity-blended gradient inline, overriding CSS attr selector
+          const swatch = THEME_SWATCHES.find(s => s.id === widget.bgPresetId);
+          if (swatch) {
+            const isDark = colorScheme !== 'light';
+            const endColor   = isDark ? swatch.darkEnd   : swatch.lightEnd;
+            const startColor = isDark ? swatch.darkStart : swatch.lightStart;
+            const blendedStart = mixHex(endColor, startColor, t);
+            base['--preset-bg'] = `linear-gradient(135deg, ${blendedStart} 0%, ${endColor} 100%)`;
+          }
+        } else {
+          // Custom color: blend end stop toward base color by intensity
+          const colorEnd = mixHex(effectiveColor, darkenHex(effectiveColor), t);
+          base['--widget-bg-preset-css'] = `linear-gradient(135deg, ${effectiveColor} 0%, ${colorEnd} 100%)`;
+        }
+        return base as React.CSSProperties;
       })()
     : {};
 
@@ -202,17 +222,17 @@ export default function WidgetContainer({ widget }: Props) {
         {overrideEnabled && (
           <>
             <div className="sg-widget-appearance-section">
-              <div className="sg-widget-appearance-row">
-                <span className="sg-widget-appearance-label">Gradient effect</span>
-                <button
-                  role="switch"
-                  aria-checked={localGradientEnabled}
-                  className={`sg-form-switch${localGradientEnabled ? ' sg-form-switch--on' : ''}`}
-                  onClick={() => updateWidget(widget.id, { localGradientOverride: !localGradientEnabled })}
+              <div className="sg-widget-appearance-slider">
+                <div className="sg-widget-appearance-slider-header">
+                  <span className="sg-widget-appearance-label">Gradient Intensity</span>
+                  <span className="sg-widget-appearance-val">{localIntensity}%</span>
+                </div>
+                <input
+                  type="range" min={0} max={100} step={5}
+                  value={localIntensity}
+                  onChange={e => updateWidget(widget.id, { bgGradientIntensity: Number(e.target.value) })}
                   onPointerDown={e => e.stopPropagation()}
-                >
-                  <span className="sg-form-switch-thumb" />
-                </button>
+                />
               </div>
             </div>
 
@@ -220,7 +240,7 @@ export default function WidgetContainer({ widget }: Props) {
               <span className="sg-widget-appearance-label">Presets</span>
               <SwatchPicker
                 value={widget.bgColor ?? globalColor}
-                onChange={color => updateWidget(widget.id, { bgColor: color })}
+                onChange={(color, presetId) => updateWidget(widget.id, { bgColor: color, bgPresetId: presetId ?? undefined })}
               />
             </div>
 
@@ -267,6 +287,7 @@ export default function WidgetContainer({ widget }: Props) {
           isEditMode   ? 'sg-widget--edit'            : '',
           settingsOpen ? 'sg-widget--settings-active' : '',
         ].filter(Boolean).join(' ')}
+        data-preset={overrideEnabled && widget.bgPresetId ? widget.bgPresetId : undefined}
         draggable={isEditMode && !resizePreview}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}

@@ -73,10 +73,13 @@ interface WidgetBase {
   w: number;
   h: number;
   bgColor?: string;
+  bgPresetId?: string;
   bgOpacity?: number;
   bgDim?: number;
   localOverrideEnabled?: boolean;
+  /** @deprecated read-only; use bgGradientIntensity instead */
   localGradientOverride?: boolean;
+  bgGradientIntensity?: number;  // 0-100; replaces localGradientOverride
   showCustomTitle?: boolean;
   customTitle?: string;
 }
