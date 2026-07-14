@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "StartGrid",
+  "version": "0.1.0",
+  "description": "Customizable Firefox new tab page with widgets",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "startgrid@local",
+      "strict_min_version": "109.0"
+    }
+  },
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "permissions": [
+    "storage",
+    "bookmarks",
+    "tabs",
+    "identity"
+  ],
+  "host_permissions": [
+    "https://accounts.google.com/*",
+    "https://oauth2.googleapis.com/*",
+    "https://gmail.googleapis.com/*",
+    "https://www.googleapis.com/*"
+  ]
+}

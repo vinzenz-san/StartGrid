@@ -33,12 +33,13 @@ const Ctx = createContext<ThemeCtx | null>(null);
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useStorage<ThemeConfig>(STORAGE_KEY, DEFAULTS);
 
+  const t = theme ?? DEFAULTS;
   const safeTheme = {
-    globalColor:    theme.globalColor    ?? DEFAULTS.globalColor,
-    globalOpacity:  theme.globalOpacity  ?? DEFAULTS.globalOpacity,
-    globalDim:      theme.globalDim      ?? DEFAULTS.globalDim,
-    globalGradient: theme.globalGradient ?? DEFAULTS.globalGradient,
-    globalPresetId: theme.globalPresetId,
+    globalColor:    t.globalColor    ?? DEFAULTS.globalColor,
+    globalOpacity:  t.globalOpacity  ?? DEFAULTS.globalOpacity,
+    globalDim:      t.globalDim      ?? DEFAULTS.globalDim,
+    globalGradient: t.globalGradient ?? DEFAULTS.globalGradient,
+    globalPresetId: t.globalPresetId,
   };
 
   useEffect(() => {

@@ -125,7 +125,7 @@ export default function Grid() {
           onDrop={isEditMode ? handleDrop : undefined}
           onDragLeave={isEditMode ? handleDragLeave : undefined}
         >
-          {loaded && widgets.map(widget => <WidgetContainer key={widget.id} widget={widget} />)}
+          {loaded && (widgets ?? []).map(widget => <WidgetContainer key={widget.id} widget={widget} />)}
           {isEditMode && dropTarget && (
             <div
               className={`sg-drop-ghost${dropTarget.valid ? '' : ' sg-drop-ghost--invalid'}`}

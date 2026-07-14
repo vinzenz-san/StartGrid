@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "StartGrid",
+  "version": "0.1.0",
+  "description": "Customizable new tab page with widgets",
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "permissions": [
+    "storage",
+    "bookmarks",
+    "tabs",
+    "identity"
+  ],
+  "host_permissions": [
+    "https://accounts.google.com/*",
+    "https://oauth2.googleapis.com/*",
+    "https://gmail.googleapis.com/*",
+    "https://www.googleapis.com/*"
+  ],
+  "oauth2": {
+    "client_id": "__REPLACE_WITH_CHROME_OAUTH_CLIENT_ID__",
+    "scopes": [
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/calendar.readonly",
+      "openid",
+      "email"
+    ]
+  }
+}

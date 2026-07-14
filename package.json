@@ -3,9 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "rspack build --watch",
-    "build": "rspack build",
-    "preview": "npx serve dist -p 4747 --no-clipboard"
+    "dev": "rspack build --watch --env target=firefox",
+    "build:firefox": "rspack build --env target=firefox",
+    "build:chrome": "rspack build --env target=chrome",
+    "build": "pnpm build:firefox && pnpm build:chrome",
+    "preview": "npx serve dist/firefox -p 4747 --no-clipboard"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.20",
