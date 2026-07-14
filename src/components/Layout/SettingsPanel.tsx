@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import BackgroundEditor from '../Background/BackgroundEditor';
 import SwatchPicker from '../shared/SwatchPicker';
 import GeneralSettings from './GeneralSettings';
@@ -35,7 +36,8 @@ export default function SettingsPanel({ onClose, activeTab, onTabChange, activeS
     setGlobalColor, setGlobalOpacity, setGlobalDim, setGlobalGradientIntensity,
     setGlobalPresetId,
   } = useTheme();
-  const { colorScheme, accentColor, showDevPanel, updateSettings } = useSettings();
+  const { colorScheme, accentColor, developerOptionsEnabled, updateSettings } = useSettings();
+  const [devConfirmOpen, setDevConfirmOpen] = useState(false);
   const { setConfig } = useBackground();
 
   const [pickerOpen,           setPickerOpen]           = useState(false);
@@ -70,7 +72,11 @@ export default function SettingsPanel({ onClose, activeTab, onTabChange, activeS
   const dimPct          = Math.round(globalDim);
 
   function handleResetAppearance() {
-    if (!resetPending) { setResetPending(true); setResetCooldown(true); return; }
+    if (!resetPending) {
+      setResetPending(true);
+      if (!developerOptionsEnabled) setResetCooldown(true);
+      return;
+    }
     if (resetCooldown) return;
     setResetPending(false);
     setConfig(DEFAULT_BG);
@@ -129,14 +135,35 @@ export default function SettingsPanel({ onClose, activeTab, onTabChange, activeS
             <hr className="sg-settings-divider" />
 
             <section className="settings-section" style={{ paddingBottom: 12 }}>
-              <div className="settings-section-label">Developer</div>
-              <SettingsRow label="Show Dev Panel">
+              <div className="settings-section-label">Developer Options</div>
+              <SettingsRow label="Enable Developer Options">
                 <SettingsSwitch
-                  checked={showDevPanel}
-                  onChange={v => updateSettings({ showDevPanel: v })}
+                  checked={developerOptionsEnabled}
+                  onChange={v => { if (v) setDevConfirmOpen(true); else updateSettings({ developerOptionsEnabled: false }); }}
                 />
               </SettingsRow>
             </section>
+
+            {devConfirmOpen && createPortal(
+              <div className="sg-dev-confirm-backdrop" onPointerDown={() => setDevConfirmOpen(false)}>
+                <div className="sg-dev-confirm-dialog" onPointerDown={e => e.stopPropagation()}>
+                  <div className="sg-dev-confirm-title">Enable Developer Options?</div>
+                  <p className="sg-dev-confirm-body">
+                    Warning: Enabling developer options will remove safety cooldowns and reset
+                    protection nets across the application. Proceed with caution.
+                  </p>
+                  <div className="sg-dev-confirm-actions">
+                    <button className="sg-dev-confirm-btn sg-dev-confirm-btn--cancel" onClick={() => setDevConfirmOpen(false)}>
+                      Cancel
+                    </button>
+                    <button className="sg-dev-confirm-btn sg-dev-confirm-btn--confirm" onClick={() => { updateSettings({ developerOptionsEnabled: true }); setDevConfirmOpen(false); }}>
+                      Enable
+                    </button>
+                  </div>
+                </div>
+              </div>,
+              document.body
+            )}
           </>
         )}
 

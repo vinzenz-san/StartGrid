@@ -281,3 +281,80 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+/* ── Developer Options confirmation dialog ── */
+.sg-dev-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+
+.sg-dev-confirm-dialog {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  width: 320px;
+  max-width: calc(100vw - 40px);
+  padding: 20px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sg-dev-confirm-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sg-dev-confirm-body {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.sg-dev-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.sg-dev-confirm-btn {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 14px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.sg-dev-confirm-btn--cancel {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.sg-dev-confirm-btn--cancel:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+.sg-dev-confirm-btn--confirm {
+  background: rgba(224, 82, 82, 0.12);
+  color: #e05252;
+  border-color: rgba(224, 82, 82, 0.4);
+}
+
+.sg-dev-confirm-btn--confirm:hover {
+  background: rgba(224, 82, 82, 0.22);
+  border-color: rgba(224, 82, 82, 0.7);
+}

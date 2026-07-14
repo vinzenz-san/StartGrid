@@ -45,7 +45,7 @@
 .sg-settings-slider {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
 }
 
 .sg-settings-slider-header {
@@ -75,6 +75,8 @@
   height: 4px;
   cursor: pointer;
   accent-color: var(--accent);
+  padding: 0 12px;
+  box-sizing: border-box;
 }
 
 /* ── SettingsSwitch ──────────────────────────────────────────────────────── */
