@@ -3,7 +3,9 @@ export interface ClockData {
   showSeconds: boolean;
   showDate: boolean;
   fontSize?: 'S' | 'M' | 'L' | 'XL';
+  dateFontSize?: 'S' | 'M' | 'L';
   isBold?: boolean;
+  boldDate?: boolean;
   fontColor?: string;
 }
 
@@ -26,10 +28,9 @@ export interface QuicklinksData {
 }
 
 export interface BookmarksData {
-  folderId: string;
-  folderName?: string;
-  layout: 'grid' | 'list';
-  iconSize?: 'small' | 'medium' | 'large';
+  rootFolderId?: string;
+  showIcons:     boolean;
+  compactMode:   boolean;
 }
 
 export interface GmailData {

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import type { GmailData, GmailMessage } from './gmail.types';
 import { useGmail } from './useGmail';
 import { useGoogleAuth } from '../../../hooks/useGoogleAuth';
-import { SettingsRow, SettingsSwitch } from '../../shared/Form';
+import { SettingsRow, SettingsSwitch, SettingsSlider, ActionButton } from '../../shared/Form';
 import './Gmail.css';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -108,14 +108,13 @@ export function GmailSettings({ data, onUpdateData }: SettingsProps) {
 
   return (
     <div className="sg-gm-settings" onClick={e => e.stopPropagation()}>
-      <SettingsRow label="Max emails">
-        <div className="sg-gm-slider-wrap">
-          <input type="range" min={3} max={10} value={maxEmails}
-            onChange={e => onUpdateData({ maxEmails: Number(e.target.value) })}
-            className="sg-gm-slider" />
-          <span className="sg-gm-slider-val">{maxEmails}</span>
-        </div>
-      </SettingsRow>
+      <SettingsSlider
+        label="Max emails"
+        min={5} max={30} step={1}
+        value={maxEmails}
+        onChange={v => onUpdateData({ maxEmails: v })}
+        valueFormatter={v => String(v)}
+      />
 
       <SettingsRow label="Show snippets">
         <SettingsSwitch checked={showSnippets} onChange={v => onUpdateData({ showSnippets: v })} />
@@ -128,9 +127,13 @@ export function GmailSettings({ data, onUpdateData }: SettingsProps) {
         {isConnected ? (
           <>
             {email && <p className="sg-gm-account-email">{email}</p>}
-            <button className="sg-gm-connect-btn sg-gm-connect-btn--disconnect" onClick={disconnect}>
+            <ActionButton
+              variant="danger"
+              cooldownTime={1}
+              onClick={disconnect}
+            >
               <IconDisconnect /> Disconnect account
-            </button>
+            </ActionButton>
           </>
         ) : (
           <>

@@ -245,53 +245,6 @@
   opacity: 0.5;
 }
 
-/* Slider */
-
-.sg-gm-slider-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sg-gm-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 90px;
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(128, 128, 128, 0.25);
-  outline: none;
-  cursor: pointer;
-}
-
-.sg-gm-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--accent);
-  cursor: pointer;
-  transition: background 0.1s;
-}
-
-.sg-gm-slider::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--accent);
-  border: none;
-  cursor: pointer;
-}
-
-.sg-gm-slider-val {
-  font-size: 12px;
-  font-weight: 600;
-  min-width: 14px;
-  text-align: right;
-  opacity: 0.75;
-}
-
 /* Toggle switch */
 
 .sg-gm-switch {
@@ -364,16 +317,6 @@
   cursor: default;
 }
 
-.sg-gm-connect-btn--disconnect {
-  border-color: rgba(239, 68, 68, 0.35);
-  background: rgba(239, 68, 68, 0.08);
-  color: #f87171;
-}
-
-.sg-gm-connect-btn--disconnect:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.5);
-}
 
 .sg-gm-account-email {
   font-size: 11.5px;

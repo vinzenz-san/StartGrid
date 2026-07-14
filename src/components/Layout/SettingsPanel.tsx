@@ -1,11 +1,11 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import BackgroundEditor from '../Background/BackgroundEditor';
 import SwatchPicker from '../shared/SwatchPicker';
 import GeneralSettings from './GeneralSettings';
 import BackupRestore from './BackupRestore';
 import CustomColorPicker from '../shared/CustomColorPicker';
-import { SettingsRow, SettingsSwitch, SegmentedControl, SettingsSlider } from '../shared/Form';
+import { SettingsRow, SettingsSwitch, SegmentedControl, SettingsSlider, ActionButton } from '../shared/Form';
 import { useTheme, DEFAULTS as THEME_DEFAULTS } from '../../contexts/ThemeContext';
 import { useSettings, SETTINGS_DEFAULTS } from '../../contexts/SettingsContext';
 import { useBackground } from '../../contexts/BackgroundContext';
@@ -40,45 +40,14 @@ export default function SettingsPanel({ onClose, activeTab, onTabChange, activeS
   const [devConfirmOpen, setDevConfirmOpen] = useState(false);
   const { setConfig } = useBackground();
 
-  const [pickerOpen,           setPickerOpen]           = useState(false);
-  const [resetPending,         setResetPending]         = useState(false);
-  const [resetCooldown,        setResetCooldown]        = useState(false);
-  const [resetCountdown,       setResetCountdown]       = useState(1);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const accentSwatchRef = useRef<HTMLButtonElement>(null);
-
-  // 3-second safety lock on appearance reset
-  useEffect(() => {
-    if (!resetCooldown) return;
-    setResetCountdown(1);
-    const tick = setInterval(() => {
-      setResetCountdown(n => {
-        if (n <= 1) { clearInterval(tick); setResetCooldown(false); return 1; }
-        return n - 1;
-      });
-    }, 1000);
-    return () => clearInterval(tick);
-  }, [resetCooldown]);
-
-  // Auto-cancel if user ignores after cooldown
-  useEffect(() => {
-    if (resetPending && !resetCooldown) {
-      const id = setTimeout(() => setResetPending(false), 3000);
-      return () => clearTimeout(id);
-    }
-  }, [resetPending, resetCooldown]);
 
   const opacityPct      = Math.round(globalOpacity * 100);
   const transparencyPct = 100 - opacityPct;
   const dimPct          = Math.round(globalDim);
 
-  function handleResetAppearance() {
-    if (!resetPending) {
-      setResetPending(true);
-      if (!developerOptionsEnabled) setResetCooldown(true);
-      return;
-    }
-    if (resetCooldown) return;
-    setResetPending(false);
+  function doResetAppearance() {
     setConfig(DEFAULT_BG);
     setGlobalColor(THEME_DEFAULTS.globalColor);
     setGlobalOpacity(THEME_DEFAULTS.globalOpacity);
@@ -176,7 +145,7 @@ export default function SettingsPanel({ onClose, activeTab, onTabChange, activeS
             {activeSubTab === 'widgets' && (
               <div className="sg-settings-widgets">
                 <section className="settings-section">
-                  <div className="settings-section-label">Color Presets</div>
+                  <div className="settings-section-label">Presets</div>
                   <SwatchPicker
                     value={globalColor}
                     onChange={(color, presetId) => { setGlobalColor(color); setGlobalPresetId(presetId); }}
@@ -247,16 +216,9 @@ export default function SettingsPanel({ onClose, activeTab, onTabChange, activeS
             {/* 4 — Reset footer */}
             <hr className="sg-settings-divider" />
             <div className="sg-appearance-footer">
-              <button
-                className={`sg-appearance-reset-btn${resetPending ? ' sg-appearance-reset-btn--confirm' : ''}${resetCooldown ? ' sg-appearance-reset-btn--cooldown' : ''}`}
-                onClick={handleResetAppearance}
-              >
-                {resetPending
-                  ? resetCooldown
-                    ? `Confirm — reset appearance (${resetCountdown}s)`
-                    : 'Confirm — reset appearance'
-                  : 'Reset Appearance'}
-              </button>
+              <ActionButton variant="danger" cooldownTime={1} onClick={doResetAppearance}>
+                Reset Appearance
+              </ActionButton>
             </div>
 
             {/* Portal-rendered color picker */}

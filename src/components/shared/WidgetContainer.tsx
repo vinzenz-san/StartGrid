@@ -223,19 +223,19 @@ export default function WidgetContainer({ widget }: Props) {
         {overrideEnabled && (
           <>
             <div className="sg-widget-appearance-section">
+              <span className="sg-widget-appearance-label">Presets</span>
+              <SwatchPicker
+                value={widget.bgColor ?? globalColor}
+                onChange={(color, presetId) => updateWidget(widget.id, { bgColor: color, bgPresetId: presetId ?? undefined })}
+              />
+            </div>
+
+            <div className="sg-widget-appearance-section">
               <SettingsSlider
                 label="Gradient Intensity"
                 value={localIntensity}
                 onChange={v => updateWidget(widget.id, { bgGradientIntensity: v })}
                 onPointerDown={e => e.stopPropagation()}
-              />
-            </div>
-
-            <div className="sg-widget-appearance-section">
-              <span className="sg-widget-appearance-label">Presets</span>
-              <SwatchPicker
-                value={widget.bgColor ?? globalColor}
-                onChange={(color, presetId) => updateWidget(widget.id, { bgColor: color, bgPresetId: presetId ?? undefined })}
               />
             </div>
 

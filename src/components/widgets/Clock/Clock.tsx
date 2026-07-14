@@ -28,7 +28,7 @@ interface SettingsProps {
 
 export function ClockSettings({ data, onUpdateData }: SettingsProps) {
   const { format = '24h', showSeconds = true, showDate = true,
-          fontSize = 'S', isBold = false, fontColor } = data;
+          fontSize = 'M', dateFontSize = 'M', isBold = false, boldDate = false, fontColor } = data;
   const colorBtnRef = useRef<HTMLButtonElement>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const pickerValue = fontColor ?? '#ffffff';
@@ -48,7 +48,7 @@ export function ClockSettings({ data, onUpdateData }: SettingsProps) {
       <SettingsRow label="Show date">
         <SettingsSwitch checked={showDate} onChange={v => onUpdateData({ showDate: v })} />
       </SettingsRow>
-      <SettingsRow label="Size">
+      <SettingsRow label="Time size">
         <SegmentedControl
           options={[
             { value: 'S',  label: 'S'  },
@@ -60,8 +60,22 @@ export function ClockSettings({ data, onUpdateData }: SettingsProps) {
           onChange={v => onUpdateData({ fontSize: v as ClockData['fontSize'] })}
         />
       </SettingsRow>
-      <SettingsRow label="Bold font">
+      <SettingsRow label="Date size">
+        <SegmentedControl
+          options={[
+            { value: 'S', label: 'S' },
+            { value: 'M', label: 'M' },
+            { value: 'L', label: 'L' },
+          ]}
+          value={dateFontSize}
+          onChange={v => onUpdateData({ dateFontSize: v as ClockData['dateFontSize'] })}
+        />
+      </SettingsRow>
+      <SettingsRow label="Bold time">
         <SettingsSwitch checked={isBold} onChange={v => onUpdateData({ isBold: v })} />
+      </SettingsRow>
+      <SettingsRow label="Bold date">
+        <SettingsSwitch checked={boldDate} onChange={v => onUpdateData({ boldDate: v })} />
       </SettingsRow>
       <SettingsRow label="Font color">
         <button
@@ -102,7 +116,7 @@ interface Props {
 
 export default function Clock({ data }: Props) {
   const { format = '24h', showSeconds = true, showDate = true,
-          fontSize = 'S', isBold = false, fontColor } = data;
+          fontSize = 'M', dateFontSize = 'M', isBold = false, boldDate = false, fontColor } = data;
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -117,9 +131,9 @@ export default function Clock({ data }: Props) {
   };
 
   return (
-    <div className={`sg-clock sg-clock--${fontSize.toLowerCase()}${isBold ? ' sg-clock--bold' : ''}`} style={style}>
-      <div className="sg-clock-time">{formatTime(now, format, showSeconds)}</div>
-      {showDate && <div className="sg-clock-date">{dateStr}</div>}
+    <div className="sg-clock" style={style}>
+      <div className={`sg-clock-time sg-clock-time--size-${fontSize.toLowerCase()}${isBold ? ' sg-clock-time--bold' : ''}`}>{formatTime(now, format, showSeconds)}</div>
+      {showDate && <div className={`sg-clock-date sg-clock-date--size-${dateFontSize.toLowerCase()}${boldDate ? ' sg-clock-date--bold' : ''}`}>{dateStr}</div>}
     </div>
   );
 }
