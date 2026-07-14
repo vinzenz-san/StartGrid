@@ -34,7 +34,33 @@ export default function WidgetContainer({ widget }: Props) {
 
   // ── Registry lookup ───────────────────────────────────────────────────────
 
-  const entry       = WIDGET_REGISTRY[widget.type];
+  const entry = WIDGET_REGISTRY[widget.type];
+
+  // ── Orphan guard — unknown / removed widget type ──────────────────────────
+  if (!entry) {
+    return (
+      <div
+        className="sg-widget sg-widget--orphan"
+        style={{
+          gridColumn: `${widget.col} / span ${widget.w}`,
+          gridRow:    `${widget.row} / span ${widget.h}`,
+        }}
+      >
+        <div className="sg-widget-orphan-body">
+          <span className="sg-widget-orphan-icon">⚠</span>
+          <span className="sg-widget-orphan-title">Unsupported Widget</span>
+          <span className="sg-widget-orphan-type">Type: &ldquo;{widget.type}&rdquo;</span>
+          <button
+            className="sg-widget-orphan-remove"
+            onClick={() => removeWidget(widget.id)}
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const hasSettings = entry.renderSettings !== null;
 
   // ── Title / header ────────────────────────────────────────────────────────
