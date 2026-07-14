@@ -82,18 +82,38 @@ function isValidEnvelope(data: unknown): data is BackupEnvelope {
 
 export default function BackupRestore() {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [importError, setImportError] = useState<string | null>(null);
-  const [importOk,    setImportOk]    = useState(false);
-  const [exporting,   setExporting]   = useState(false);
-  const [importing,   setImporting]   = useState(false);
-  const [confirmPending, setConfirmPending] = useState(false);
+  const [importError,     setImportError]     = useState<string | null>(null);
+  const [importOk,        setImportOk]        = useState(false);
+  const [exporting,       setExporting]       = useState(false);
+  const [importing,       setImporting]       = useState(false);
+  const [confirmPending,  setConfirmPending]  = useState(false);
+  const [confirmCooldown, setConfirmCooldown] = useState(false);
+  const [countdown,       setCountdown]       = useState(3);
 
-  // Auto-cancel the danger confirmation after 3 s
+  // 3-second safety lock: count down then unlock
   useEffect(() => {
-    if (!confirmPending) return;
-    const id = setTimeout(() => setConfirmPending(false), 3000);
-    return () => clearTimeout(id);
-  }, [confirmPending]);
+    if (!confirmCooldown) return;
+    setCountdown(3);
+    const tick = setInterval(() => {
+      setCountdown(n => {
+        if (n <= 1) {
+          clearInterval(tick);
+          setConfirmCooldown(false);
+          return 3;
+        }
+        return n - 1;
+      });
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [confirmCooldown]);
+
+  // Auto-cancel if user ignores after cooldown (3 s of inactivity)
+  useEffect(() => {
+    if (confirmPending && !confirmCooldown) {
+      const id = setTimeout(() => setConfirmPending(false), 3000);
+      return () => clearTimeout(id);
+    }
+  }, [confirmPending, confirmCooldown]);
 
   // ── Export ───────────────────────────────────────────────────────────────
   async function handleExport() {
@@ -153,8 +173,10 @@ export default function BackupRestore() {
   async function handleReset() {
     if (!confirmPending) {
       setConfirmPending(true);
+      setConfirmCooldown(true);
       return;
     }
+    if (confirmCooldown) return; // still locked — ignore click
     await clearAllStorage();
     setTimeout(() => window.location.reload(), 50);
   }
@@ -207,13 +229,17 @@ export default function BackupRestore() {
         <div className="settings-section-label">Danger Zone</div>
         <SettingsRow label="Factory Reset">
           <button
-            className={`sg-backup-btn sg-backup-btn--danger${confirmPending ? ' sg-backup-btn--confirm' : ''}`}
+            className={`sg-backup-btn sg-backup-btn--danger${confirmPending ? ' sg-backup-btn--confirm' : ''}${confirmCooldown ? ' sg-backup-btn--cooldown' : ''}`}
             onClick={handleReset}
           >
-            {confirmPending ? 'Confirm — wipe everything' : 'Reset all data'}
+            {confirmPending
+              ? confirmCooldown
+                ? `Confirm — wipe everything (${countdown}s)`
+                : 'Confirm — wipe everything'
+              : 'Reset all data'}
           </button>
         </SettingsRow>
-        {confirmPending && (
+        {confirmPending && !confirmCooldown && (
           <p className="sg-backup-error sg-backup-error--warn">
             Click again to permanently erase all settings.
           </p>

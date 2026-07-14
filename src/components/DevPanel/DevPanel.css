@@ -3,15 +3,16 @@
   bottom: 16px;
   right: 16px;
   width: 264px;
-  background: rgba(15, 17, 23, 0.94);
-  border: 1px solid #2d3148;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px 12px 8px;
   font-size: 11px;
   font-family: monospace;
-  color: #94a3b8;
+  color: var(--text-muted);
   z-index: 9999;
   backdrop-filter: blur(8px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -22,11 +23,12 @@
 .dev-panel-title {
   font-size: 9px;
   letter-spacing: 0.12em;
-  color: #475569;
+  color: var(--text-muted);
   text-transform: uppercase;
-  border-bottom: 1px solid #1e2130;
+  border-bottom: 1px solid var(--border);
   padding-bottom: 5px;
   margin-bottom: 2px;
+  opacity: 0.6;
 }
 
 /* ── Status rows ── */
@@ -37,7 +39,7 @@
   gap: 10px;
 }
 
-.dev-label { color: #64748b; }
+.dev-label { color: var(--text-muted); }
 
 .dev-badge {
   padding: 1px 7px;
@@ -46,23 +48,24 @@
   font-weight: 600;
 }
 
-.dev-badge.ok   { background: rgba(34,197,94,0.15);   color: #4ade80; }
-.dev-badge.warn { background: rgba(234,179,8,0.15);   color: #facc15; }
-.dev-badge.off  { background: rgba(100,116,139,0.15); color: #64748b; }
+.dev-badge.ok   { background: rgba(34, 197, 94, 0.15);  color: #4ade80; }
+.dev-badge.warn { background: rgba(234, 179, 8, 0.15);  color: #facc15; }
+.dev-badge.off  { background: var(--surface-hover);     color: var(--text-muted); }
 
 /* ── Divider ── */
 .dev-divider {
   height: 1px;
-  background: #1e2130;
+  background: var(--border);
   margin: 3px 0;
 }
 
 /* ── Loading ── */
 .dev-loading {
   font-size: 10px;
-  color: #475569;
+  color: var(--text-muted);
   text-align: center;
   padding: 4px 0;
+  opacity: 0.6;
 }
 
 /* ── Storage section ── */
@@ -85,19 +88,20 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .dev-store-bytes {
   font-size: 10px;
-  color: #475569;
+  color: var(--text-muted);
+  opacity: 0.7;
   font-variant-numeric: tabular-nums;
 }
 
 /* ── Progress bar ── */
 .dev-bar-track {
   height: 5px;
-  background: #1e2130;
+  background: var(--surface-hover);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -130,26 +134,29 @@
 }
 
 .dev-key-name {
-  color: #475569;
+  color: var(--text-muted);
   font-size: 10px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
   min-width: 0;
+  opacity: 0.8;
 }
 
 .dev-key-size {
-  color: #334155;
+  color: var(--text-muted);
   font-size: 10px;
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
+  opacity: 0.5;
 }
 
 .dev-key-empty {
   font-size: 10px;
-  color: #334155;
+  color: var(--text-muted);
   font-style: italic;
+  opacity: 0.5;
 }
 
 /* ── Footer ── */
@@ -163,19 +170,19 @@
 .dev-refresh-btn {
   font-size: 10px;
   font-family: monospace;
-  color: #64748b;
+  color: var(--text-muted);
   padding: 2px 7px;
   border-radius: 4px;
-  border: 1px solid #2d3148;
-  background: rgba(45, 49, 72, 0.4);
+  border: 1px solid var(--border);
+  background: var(--surface-hover);
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
 
 .dev-refresh-btn:hover:not(:disabled) {
   background: rgba(99, 102, 241, 0.15);
-  color: #818cf8;
-  border-color: #6366f1;
+  color: var(--accent-hover);
+  border-color: var(--accent);
 }
 
 .dev-refresh-btn:disabled {
@@ -185,5 +192,6 @@
 
 .dev-hint {
   font-size: 10px;
-  color: #334155;
+  color: var(--text-muted);
+  opacity: 0.4;
 }

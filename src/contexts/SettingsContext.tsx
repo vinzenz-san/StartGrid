@@ -4,23 +4,26 @@ import { lightenHex } from '../lib/colorUtils';
 
 const STORAGE_KEY = 'sg:settings';
 
-export type Language     = 'en' | 'de';
-export type ColorScheme  = 'light' | 'dark' | 'system';
-export type GearPosition = 'bottom-right' | 'bottom-left' | 'top-right';
+export type Language    = 'en' | 'de';
+export type ColorScheme = 'light' | 'dark' | 'system';
 
 export interface AppSettings {
   language:     Language;
   colorScheme:  ColorScheme;
   accentColor:  string;
-  gearPosition: GearPosition;
+  showDevPanel: boolean;
 }
 
 export const SETTINGS_DEFAULTS = {
   language:     'en',
   colorScheme:  'system',
   accentColor:  '#6366f1',
-  gearPosition: 'bottom-right',
+  showDevPanel: false,
 } as const satisfies AppSettings;
+
+// GearPosition is retained as an alias so old backup envelopes with this key
+// are silently ignored on restore rather than causing a type error.
+export type GearPosition = 'bottom-right' | 'bottom-left' | 'top-right';
 
 interface SettingsCtx extends AppSettings {
   updateSettings: (patch: Partial<AppSettings>) => void;
@@ -36,7 +39,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     language:     (settings ?? SETTINGS_DEFAULTS).language     ?? SETTINGS_DEFAULTS.language,
     colorScheme:  (settings ?? SETTINGS_DEFAULTS).colorScheme  ?? SETTINGS_DEFAULTS.colorScheme,
     accentColor:  (settings ?? SETTINGS_DEFAULTS).accentColor  ?? SETTINGS_DEFAULTS.accentColor,
-    gearPosition: (settings ?? SETTINGS_DEFAULTS).gearPosition ?? SETTINGS_DEFAULTS.gearPosition,
+    showDevPanel: (settings ?? SETTINGS_DEFAULTS).showDevPanel ?? SETTINGS_DEFAULTS.showDevPanel,
   };
 
   // Inject --accent / --accent-hover CSS variables globally

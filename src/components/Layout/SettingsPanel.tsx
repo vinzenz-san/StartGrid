@@ -1,23 +1,86 @@
+import { useRef, useState, useEffect } from 'react';
 import BackgroundEditor from '../Background/BackgroundEditor';
 import SwatchPicker from '../shared/SwatchPicker';
 import GeneralSettings from './GeneralSettings';
 import BackupRestore from './BackupRestore';
-import { useTheme } from '../../contexts/ThemeContext';
+import CustomColorPicker from '../shared/CustomColorPicker';
+import { SettingsRow, SettingsSwitch, SegmentedControl, SettingsSlider } from '../shared/Form';
+import { useTheme, DEFAULTS as THEME_DEFAULTS } from '../../contexts/ThemeContext';
+import { useSettings, SETTINGS_DEFAULTS } from '../../contexts/SettingsContext';
+import { useBackground } from '../../contexts/BackgroundContext';
+import { DEFAULT_BG } from '../../types/background';
+import type { ColorScheme } from '../../contexts/SettingsContext';
 import './SettingsPanel.css';
 
-export type SettingsTab = 'background' | 'widgets' | 'general' | 'backup';
+export type SettingsTab      = 'general' | 'appearance';
+export type AppearanceSubTab = 'background' | 'widgets';
+
+const SCHEME_OPTIONS: { value: ColorScheme; label: string }[] = [
+  { value: 'light',  label: 'Light'  },
+  { value: 'dark',   label: 'Dark'   },
+  { value: 'system', label: 'System' },
+];
 
 interface Props {
-  onClose:      () => void;
-  activeTab:    SettingsTab;
-  onTabChange:  (tab: SettingsTab) => void;
+  onClose:         () => void;
+  activeTab:       SettingsTab;
+  onTabChange:     (tab: SettingsTab) => void;
+  activeSubTab:    AppearanceSubTab;
+  onSubTabChange:  (sub: AppearanceSubTab) => void;
 }
 
-export default function SettingsPanel({ onClose, activeTab, onTabChange }: Props) {
-  const { globalColor, globalOpacity, globalDim, globalGradientIntensity, setGlobalColor, setGlobalOpacity, setGlobalDim, setGlobalGradientIntensity, setGlobalPresetId } = useTheme();
+export default function SettingsPanel({ onClose, activeTab, onTabChange, activeSubTab, onSubTabChange }: Props) {
+  const {
+    globalColor, globalOpacity, globalDim, globalGradientIntensity,
+    setGlobalColor, setGlobalOpacity, setGlobalDim, setGlobalGradientIntensity,
+    setGlobalPresetId,
+  } = useTheme();
+  const { colorScheme, accentColor, showDevPanel, updateSettings } = useSettings();
+  const { setConfig } = useBackground();
+
+  const [pickerOpen,           setPickerOpen]           = useState(false);
+  const [resetPending,         setResetPending]         = useState(false);
+  const [resetCooldown,        setResetCooldown]        = useState(false);
+  const [resetCountdown,       setResetCountdown]       = useState(1);
+  const accentSwatchRef = useRef<HTMLButtonElement>(null);
+
+  // 3-second safety lock on appearance reset
+  useEffect(() => {
+    if (!resetCooldown) return;
+    setResetCountdown(1);
+    const tick = setInterval(() => {
+      setResetCountdown(n => {
+        if (n <= 1) { clearInterval(tick); setResetCooldown(false); return 1; }
+        return n - 1;
+      });
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [resetCooldown]);
+
+  // Auto-cancel if user ignores after cooldown
+  useEffect(() => {
+    if (resetPending && !resetCooldown) {
+      const id = setTimeout(() => setResetPending(false), 3000);
+      return () => clearTimeout(id);
+    }
+  }, [resetPending, resetCooldown]);
+
   const opacityPct      = Math.round(globalOpacity * 100);
   const transparencyPct = 100 - opacityPct;
   const dimPct          = Math.round(globalDim);
+
+  function handleResetAppearance() {
+    if (!resetPending) { setResetPending(true); setResetCooldown(true); return; }
+    if (resetCooldown) return;
+    setResetPending(false);
+    setConfig(DEFAULT_BG);
+    setGlobalColor(THEME_DEFAULTS.globalColor);
+    setGlobalOpacity(THEME_DEFAULTS.globalOpacity);
+    setGlobalDim(THEME_DEFAULTS.globalDim);
+    setGlobalGradientIntensity(THEME_DEFAULTS.globalGradientIntensity);
+    setGlobalPresetId(THEME_DEFAULTS.globalPresetId);
+    updateSettings({ colorScheme: SETTINGS_DEFAULTS.colorScheme, accentColor: SETTINGS_DEFAULTS.accentColor });
+  }
 
   return (
     <div className="sg-settings-panel" onClick={e => e.stopPropagation()}>
@@ -26,75 +89,160 @@ export default function SettingsPanel({ onClose, activeTab, onTabChange }: Props
         <button className="sg-settings-close" onClick={onClose} title="Close">✕</button>
       </div>
 
+      {/* ── Main tabs ── */}
       <div className="sg-settings-tabs">
-        <button
-          className={`sg-settings-tab${activeTab === 'background' ? ' sg-settings-tab--active' : ''}`}
-          onClick={() => onTabChange('background')}
-        >Background</button>
-        <button
-          className={`sg-settings-tab${activeTab === 'widgets' ? ' sg-settings-tab--active' : ''}`}
-          onClick={() => onTabChange('widgets')}
-        >Widgets</button>
         <button
           className={`sg-settings-tab${activeTab === 'general' ? ' sg-settings-tab--active' : ''}`}
           onClick={() => onTabChange('general')}
         >General</button>
         <button
-          className={`sg-settings-tab${activeTab === 'backup' ? ' sg-settings-tab--active' : ''}`}
-          onClick={() => onTabChange('backup')}
-        >Backup</button>
+          className={`sg-settings-tab${activeTab === 'appearance' ? ' sg-settings-tab--active' : ''}`}
+          onClick={() => onTabChange('appearance')}
+        >Appearance</button>
       </div>
 
+      {/* ── Appearance: sub-tab pill bar (above scrollable content) ── */}
+      {activeTab === 'appearance' && (
+        <div className="sg-sub-tabs">
+          <button
+            className={`sg-sub-tab${activeSubTab === 'background' ? ' active' : ''}`}
+            onClick={() => onSubTabChange('background')}
+          >Background</button>
+          <button
+            className={`sg-sub-tab${activeSubTab === 'widgets' ? ' active' : ''}`}
+            onClick={() => onSubTabChange('widgets')}
+          >Widgets</button>
+        </div>
+      )}
+
       <div className="sg-settings-content">
-        {activeTab === 'background' && <BackgroundEditor />}
 
-        {activeTab === 'general' && <GeneralSettings />}
+        {/* ══ General tab ══ */}
+        {activeTab === 'general' && (
+          <>
+            <GeneralSettings />
 
-        {activeTab === 'backup' && <BackupRestore />}
+            <hr className="sg-settings-divider" />
 
-        {activeTab === 'widgets' && (
-          <div className="sg-settings-widgets">
-            <section className="settings-section">
-              <div className="settings-section-label">Presets</div>
-              <SwatchPicker
-                value={globalColor}
-                onChange={(color, presetId) => { setGlobalColor(color); setGlobalPresetId(presetId); }}
-                variant="large"
-              />
-              <div className="settings-gradient-label">Gradient Intensity</div>
-              <div className="settings-slider-row">
-                <input
-                  type="range" min={0} max={100} step={5}
-                  value={globalGradientIntensity}
-                  onChange={e => setGlobalGradientIntensity(Number(e.target.value))}
-                />
-                <span className="settings-slider-val">{globalGradientIntensity}%</span>
-              </div>
-            </section>
+            <BackupRestore />
 
-            <section className="settings-section">
-              <div className="settings-section-label">Global Dimming</div>
-              <div className="settings-slider-row">
-                <input
-                  type="range" min={0} max={100} value={dimPct}
-                  onChange={e => setGlobalDim(Number(e.target.value))}
-                />
-                <span className="settings-slider-val">{dimPct}%</span>
-              </div>
-            </section>
+            <hr className="sg-settings-divider" />
 
             <section className="settings-section" style={{ paddingBottom: 12 }}>
-              <div className="settings-section-label">Global Transparency</div>
-              <div className="settings-slider-row">
-                <input
-                  type="range" min={0} max={100} value={transparencyPct}
-                  onChange={e => setGlobalOpacity((100 - Number(e.target.value)) / 100)}
+              <div className="settings-section-label">Developer</div>
+              <SettingsRow label="Show Dev Panel">
+                <SettingsSwitch
+                  checked={showDevPanel}
+                  onChange={v => updateSettings({ showDevPanel: v })}
                 />
-                <span className="settings-slider-val">{transparencyPct}%</span>
-              </div>
+              </SettingsRow>
             </section>
-          </div>
+          </>
         )}
+
+        {/* ══ Appearance tab ══ */}
+        {activeTab === 'appearance' && (
+          <>
+            {/* 1 — Sub-tab content */}
+            {activeSubTab === 'background' && <BackgroundEditor />}
+
+            {activeSubTab === 'widgets' && (
+              <div className="sg-settings-widgets">
+                <section className="settings-section">
+                  <div className="settings-section-label">Color Presets</div>
+                  <SwatchPicker
+                    value={globalColor}
+                    onChange={(color, presetId) => { setGlobalColor(color); setGlobalPresetId(presetId); }}
+                    variant="large"
+                  />
+                  <SettingsSlider
+                    label="Gradient Intensity"
+                    value={globalGradientIntensity}
+                    onChange={setGlobalGradientIntensity}
+                  />
+                </section>
+
+                <section className="settings-section">
+                  <SettingsSlider
+                    label="Global Dimming"
+                    value={dimPct}
+                    onChange={v => setGlobalDim(v)}
+                  />
+                </section>
+
+                <section className="settings-section" style={{ paddingBottom: 4 }}>
+                  <SettingsSlider
+                    label="Global Transparency"
+                    value={transparencyPct}
+                    onChange={v => setGlobalOpacity((100 - v) / 100)}
+                  />
+                </section>
+              </div>
+            )}
+
+            {/* 2 — Accent Color */}
+            <hr className="sg-settings-divider" />
+            <section className="settings-section">
+              <div className="settings-section-label">Accent Color</div>
+              <SettingsRow label="Accent Color">
+                <div className="sg-accent-controls">
+                  <button
+                    ref={accentSwatchRef}
+                    className="sg-accent-swatch"
+                    style={{ background: accentColor }}
+                    onClick={() => setPickerOpen(o => !o)}
+                    title="Pick accent color"
+                  />
+                  {accentColor !== SETTINGS_DEFAULTS.accentColor && (
+                    <button
+                      className="sg-accent-reset"
+                      onClick={() => updateSettings({ accentColor: SETTINGS_DEFAULTS.accentColor })}
+                      title="Reset to default"
+                    >Reset</button>
+                  )}
+                </div>
+              </SettingsRow>
+            </section>
+
+            {/* 3 — Theme mode */}
+            <hr className="sg-settings-divider" />
+            <section className="settings-section" style={{ paddingBottom: 4 }}>
+              <div className="settings-section-label">Theme</div>
+              <SettingsRow label="Mode">
+                <SegmentedControl<ColorScheme>
+                  options={SCHEME_OPTIONS}
+                  value={colorScheme}
+                  onChange={v => updateSettings({ colorScheme: v })}
+                />
+              </SettingsRow>
+            </section>
+
+            {/* 4 — Reset footer */}
+            <hr className="sg-settings-divider" />
+            <div className="sg-appearance-footer">
+              <button
+                className={`sg-appearance-reset-btn${resetPending ? ' sg-appearance-reset-btn--confirm' : ''}${resetCooldown ? ' sg-appearance-reset-btn--cooldown' : ''}`}
+                onClick={handleResetAppearance}
+              >
+                {resetPending
+                  ? resetCooldown
+                    ? `Confirm — reset appearance (${resetCountdown}s)`
+                    : 'Confirm — reset appearance'
+                  : 'Reset Appearance'}
+              </button>
+            </div>
+
+            {/* Portal-rendered color picker */}
+            <CustomColorPicker
+              value={accentColor}
+              onChange={hex => updateSettings({ accentColor: hex })}
+              anchorRef={accentSwatchRef}
+              open={pickerOpen}
+              onClose={() => setPickerOpen(false)}
+            />
+          </>
+        )}
+
       </div>
     </div>
   );

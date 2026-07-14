@@ -19,7 +19,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px 10px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1.5px solid var(--border-strong);
   flex-shrink: 0;
 }
 
@@ -41,11 +41,13 @@
 .sg-settings-tabs {
   display: flex;
   gap: 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1.5px solid var(--border-strong);
   flex-shrink: 0;
 }
 
 .sg-settings-tab {
+  flex: 1;
+  text-align: center;
   padding: 8px 14px;
   font-size: 12px;
   font-weight: 500;
@@ -120,6 +122,47 @@
   border-color: var(--text-muted);
 }
 
+/* ── Section divider (General tab) ── */
+.sg-settings-divider {
+  border: none;
+  border-top: 1.5px solid var(--border-strong);
+  margin: 0;
+}
+
+/* ── Appearance sub-tabs (pill bar) ── */
+.sg-sub-tabs {
+  display: flex;
+  gap: 3px;
+  background: var(--surface-hover);
+  border-radius: 7px;
+  padding: 3px;
+  margin: 10px 14px 4px;
+  flex-shrink: 0;
+}
+
+.sg-sub-tab {
+  flex: 1;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  border-radius: 5px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, box-shadow 0.12s;
+  white-space: nowrap;
+}
+
+.sg-sub-tab:hover { color: var(--text); }
+
+.sg-sub-tab.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
 /* ── Backup & Reset tab ── */
 .sg-settings-backup {
   display: flex;
@@ -153,6 +196,7 @@
   color: #e05252;
   border-color: rgba(224, 82, 82, 0.35);
   background: rgba(224, 82, 82, 0.08);
+  min-width: 196px;
 }
 
 .sg-backup-btn--danger:hover:not(:disabled) {
@@ -171,6 +215,11 @@
   border-color: #a93226;
 }
 
+.sg-backup-btn--cooldown {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .sg-backup-error {
   font-size: 10px;
   color: #e05252;
@@ -186,4 +235,49 @@
   font-size: 10px;
   color: #52b152;
   padding: 2px 0 4px;
+}
+
+/* ── Appearance tab footer (Reset button) ── */
+.sg-appearance-footer {
+  border-top: 1.5px solid var(--border-strong);
+  padding: 10px 14px 12px;
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.sg-appearance-reset-btn {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding: 3px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  min-width: 210px;
+  text-align: center;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+
+.sg-appearance-reset-btn:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+  background: var(--surface-hover);
+}
+
+.sg-appearance-reset-btn--confirm {
+  color: #e05252;
+  border-color: rgba(224, 82, 82, 0.45);
+  background: rgba(224, 82, 82, 0.08);
+}
+
+.sg-appearance-reset-btn--confirm:hover {
+  background: rgba(224, 82, 82, 0.15);
+  border-color: rgba(224, 82, 82, 0.7);
+}
+
+.sg-appearance-reset-btn--cooldown {
+  opacity: 0.55;
+  cursor: not-allowed;
 }

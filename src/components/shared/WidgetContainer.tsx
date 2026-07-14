@@ -10,6 +10,7 @@ import { THEME_SWATCHES } from './SwatchPicker';
 import { dragState } from '../../lib/dragState';
 import type { Widget } from '../../types/widget';
 import { WIDGET_REGISTRY } from '../widgets/registry';
+import { SettingsSlider } from './Form';
 import { SettingsRow, SettingsSwitch } from './Form';
 import SwatchPicker from './SwatchPicker';
 import './WidgetContainer.css';
@@ -222,18 +223,12 @@ export default function WidgetContainer({ widget }: Props) {
         {overrideEnabled && (
           <>
             <div className="sg-widget-appearance-section">
-              <div className="sg-widget-appearance-slider">
-                <div className="sg-widget-appearance-slider-header">
-                  <span className="sg-widget-appearance-label">Gradient Intensity</span>
-                  <span className="sg-widget-appearance-val">{localIntensity}%</span>
-                </div>
-                <input
-                  type="range" min={0} max={100} step={5}
-                  value={localIntensity}
-                  onChange={e => updateWidget(widget.id, { bgGradientIntensity: Number(e.target.value) })}
-                  onPointerDown={e => e.stopPropagation()}
-                />
-              </div>
+              <SettingsSlider
+                label="Gradient Intensity"
+                value={localIntensity}
+                onChange={v => updateWidget(widget.id, { bgGradientIntensity: v })}
+                onPointerDown={e => e.stopPropagation()}
+              />
             </div>
 
             <div className="sg-widget-appearance-section">
@@ -245,31 +240,22 @@ export default function WidgetContainer({ widget }: Props) {
             </div>
 
             <div className="sg-widget-appearance-section">
-              <div className="sg-widget-appearance-slider">
-                <div className="sg-widget-appearance-slider-header">
-                  <span className="sg-widget-appearance-label">Dimming</span>
-                  <span className="sg-widget-appearance-val">{localDimPct}%</span>
-                </div>
-                <input
-                  type="range" min={0} max={80} value={localDimPct}
-                  onChange={e => updateWidget(widget.id, { bgDim: Number(e.target.value) })}
-                  onPointerDown={e => e.stopPropagation()}
-                />
-              </div>
+              <SettingsSlider
+                label="Dimming"
+                value={localDimPct}
+                max={80}
+                onChange={v => updateWidget(widget.id, { bgDim: v })}
+                onPointerDown={e => e.stopPropagation()}
+              />
             </div>
 
             <div className="sg-widget-appearance-section">
-              <div className="sg-widget-appearance-slider">
-                <div className="sg-widget-appearance-slider-header">
-                  <span className="sg-widget-appearance-label">Transparency</span>
-                  <span className="sg-widget-appearance-val">{localTransparencyPct}%</span>
-                </div>
-                <input
-                  type="range" min={0} max={100} value={localTransparencyPct}
-                  onChange={e => updateWidget(widget.id, { bgOpacity: (100 - Number(e.target.value)) / 100 })}
-                  onPointerDown={e => e.stopPropagation()}
-                />
-              </div>
+              <SettingsSlider
+                label="Transparency"
+                value={localTransparencyPct}
+                onChange={v => updateWidget(widget.id, { bgOpacity: (100 - v) / 100 })}
+                onPointerDown={e => e.stopPropagation()}
+              />
             </div>
           </>
         )}

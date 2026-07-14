@@ -45,7 +45,7 @@
   height: var(--toolbar-h);
   background: rgba(26, 29, 46, 0.85);
   backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1.5px solid var(--border-strong);
   flex-shrink: 0;
   z-index: 10;
 }
@@ -181,16 +181,6 @@
 .sg-add-item:hover { background: var(--surface-hover); }
 
 .sg-add-icon { font-size: 16px; }
-
-/* ── Floating gear anchor ────────────────────────── */
-.sg-gear-anchor {
-  position: fixed;
-  z-index: 150;
-}
-
-.sg-gear--bottom-right { bottom: 24px; right: 24px; }
-.sg-gear--bottom-left  { bottom: 24px; left:  24px; }
-.sg-gear--top-right    { top: calc(var(--toolbar-h) + 12px); right: 24px; }
 
 /* ── Sun/Moon theme toggle ───────────────────────── */
 .sg-btn-theme {

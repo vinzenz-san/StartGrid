@@ -3,6 +3,7 @@ import { useBackground } from '../../contexts/BackgroundContext';
 import { PRESETS } from '../../types/background';
 import { generateGradient } from '../../lib/colorUtils';
 import CustomColorPicker from '../shared/CustomColorPicker';
+import { SettingsSlider } from '../shared/Form';
 import './BackgroundEditor.css';
 
 const SIZE_LIMIT_MB = 5;
@@ -101,31 +102,20 @@ export default function BackgroundEditor() {
           </div>
         </div>
 
-        {/* Gradient intensity slider — applies to presets; 0 = flat, 100 = full gradient */}
-        <div className="settings-gradient-label">Gradient Intensity</div>
-        <div className="settings-slider-row">
-          <input
-            type="range"
-            min={0} max={100} step={5}
-            value={intensity}
-            onChange={e => setConfig({ ...config, gradientIntensity: Number(e.target.value) })}
-          />
-          <span className="settings-slider-val">{intensity}%</span>
-        </div>
+        <SettingsSlider
+          label="Gradient Intensity"
+          value={intensity}
+          onChange={v => setConfig({ ...config, gradientIntensity: v })}
+        />
       </section>
 
       {/* Global Dimming */}
       <section className="settings-section">
-        <div className="settings-section-label">Global Dimming</div>
-        <div className="settings-slider-row">
-          <input
-            type="range"
-            min={0} max={100} step={5}
-            value={dimPct}
-            onChange={e => setConfig({ ...config, dimAmount: Number(e.target.value) / 100 })}
-          />
-          <span className="settings-slider-val">{dimPct}%</span>
-        </div>
+        <SettingsSlider
+          label="Global Dimming"
+          value={dimPct}
+          onChange={v => setConfig({ ...config, dimAmount: v / 100 })}
+        />
       </section>
 
       {/* Custom image / GIF */}

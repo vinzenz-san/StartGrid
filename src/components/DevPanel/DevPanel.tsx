@@ -170,9 +170,6 @@ function DevPanelInner() {
   );
 }
 
-// ── Export (guards against production builds) ──────────────────────────────
-
 export default function DevPanel() {
-  if (process.env.NODE_ENV !== 'development') return null;
   return <DevPanelInner />;
 }

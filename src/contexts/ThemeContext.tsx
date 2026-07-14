@@ -16,11 +16,12 @@ interface ThemeConfig {
   globalPresetId?:         string;
 }
 
-const DEFAULTS: ThemeConfig = {
+export const DEFAULTS: ThemeConfig = {
   globalColor:             '#2a2d3d',
   globalOpacity:           1,
   globalDim:               0,
   globalGradientIntensity: 100,
+  globalPresetId:          'midnight',
 };
 
 interface ThemeCtx extends ThemeConfig {
