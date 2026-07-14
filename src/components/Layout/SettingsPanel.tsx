@@ -1,10 +1,11 @@
 import BackgroundEditor from '../Background/BackgroundEditor';
 import SwatchPicker from '../shared/SwatchPicker';
 import GeneralSettings from './GeneralSettings';
+import BackupRestore from './BackupRestore';
 import { useTheme } from '../../contexts/ThemeContext';
 import './SettingsPanel.css';
 
-export type SettingsTab = 'background' | 'widgets' | 'general';
+export type SettingsTab = 'background' | 'widgets' | 'general' | 'backup';
 
 interface Props {
   onClose:      () => void;
@@ -38,12 +39,18 @@ export default function SettingsPanel({ onClose, activeTab, onTabChange }: Props
           className={`sg-settings-tab${activeTab === 'general' ? ' sg-settings-tab--active' : ''}`}
           onClick={() => onTabChange('general')}
         >General</button>
+        <button
+          className={`sg-settings-tab${activeTab === 'backup' ? ' sg-settings-tab--active' : ''}`}
+          onClick={() => onTabChange('backup')}
+        >Backup</button>
       </div>
 
       <div className="sg-settings-content">
         {activeTab === 'background' && <BackgroundEditor />}
 
         {activeTab === 'general' && <GeneralSettings />}
+
+        {activeTab === 'backup' && <BackupRestore />}
 
         {activeTab === 'widgets' && (
           <div className="sg-settings-widgets">

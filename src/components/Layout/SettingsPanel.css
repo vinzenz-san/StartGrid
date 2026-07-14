@@ -119,3 +119,71 @@
   color: var(--text);
   border-color: var(--text-muted);
 }
+
+/* ── Backup & Reset tab ── */
+.sg-settings-backup {
+  display: flex;
+  flex-direction: column;
+}
+
+.sg-backup-btn {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text);
+  padding: 3px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--surface-hover);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+
+.sg-backup-btn:hover:not(:disabled) {
+  background: var(--border);
+  border-color: var(--text-muted);
+}
+
+.sg-backup-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.sg-backup-btn--danger {
+  color: #e05252;
+  border-color: rgba(224, 82, 82, 0.35);
+  background: rgba(224, 82, 82, 0.08);
+}
+
+.sg-backup-btn--danger:hover:not(:disabled) {
+  background: rgba(224, 82, 82, 0.16);
+  border-color: rgba(224, 82, 82, 0.6);
+}
+
+.sg-backup-btn--confirm {
+  color: #fff;
+  background: #c0392b;
+  border-color: #c0392b;
+}
+
+.sg-backup-btn--confirm:hover:not(:disabled) {
+  background: #a93226;
+  border-color: #a93226;
+}
+
+.sg-backup-error {
+  font-size: 10px;
+  color: #e05252;
+  padding: 2px 0 4px;
+  line-height: 1.4;
+}
+
+.sg-backup-error--warn {
+  color: var(--text-muted);
+}
+
+.sg-backup-ok {
+  font-size: 10px;
+  color: #52b152;
+  padding: 2px 0 4px;
+}
