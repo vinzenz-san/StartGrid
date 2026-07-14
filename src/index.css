@@ -11,6 +11,7 @@
   --accent-hover: #818cf8;
   --danger: #ef4444;
   --edit-ring: rgba(99, 102, 241, 0.5);
+  --border-strong: #2d3148;
   --radius: 10px;
   --toolbar-h: 52px;
 
@@ -70,7 +71,7 @@
 .sg-widget[data-preset="midnight"] { --preset-bg: linear-gradient(135deg, #1a1d2e 0%, #2a2d3d 100%); }
 .sg-widget[data-preset="aurora"]   { --preset-bg: linear-gradient(135deg, #1b4332 0%, #166534 100%); }
 .sg-widget[data-preset="dusk"]     { --preset-bg: linear-gradient(135deg, #2d1b69 0%, #4c1d95 100%); }
-.sg-widget[data-preset="ocean"]    { --preset-bg: linear-gradient(135deg, #023e8a 0%, #1e40af 100%); }
+.sg-widget[data-preset="ocean"]    { --preset-bg: linear-gradient(135deg, #0a2d6e 0%, #1a3fa0 100%); }
 .sg-widget[data-preset="ember"]    { --preset-bg: linear-gradient(135deg, #7c2d12 0%, #9a3412 100%); }
 
 html[data-scheme="light"] .sg-widget {
@@ -103,6 +104,7 @@ html[data-scheme="light"] .sg-widget::before {
   --border:         #e2e8f0;
   --text:           #0f172a;
   --text-muted:     #475569;
+  --border-strong:  #cbd5e1;
   --edit-ring:      rgba(99, 102, 241, 0.4);
 
   /* Widget surfaces: pure white with a subtle shadow */

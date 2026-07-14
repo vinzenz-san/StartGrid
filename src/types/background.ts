@@ -14,8 +14,8 @@ export interface BackgroundConfig {
 }
 
 export const DEFAULT_BG: BackgroundConfig = {
-  mode: 'color',
-  value: '#0f1117',
+  mode: 'preset',
+  value: 'midnight',
   gradientIntensity: 100,
 };
 

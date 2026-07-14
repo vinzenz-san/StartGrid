@@ -7,7 +7,8 @@ import { findFreePosition, isPositionFree } from '../../lib/gridUtils';
 import type { WidgetType } from '../../types/widget';
 import { WIDGET_REGISTRY, WIDGET_MENU_TYPES } from '../widgets/registry';
 import WidgetContainer from '../shared/WidgetContainer';
-import SettingsPanel, { type SettingsTab } from './SettingsPanel';
+import SettingsPanel, { type SettingsTab, type AppearanceSubTab } from './SettingsPanel';
+import DevPanel from '../DevPanel/DevPanel';
 import './Grid.css';
 
 const COLS    = 8;
@@ -20,7 +21,7 @@ interface DropTarget { col: number; row: number; w: number; h: number; valid: bo
 export default function Grid() {
   const { isEditMode, toggleEditMode } = useEditMode();
   const { widgets, addWidget, updateWidget, loaded } = useWidgets();
-  const { gearPosition, colorScheme, updateSettings } = useSettings();
+  const { showDevPanel, colorScheme, updateSettings } = useSettings();
   const isDark = colorScheme !== 'light';
   const toggleTheme = () => updateSettings({ colorScheme: isDark ? 'light' : 'dark' });
   const gridRef = useRef<HTMLDivElement>(null);
@@ -28,6 +29,7 @@ export default function Grid() {
   const [addMenuOpen,       setAddMenuOpen]       = useState(false);
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
   const [activeTab,         setActiveTab]         = useState<SettingsTab>('general');
+  const [activeSubTab,      setActiveSubTab]      = useState<AppearanceSubTab>('background');
 
   const cellFromPoint = (clientX: number, clientY: number) => {
     const rect = gridRef.current!.getBoundingClientRect();
@@ -69,7 +71,7 @@ export default function Grid() {
   };
 
   const focusClass = settingsPanelOpen
-    ? activeTab === 'background' ? ' sg-focus-bg' : ' sg-focus-widgets'
+    ? activeTab === 'appearance' ? ' sg-focus-bg' : ''
     : '';
 
   return (
@@ -87,6 +89,11 @@ export default function Grid() {
               : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             }
           </button>
+          <button
+            className={`sg-btn-edit${settingsPanelOpen ? ' active' : ''}`}
+            onPointerDown={e => { e.stopPropagation(); e.preventDefault(); setSettingsPanelOpen(s => !s); setAddMenuOpen(false); }}
+            title="Settings"
+          >⚙ Settings</button>
           {isEditMode && (
             <div className="sg-add-wrap">
               <button
@@ -123,16 +130,10 @@ export default function Grid() {
           onClose={() => setSettingsPanelOpen(false)}
           activeTab={activeTab}
           onTabChange={setActiveTab}
+          activeSubTab={activeSubTab}
+          onSubTabChange={setActiveSubTab}
         />
       )}
-
-      <div className={`sg-gear-anchor sg-gear--${gearPosition}`}>
-        <button
-          className={`sg-btn-edit${settingsPanelOpen ? ' active' : ''}`}
-          onPointerDown={e => { e.stopPropagation(); e.preventDefault(); setSettingsPanelOpen(s => !s); setAddMenuOpen(false); }}
-          title="Settings"
-        >⚙ Settings</button>
-      </div>
 
       <main className="sg-grid-wrapper" onClick={() => { setAddMenuOpen(false); setSettingsPanelOpen(false); }}>
         <div
@@ -151,6 +152,8 @@ export default function Grid() {
           )}
         </div>
       </main>
+
+      {showDevPanel && <DevPanel />}
     </div>
   );
 }
