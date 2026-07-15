@@ -63,16 +63,3 @@
   border-color: var(--accent);
 }
 
-.sg-clock-color-reset {
-  font-size: 13px;
-  color: var(--text-muted);
-  padding: 1px 5px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.12s, color 0.12s;
-}
-
-.sg-clock-color-reset:hover {
-  background: rgba(239, 68, 68, 0.15);
-  color: var(--danger);
-}

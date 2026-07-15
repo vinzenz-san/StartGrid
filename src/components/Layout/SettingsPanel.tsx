@@ -181,22 +181,13 @@ export default function SettingsPanel({ onClose, activeTab, onTabChange, activeS
             <section className="settings-section">
               <div className="settings-section-label">Accent Color</div>
               <SettingsRow label="Accent Color">
-                <div className="sg-accent-controls">
-                  <button
-                    ref={accentSwatchRef}
-                    className="sg-accent-swatch"
-                    style={{ background: accentColor }}
-                    onClick={() => setPickerOpen(o => !o)}
-                    title="Pick accent color"
-                  />
-                  {accentColor !== SETTINGS_DEFAULTS.accentColor && (
-                    <button
-                      className="sg-accent-reset"
-                      onClick={() => updateSettings({ accentColor: SETTINGS_DEFAULTS.accentColor })}
-                      title="Reset to default"
-                    >Reset</button>
-                  )}
-                </div>
+                <button
+                  ref={accentSwatchRef}
+                  className="sg-accent-swatch"
+                  style={{ background: accentColor }}
+                  onClick={() => setPickerOpen(o => !o)}
+                  title="Pick accent color"
+                />
               </SettingsRow>
             </section>
 
@@ -228,6 +219,8 @@ export default function SettingsPanel({ onClose, activeTab, onTabChange, activeS
               anchorRef={accentSwatchRef}
               open={pickerOpen}
               onClose={() => setPickerOpen(false)}
+              onReset={() => updateSettings({ accentColor: SETTINGS_DEFAULTS.accentColor })}
+              isDefault={accentColor === SETTINGS_DEFAULTS.accentColor}
             />
           </>
         )}
