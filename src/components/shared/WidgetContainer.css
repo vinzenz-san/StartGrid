@@ -262,7 +262,7 @@
   flex-shrink: 0;
   border-top: 1px solid var(--border);
   padding: 10px 10px 12px;
-  background: rgba(15, 17, 23, 0.5);
+  background: rgba(0, 0, 0, 0.18);
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -290,52 +290,6 @@
   gap: 8px;
 }
 
-.sg-widget-appearance-row input[type="color"] {
-  width: 26px;
-  height: 22px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 1px;
-  background: none;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.sg-widget-appearance-row input[type="range"] {
-  flex: 1;
-  height: 4px;
-  cursor: pointer;
-  accent-color: var(--accent);
-}
-
-/* Stacked slider: label + value on top row, full-width track below */
-.sg-widget-appearance-slider {
-  display: flex;
-  flex-direction: column;
-  gap: 11px;
-}
-
-.sg-widget-appearance-slider-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.sg-widget-appearance-slider input[type="range"] {
-  width: 100%;
-  height: 4px;
-  cursor: pointer;
-  accent-color: var(--accent);
-}
-
-.sg-widget-appearance-val {
-  font-size: 11px;
-  color: var(--text-muted);
-  min-width: 30px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
 .sg-widget-appearance-reset {
   font-size: 11px;
   color: var(--text-muted);
@@ -345,6 +299,44 @@
   flex-shrink: 0;
 }
 .sg-widget-appearance-reset:hover { background: rgba(239,68,68,0.15); color: var(--danger); }
+
+.sg-widget-match-global-btn {
+  width: 100%;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.sg-widget-match-global-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+.sg-widget-appearance-reset-all {
+  width: 100%;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding: 5px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.sg-widget-appearance-reset-all:hover {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: var(--danger);
+}
 
 
 /* ── Resize handle ───────────────────────────────── */

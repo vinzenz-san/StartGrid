@@ -90,6 +90,8 @@ interface WidgetBase {
   /** @deprecated read-only; use bgGradientIntensity instead */
   localGradientOverride?: boolean;
   bgGradientIntensity?: number;  // 0-100; replaces localGradientOverride
+  bgShadow?: number;             // 0-100; local shadow intensity override
+  ignoreLocalThemeSwap?: boolean;
   showCustomTitle?: boolean;
   customTitle?: string;
 }
