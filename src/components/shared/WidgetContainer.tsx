@@ -209,18 +209,17 @@ export default function WidgetContainer({ widget }: Props) {
               onChange={v => updateWidget(widget.id, { showCustomTitle: v })}
             />
           </SettingsRow>
-          {showCustomTitle && (
-            <div className="sg-widget-title-input-wrap">
-              <input
-                className="sg-widget-title-input"
-                type="text"
-                value={widget.customTitle ?? ''}
-                placeholder={titlePlaceholder}
-                onChange={e => updateWidget(widget.id, { customTitle: e.target.value || undefined })}
-                onPointerDown={e => e.stopPropagation()}
-              />
-            </div>
-          )}
+          <div className="sg-widget-title-input-wrap">
+            <input
+              className="sg-widget-title-input"
+              type="text"
+              disabled={!showCustomTitle}
+              value={widget.customTitle ?? ''}
+              placeholder={titlePlaceholder}
+              onChange={e => updateWidget(widget.id, { customTitle: e.target.value || undefined })}
+              onPointerDown={e => e.stopPropagation()}
+            />
+          </div>
         </div>
       )}
 

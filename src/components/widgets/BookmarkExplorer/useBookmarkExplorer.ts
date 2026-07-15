@@ -45,5 +45,14 @@ export function useBookmarkExplorer() {
     return MOCK_TREE;
   }
 
-  return { getChildren, search, getNode, getTree, isMock: !isExtension };
+  async function openUrl(url: string): Promise<void> {
+    if (isExtension) {
+      const { default: browser } = await import('webextension-polyfill');
+      await browser.tabs.create({ url });
+    } else {
+      window.open(url, '_blank', 'noopener');
+    }
+  }
+
+  return { getChildren, search, getNode, getTree, openUrl, isMock: !isExtension };
 }

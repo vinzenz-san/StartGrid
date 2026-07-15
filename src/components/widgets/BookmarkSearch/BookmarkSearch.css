@@ -1,0 +1,211 @@
+/* ── Root ─────────────────────────────────────────────────────────────────── */
+
+.sg-bks {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+
+.sg-bks-header {
+  padding: 8px 10px 6px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.12);
+}
+
+/* Search row */
+
+.sg-bks-search-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(128, 128, 128, 0.1);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.sg-bks-search-icon {
+  font-size: 13px;
+  opacity: 0.4;
+  flex-shrink: 0;
+  line-height: 1;
+  user-select: none;
+}
+
+.sg-bks-search {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 12px;
+  color: var(--text);
+  min-width: 0;
+}
+
+.sg-bks-search::placeholder { color: var(--text-muted); opacity: 0.6; }
+
+.sg-bks-clear {
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.5;
+  padding: 1px 3px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  transition: opacity 0.1s, background 0.1s;
+  cursor: pointer;
+}
+
+.sg-bks-clear:hover { opacity: 1; background: rgba(128, 128, 128, 0.15); }
+
+/* Folder navigation row */
+
+.sg-bks-folder-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+}
+
+.sg-bks-back {
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: background 0.1s, color 0.1s;
+}
+
+.sg-bks-back:hover {
+  background: rgba(128, 128, 128, 0.12);
+  color: var(--text);
+}
+
+.sg-bks-folder-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Body ─────────────────────────────────────────────────────────────────── */
+
+.sg-bks-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 0;
+}
+
+.sg-bks-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Item rows ────────────────────────────────────────────────────────────── */
+
+.sg-bks-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: background 0.1s;
+  min-width: 0;
+}
+
+.sg-bks-item:hover { background: rgba(128, 128, 128, 0.1); }
+
+.sg-bks-item--folder .sg-bks-item-title { font-weight: 500; }
+
+.sg-bks-item-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sg-bks-item-icon--favicon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  border-radius: 2px;
+}
+
+.sg-bks-item-icon--initial {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: rgba(128, 128, 128, 0.2);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sg-bks-item-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.sg-bks-item-title {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+
+.sg-bks-item-url {
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sg-bks-item-chevron {
+  font-size: 12px;
+  opacity: 0.3;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* ── Empty / loading state ────────────────────────────────────────────────── */
+
+.sg-bks-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 100%;
+  padding: 16px;
+}
+
+.sg-bks-empty-icon { font-size: 20px; opacity: 0.35; }
+.sg-bks-empty-text { font-size: 12px; opacity: 0.4; text-align: center; }
+
+/* ── Settings ─────────────────────────────────────────────────────────────── */
+
+.sg-bks-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+}
