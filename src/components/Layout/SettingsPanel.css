@@ -100,27 +100,6 @@
   transform: scale(1.1);
 }
 
-.sg-accent-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sg-accent-reset {
-  font-size: 10px;
-  color: var(--text-muted);
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  background: transparent;
-  cursor: pointer;
-  transition: color 0.12s, border-color 0.12s;
-}
-
-.sg-accent-reset:hover {
-  color: var(--text);
-  border-color: var(--text-muted);
-}
 
 /* ── Section divider (General tab) ── */
 .sg-settings-divider {

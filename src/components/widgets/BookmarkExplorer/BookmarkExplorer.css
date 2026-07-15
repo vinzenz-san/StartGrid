@@ -271,6 +271,8 @@
   flex-shrink: 0;
   cursor: pointer;
   user-select: none;
+  padding: 4px 6px;
+  margin: -4px -6px;
 }
 
 .sg-bx-fp-icon { font-size: 12px; flex-shrink: 0; }

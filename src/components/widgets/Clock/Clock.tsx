@@ -86,14 +86,6 @@ export function ClockSettings({ data, onUpdateData }: SettingsProps) {
           onClick={() => setPickerOpen(o => !o)}
           onPointerDown={e => e.stopPropagation()}
         />
-        {fontColor && (
-          <button
-            className="sg-clock-color-reset"
-            title="Reset to default"
-            onClick={() => onUpdateData({ fontColor: undefined })}
-            onPointerDown={e => e.stopPropagation()}
-          >↺</button>
-        )}
       </SettingsRow>
 
       <CustomColorPicker
@@ -102,6 +94,8 @@ export function ClockSettings({ data, onUpdateData }: SettingsProps) {
         anchorRef={colorBtnRef}
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
+        onReset={() => onUpdateData({ fontColor: undefined })}
+        isDefault={fontColor === undefined}
       />
     </div>
   );

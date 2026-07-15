@@ -10,9 +10,11 @@ interface Props {
   anchorRef:  React.RefObject<HTMLElement | null>;
   open:       boolean;
   onClose:    () => void;
+  onReset?:   () => void;
+  isDefault?: boolean;
 }
 
-export default function CustomColorPicker({ value, onChange, anchorRef, open, onClose }: Props) {
+export default function CustomColorPicker({ value, onChange, anchorRef, open, onClose, onReset, isDefault }: Props) {
   const [hue, setHue] = useState(0);
   const [sat, setSat] = useState(0.7);
   const [val, setVal] = useState(0.8);
@@ -139,6 +141,17 @@ export default function CustomColorPicker({ value, onChange, anchorRef, open, on
           onKeyDown={e => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
         />
       </div>
+
+      {onReset && (
+        <button
+          className="ccp-reset"
+          disabled={isDefault ?? false}
+          onPointerDown={e => e.stopPropagation()}
+          onClick={() => { onReset(); onClose(); }}
+        >
+          Reset to default
+        </button>
+      )}
     </div>,
     document.body
   );
