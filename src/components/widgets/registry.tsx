@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
-import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, GmailData, CalendarData, NotesData, PlaceholderData } from '../../types/widget';
+import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, GmailData, CalendarData, NotesData, PlaceholderData } from '../../types/widget';
 import Clock, { ClockSettings } from './Clock/Clock';
 import Quicklinks, { QuicklinksSettings } from './Quicklinks/Quicklinks';
 import BookmarkExplorer, { BookmarkExplorerSettings } from './BookmarkExplorer/BookmarkExplorer';
+import BookmarkSearch, { BookmarkSearchSettings } from './BookmarkSearch/BookmarkSearch';
 import Gmail, { GmailSettings } from './Gmail/Gmail';
 import Calendar, { CalendarSettings } from './Calendar/Calendar';
 import Notes, { NotesSettings } from './Notes/Notes';
@@ -67,7 +68,7 @@ const _registry = {
   } satisfies TypedEntry<QuicklinksData>,
 
   bookmarks: {
-    label:                 'Bookmarks',
+    label:                 'Bookmark Folder',
     icon:                  '🔖',
     defaultSize:           { w: 2, h: 3 },
     defaultData:           { showIcons: true, compactMode: false } satisfies BookmarksData,
@@ -77,6 +78,16 @@ const _registry = {
     renderComponent: (data, onUpdateData) => <BookmarkExplorer data={data} onUpdateData={onUpdateData} />,
     renderSettings:  (data, onUpdateData) => <BookmarkExplorerSettings data={data} onUpdateData={onUpdateData} />,
   } satisfies TypedEntry<BookmarksData>,
+
+  bookmarkSearch: {
+    label:         'Bookmark Search',
+    icon:          '🔍',
+    defaultSize:   { w: 2, h: 3 },
+    defaultData:   { maxResults: 10 } satisfies BookmarkSearchData,
+    titleBehavior: 'none',
+    renderComponent: (data, onUpdateData) => <BookmarkSearch data={data} onUpdateData={onUpdateData} />,
+    renderSettings:  (data, onUpdateData) => <BookmarkSearchSettings data={data} onUpdateData={onUpdateData} />,
+  } satisfies TypedEntry<BookmarkSearchData>,
 
   gmail: {
     label:         'Gmail',
@@ -128,5 +139,5 @@ export const WIDGET_REGISTRY = _registry as Record<WidgetType, WidgetEntry>;
 
 // Ordered list for the "Add Widget" menu (excludes placeholder handled separately if desired).
 export const WIDGET_MENU_TYPES: WidgetType[] = [
-  'clock', 'quicklinks', 'bookmarks', 'gmail', 'calendar', 'notes', 'placeholder',
+  'clock', 'quicklinks', 'bookmarks', 'bookmarkSearch', 'gmail', 'calendar', 'notes', 'placeholder',
 ];

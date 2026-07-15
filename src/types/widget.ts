@@ -33,6 +33,10 @@ export interface BookmarksData {
   compactMode:   boolean;
 }
 
+export interface BookmarkSearchData {
+  maxResults: number;
+}
+
 export interface GmailData {
   maxEmails: number;
   showSnippets: boolean;
@@ -56,13 +60,14 @@ export interface PlaceholderData {
 
 // Maps each widget type string to its strongly-typed data interface.
 export interface WidgetDataMap {
-  clock:       ClockData;
-  quicklinks:  QuicklinksData;
-  bookmarks:   BookmarksData;
-  gmail:       GmailData;
-  calendar:    CalendarData;
-  notes:       NotesData;
-  placeholder: PlaceholderData;
+  clock:          ClockData;
+  quicklinks:     QuicklinksData;
+  bookmarks:      BookmarksData;
+  bookmarkSearch: BookmarkSearchData;
+  gmail:          GmailData;
+  calendar:       CalendarData;
+  notes:          NotesData;
+  placeholder:    PlaceholderData;
 }
 
 export type WidgetType = keyof WidgetDataMap;
@@ -87,10 +92,11 @@ interface WidgetBase {
 
 // Discriminated union — TypeScript narrows `data` automatically when `type` is checked.
 export type Widget =
-  | (WidgetBase & { type: 'clock';       data: ClockData })
-  | (WidgetBase & { type: 'quicklinks';  data: QuicklinksData })
-  | (WidgetBase & { type: 'bookmarks';   data: BookmarksData })
-  | (WidgetBase & { type: 'gmail';       data: GmailData })
-  | (WidgetBase & { type: 'calendar';    data: CalendarData })
-  | (WidgetBase & { type: 'notes';       data: NotesData })
-  | (WidgetBase & { type: 'placeholder'; data: PlaceholderData });
+  | (WidgetBase & { type: 'clock';          data: ClockData })
+  | (WidgetBase & { type: 'quicklinks';     data: QuicklinksData })
+  | (WidgetBase & { type: 'bookmarks';      data: BookmarksData })
+  | (WidgetBase & { type: 'bookmarkSearch'; data: BookmarkSearchData })
+  | (WidgetBase & { type: 'gmail';          data: GmailData })
+  | (WidgetBase & { type: 'calendar';       data: CalendarData })
+  | (WidgetBase & { type: 'notes';          data: NotesData })
+  | (WidgetBase & { type: 'placeholder';    data: PlaceholderData });

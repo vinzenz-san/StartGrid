@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import type { BookmarksData as BookmarkExplorerData } from '../../../types/widget';
 import { SettingsRow, SettingsSwitch } from '../../shared/Form';
 import { useBookmarkExplorer } from './useBookmarkExplorer';
@@ -193,103 +193,70 @@ interface Props {
 }
 
 export default function BookmarkExplorer({ data }: Props) {
-  const bookmarks     = useBookmarkExplorer();
-  const rootFolderId  = data.rootFolderId ?? '1';
+  const bookmarks    = useBookmarkExplorer();
+  const rootFolderId = data.rootFolderId ?? '1';
 
-  const [navStack,     setNavStack]     = useState<NavEntry[]>([]);
-  const [rootName,     setRootName]     = useState('Bookmarks');
-  const [items,        setItems]        = useState<BmNode[]>([]);
-  const [loading,      setLoading]      = useState(true);
-  const [query,        setQuery]        = useState('');
-  const [searchResults, setSearchResults] = useState<BmNode[]>([]);
-  const searchRef = useRef<HTMLInputElement>(null);
+  const [navStack, setNavStack] = useState<NavEntry[]>([]);
+  const [rootName, setRootName] = useState('Bookmarks');
+  const [items,    setItems]    = useState<BmNode[]>([]);
+  const [loading,  setLoading]  = useState(true);
 
   const currentId = navStack.length > 0 ? navStack[navStack.length - 1].id : rootFolderId;
 
   // Reset navigation when root folder changes
   useEffect(() => {
     setNavStack([]);
-    setQuery('');
     bookmarks.getNode(rootFolderId).then(node => setRootName(node?.title || 'Bookmarks'));
   }, [rootFolderId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Load children for current folder (skip in search mode)
+  // Load children for current folder
   useEffect(() => {
-    if (query) return;
     setLoading(true);
     bookmarks.getChildren(currentId)
       .then(children => { setItems(children); setLoading(false); })
       .catch(() => setLoading(false));
-  }, [currentId, query]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Live search
-  useEffect(() => {
-    if (!query.trim()) { setSearchResults([]); return; }
-    bookmarks.search(query.trim()).then(setSearchResults);
-  }, [query]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function enterFolder(node: BmNode) {
     setNavStack(prev => [...prev, { id: node.id, name: node.title || '(Folder)' }]);
   }
 
   function goToBreadcrumb(index: number) {
-    // index 0 = root; index 1..n = navStack entries
     setNavStack(prev => prev.slice(0, index));
   }
 
-  const breadcrumbs: NavEntry[] = [{ id: rootFolderId, name: rootName }, ...navStack];
-  const isSearching = query.trim().length > 0;
-  const displayItems = isSearching ? searchResults : items;
+  const breadcrumbs:    NavEntry[] = [{ id: rootFolderId, name: rootName }, ...navStack];
+  const displayItems = items;
 
   return (
     <div className="sg-bx">
       {/* Header */}
       <div className="sg-bx-header">
-        <div className="sg-bx-search-row">
-          <span className="sg-bx-search-icon">⌕</span>
-          <input
-            ref={searchRef}
-            className="sg-bx-search"
-            type="text"
-            placeholder="Search bookmarks…"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            onPointerDown={e => e.stopPropagation()}
-          />
-          {query && (
-            <button className="sg-bx-search-clear" onClick={() => { setQuery(''); searchRef.current?.focus(); }}>
-              ✕
-            </button>
-          )}
+        <div className="sg-bx-breadcrumb">
+          {breadcrumbs.map((entry, idx) => (
+            <span key={`${entry.id}-${idx}`} className="sg-bx-breadcrumb-item">
+              {idx > 0 && <span className="sg-bx-breadcrumb-sep">›</span>}
+              <button
+                className={`sg-bx-breadcrumb-btn${idx === breadcrumbs.length - 1 ? ' sg-bx-breadcrumb-btn--current' : ''}`}
+                onClick={() => goToBreadcrumb(idx)}
+              >
+                {entry.name}
+              </button>
+            </span>
+          ))}
         </div>
-
-        {!isSearching && (
-          <div className="sg-bx-breadcrumb">
-            {breadcrumbs.map((entry, idx) => (
-              <span key={`${entry.id}-${idx}`} className="sg-bx-breadcrumb-item">
-                {idx > 0 && <span className="sg-bx-breadcrumb-sep">›</span>}
-                <button
-                  className={`sg-bx-breadcrumb-btn${idx === breadcrumbs.length - 1 ? ' sg-bx-breadcrumb-btn--current' : ''}`}
-                  onClick={() => goToBreadcrumb(idx)}
-                >
-                  {entry.name}
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Body */}
       <div className="sg-bx-body">
-        {loading && !isSearching ? (
+        {loading ? (
           <div className="sg-bx-empty">
             <span className="sg-bx-empty-text">Loading…</span>
           </div>
         ) : displayItems.length === 0 ? (
           <div className="sg-bx-empty">
-            <span className="sg-bx-empty-icon">{isSearching ? '🔍' : '📁'}</span>
-            <span className="sg-bx-empty-text">{isSearching ? 'No results' : 'Folder is empty'}</span>
+            <span className="sg-bx-empty-icon">📁</span>
+            <span className="sg-bx-empty-text">Folder is empty</span>
           </div>
         ) : (
           <div className="sg-bx-list">

@@ -250,6 +250,11 @@
   border-color: var(--accent);
 }
 
+.sg-widget-title-input:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 /* ── Widget appearance bar ───────────────────────── */
 .sg-widget-appearance {
   flex-shrink: 0;
