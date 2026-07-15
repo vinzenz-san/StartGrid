@@ -1,7 +1,10 @@
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { storage } from '../lib/storage';
 import { storageLocal } from '../lib/storageLocal';
-import { BackgroundConfig, DEFAULT_BG, PRESETS } from '../types/background';
+import { BackgroundConfig, DEFAULT_BG } from '../types/background';
+import { resolveBackgroundCss } from '../components/Background/providers';
+import { useSettings } from './SettingsContext';
+import { useUnsplash, UnsplashAttribution } from '../hooks/useUnsplash';
 
 const SYNC_KEY  = 'sg:background';
 const LOCAL_KEY = 'sg:background:image';
@@ -13,19 +16,30 @@ interface BackgroundCtx {
   setConfig: (cfg: BackgroundConfig) => void;
   setCustomImage: (dataUrl: string) => void;
   clearCustomImage: () => void;
-  /** Resolved CSS value for background */
   backgroundCss: string;
+  unsplash: {
+    imageUrl: string | null;
+    attribution: UnsplashAttribution | null;
+    isFetching: boolean;
+    error: string | null;
+    fetchNow: () => void;
+  };
 }
 
 const Ctx = createContext<BackgroundCtx | null>(null);
 
 export function BackgroundProvider({ children }: { children: ReactNode }) {
-  const [config, setConfigState] = useState<BackgroundConfig>(DEFAULT_BG);
-  const [customImageUrl, setCustomImageUrl] = useState<string | null>(null);
-  const [loaded, setLoaded] = useState(false);
-  const lastSaved = useRef('');
+  const { colorScheme, ignoreGlobalThemeSwap } = useSettings();
+  const isDark = ignoreGlobalThemeSwap ? true : colorScheme !== 'light';
 
-  // Initial load
+  const [config, setConfigState]            = useState<BackgroundConfig>(DEFAULT_BG);
+  const [customImageUrl, setCustomImageUrl] = useState<string | null>(null);
+  const [unsplashImageUrl, setUnsplashImageUrl] = useState<string | null>(null);
+  const [loaded, setLoaded]                 = useState(false);
+  const lastSaved                           = useRef('');
+
+  const { attribution, isFetching, error, fetchNow } = useUnsplash(config, setUnsplashImageUrl);
+
   useEffect(() => {
     Promise.all([
       storage.get(SYNC_KEY),
@@ -41,7 +55,6 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  // Persist config to sync storage
   useEffect(() => {
     if (!loaded) return;
     const serialized = JSON.stringify(config);
@@ -64,27 +77,19 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
     setConfigState(DEFAULT_BG);
   };
 
-  const backgroundCss = (() => {
-    switch (config.mode) {
-      case 'custom': {
-        if (!customImageUrl) return DEFAULT_BG.value;
-        // 'fit' uses contain so the letterbox div behind handles the bar color
-        const size = (config.scalingMode ?? 'fit') === 'fit' ? 'contain' : 'cover';
-        return `url("${customImageUrl}") center/${size} no-repeat`;
-      }
-      case 'preset': {
-        const preset = PRESETS.find(p => p.id === config.value);
-        if (!preset) return DEFAULT_BG.value;
-        return (config.customGradient ?? true) ? preset.css : preset.flatColor;
-      }
-      case 'gradient': return config.value;
-      case 'color':
-      default:         return config.value;
-    }
-  })();
+  const backgroundCss = resolveBackgroundCss(config, {
+    isDark,
+    customImageUrl,
+    unsplashImageUrl,
+  });
 
   return (
-    <Ctx.Provider value={{ config, customImageUrl, loaded, setConfig, setCustomImage, clearCustomImage, backgroundCss }}>
+    <Ctx.Provider value={{
+      config, customImageUrl, loaded,
+      setConfig, setCustomImage, clearCustomImage,
+      backgroundCss,
+      unsplash: { imageUrl: unsplashImageUrl, attribution, isFetching, error, fetchNow },
+    }}>
       {children}
     </Ctx.Provider>
   );

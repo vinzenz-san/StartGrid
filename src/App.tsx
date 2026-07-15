@@ -8,17 +8,17 @@ import Background from './components/Background/Background';
 
 export default function App() {
   return (
-    <BackgroundProvider>
-      <SettingsProvider>
-        <ThemeProvider>
+    <SettingsProvider>
+      <ThemeProvider>
+        <BackgroundProvider>
           <EditModeProvider>
             <WidgetProvider>
               <Background />
               <Grid />
             </WidgetProvider>
           </EditModeProvider>
-        </ThemeProvider>
-      </SettingsProvider>
-    </BackgroundProvider>
+        </BackgroundProvider>
+      </ThemeProvider>
+    </SettingsProvider>
   );
 }
