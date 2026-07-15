@@ -26,9 +26,13 @@ export function useBookmarkExplorer() {
 
   async function getNode(nodeId: string): Promise<BmNode | null> {
     if (isExtension) {
-      const { default: browser } = await import('webextension-polyfill');
-      const results = await browser.bookmarks.get(nodeId);
-      return (results[0] as BmNode) ?? null;
+      try {
+        const { default: browser } = await import('webextension-polyfill');
+        const results = await browser.bookmarks.get(nodeId);
+        return (results[0] as BmNode) ?? null;
+      } catch {
+        return null;
+      }
     }
     return findNode(nodeId, MOCK_TREE);
   }
