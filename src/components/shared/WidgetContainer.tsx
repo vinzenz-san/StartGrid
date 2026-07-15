@@ -23,7 +23,7 @@ interface Props { widget: Widget; }
 export default function WidgetContainer({ widget }: Props) {
   const { isEditMode } = useEditMode();
   const { removeWidget, updateWidget } = useWidgets();
-  const { globalColor, globalOpacity, globalDim, globalGradientIntensity } = useTheme();
+  const { globalColor, globalOpacity, globalDim, globalGradientIntensity, globalPresetId, widgetShadowOpacity } = useTheme();
   const { colorScheme } = useSettings();
   const elRef = useRef<HTMLDivElement>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -155,6 +155,7 @@ export default function WidgetContainer({ widget }: Props) {
   const localOpacityPct      = Math.round((widget.bgOpacity ?? globalOpacity) * 100);
   const localTransparencyPct = 100 - localOpacityPct;
   const localDimPct          = Math.round(widget.bgDim ?? globalDim);
+  const localShadowPct       = Math.round(widget.bgShadow ?? widgetShadowOpacity);
   const effectiveColor       = widget.bgColor ?? globalColor;
 
   // Effective intensity: per-widget value if set, else backwards-compat from old boolean, else global
@@ -165,22 +166,38 @@ export default function WidgetContainer({ widget }: Props) {
   const localOverrideStyle: React.CSSProperties = overrideEnabled
     ? (() => {
         const base: Record<string, string> = {
-          '--widget-bg-opacity': String(widget.bgOpacity ?? globalOpacity),
-          '--widget-dim':        String(widget.bgDim ?? globalDim),
+          '--widget-bg-opacity':     String(widget.bgOpacity ?? globalOpacity),
+          '--widget-dim':            String(widget.bgDim ?? globalDim),
+          '--widget-shadow-opacity': String(widget.bgShadow ?? widgetShadowOpacity),
         };
         const t = localIntensity / 100;
         if (widget.bgPresetId) {
           // Named preset: compute intensity-blended gradient inline, overriding CSS attr selector
           const swatch = THEME_SWATCHES.find(s => s.id === widget.bgPresetId);
           if (swatch) {
-            const isDark = colorScheme !== 'light';
+            const isDark = (widget.ignoreLocalThemeSwap ?? false) ? true : colorScheme !== 'light';
             const endColor   = isDark ? swatch.darkEnd   : swatch.lightEnd;
             const startColor = isDark ? swatch.darkStart : swatch.lightStart;
             const blendedStart = mixHex(endColor, startColor, t);
             base['--preset-bg'] = `linear-gradient(135deg, ${blendedStart} 0%, ${endColor} 100%)`;
           }
+        } else if (widget.bgColor !== undefined) {
+          // Explicit local custom color: compute blended gradient
+          const colorEnd = mixHex(effectiveColor, darkenHex(effectiveColor), t);
+          base['--widget-bg-preset-css'] = `linear-gradient(135deg, ${effectiveColor} 0%, ${colorEnd} 100%)`;
+        } else if (globalPresetId) {
+          // No local preset/color but global preset active: re-compute with local intensity
+          // so the local Gradient Intensity slider is always reactive
+          const swatch = THEME_SWATCHES.find(s => s.id === globalPresetId);
+          if (swatch) {
+            const isDark = (widget.ignoreLocalThemeSwap ?? false) ? true : colorScheme !== 'light';
+            const endColor   = isDark ? swatch.darkEnd   : swatch.lightEnd;
+            const startColor = isDark ? swatch.darkStart : swatch.lightStart;
+            const blendedStart = mixHex(endColor, startColor, t);
+            base['--widget-bg-preset-css'] = `linear-gradient(135deg, ${blendedStart} 0%, ${endColor} 100%)`;
+          }
         } else {
-          // Custom color: blend end stop toward base color by intensity
+          // No local preset/color and no global preset: compute from globalColor
           const colorEnd = mixHex(effectiveColor, darkenHex(effectiveColor), t);
           base['--widget-bg-preset-css'] = `linear-gradient(135deg, ${effectiveColor} 0%, ${colorEnd} 100%)`;
         }
@@ -255,6 +272,40 @@ export default function WidgetContainer({ widget }: Props) {
                 value={widget.bgColor ?? globalColor}
                 onChange={(color, presetId) => updateWidget(widget.id, { bgColor: color, bgPresetId: presetId ?? undefined })}
               />
+              <button
+                className="sg-widget-match-global-btn"
+                onClick={() => updateWidget(widget.id, { bgColor: globalColor, bgPresetId: globalPresetId ?? undefined })}
+                onPointerDown={e => e.stopPropagation()}
+              >
+                ⬡ Match global widget color
+              </button>
+            </div>
+
+            <div className="sg-widget-appearance-section">
+              <SettingsRow label="Ignore light/dark theme swap">
+                <SettingsSwitch
+                  checked={widget.ignoreLocalThemeSwap ?? false}
+                  onChange={v => updateWidget(widget.id, { ignoreLocalThemeSwap: v })}
+                />
+              </SettingsRow>
+            </div>
+
+            <div className="sg-widget-appearance-section">
+              <SettingsSlider
+                label="Transparency"
+                value={localTransparencyPct}
+                onChange={v => updateWidget(widget.id, { bgOpacity: (100 - v) / 100 })}
+                onPointerDown={e => e.stopPropagation()}
+              />
+            </div>
+
+            <div className="sg-widget-appearance-section">
+              <SettingsSlider
+                label="Shadow Intensity"
+                value={localShadowPct}
+                onChange={v => updateWidget(widget.id, { bgShadow: v })}
+                onPointerDown={e => e.stopPropagation()}
+              />
             </div>
 
             <div className="sg-widget-appearance-section">
@@ -270,19 +321,27 @@ export default function WidgetContainer({ widget }: Props) {
               <SettingsSlider
                 label="Dimming"
                 value={localDimPct}
-                max={80}
                 onChange={v => updateWidget(widget.id, { bgDim: v })}
                 onPointerDown={e => e.stopPropagation()}
               />
             </div>
 
             <div className="sg-widget-appearance-section">
-              <SettingsSlider
-                label="Transparency"
-                value={localTransparencyPct}
-                onChange={v => updateWidget(widget.id, { bgOpacity: (100 - v) / 100 })}
+              <button
+                className="sg-widget-appearance-reset-all"
+                onClick={() => updateWidget(widget.id, {
+                  bgColor: undefined,
+                  bgPresetId: undefined,
+                  bgOpacity: undefined,
+                  bgDim: undefined,
+                  bgShadow: undefined,
+                  bgGradientIntensity: undefined,
+                  ignoreLocalThemeSwap: undefined,
+                })}
                 onPointerDown={e => e.stopPropagation()}
-              />
+              >
+                ↺ Reset to Global Styles
+              </button>
             </div>
           </>
         )}

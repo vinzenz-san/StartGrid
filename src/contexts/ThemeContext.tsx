@@ -39,7 +39,7 @@ const Ctx = createContext<ThemeCtx | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useStorage<ThemeConfig>(STORAGE_KEY, DEFAULTS);
-  const { colorScheme } = useSettings();
+  const { colorScheme, ignoreGlobalThemeSwap } = useSettings();
 
   const t = theme ?? DEFAULTS;
   // Backwards-compat: if stored data has the old boolean and no numeric intensity, seed from it
@@ -67,7 +67,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (safeTheme.globalPresetId) {
       const swatch = THEME_SWATCHES.find(s => s.id === safeTheme.globalPresetId);
       if (swatch) {
-        const isDark = colorScheme !== 'light';
+        const isDark = ignoreGlobalThemeSwap ? true : colorScheme !== 'light';
         const endColor   = isDark ? swatch.darkEnd   : swatch.lightEnd;
         const startColor = isDark ? swatch.darkStart : swatch.lightStart;
         const blendedStart = mixHex(endColor, startColor, tVal);
@@ -77,7 +77,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } else {
       document.documentElement.style.removeProperty('--widget-bg-preset-css');
     }
-  }, [safeTheme.globalColor, safeTheme.globalOpacity, safeTheme.globalDim, safeTheme.globalGradientIntensity, safeTheme.widgetShadowOpacity, safeTheme.globalPresetId, colorScheme]);
+  }, [safeTheme.globalColor, safeTheme.globalOpacity, safeTheme.globalDim, safeTheme.globalGradientIntensity, safeTheme.widgetShadowOpacity, safeTheme.globalPresetId, colorScheme, ignoreGlobalThemeSwap]);
 
   const setGlobalColor             = (globalColor: string)    => setTheme(t => ({ ...t, globalColor }));
   const setGlobalOpacity           = (globalOpacity: number)  => setTheme(t => ({ ...t, globalOpacity }));

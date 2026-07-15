@@ -14,6 +14,8 @@ export interface AppSettings {
   accentColor:             string;
   developerOptionsEnabled: boolean;
   devPanelPosition:        DevPanelPosition;
+  ignoreGlobalThemeSwap:   boolean;
+  ignoreLocalThemeSwap:    boolean;
 }
 
 export const SETTINGS_DEFAULTS = {
@@ -22,6 +24,8 @@ export const SETTINGS_DEFAULTS = {
   accentColor:             '#6366f1',
   developerOptionsEnabled: false,
   devPanelPosition:        'bottom-left',
+  ignoreGlobalThemeSwap:   false,
+  ignoreLocalThemeSwap:    false,
 } as const satisfies AppSettings;
 
 // GearPosition is retained as an alias so old backup envelopes with this key
@@ -44,6 +48,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     accentColor:             (settings ?? SETTINGS_DEFAULTS).accentColor             ?? SETTINGS_DEFAULTS.accentColor,
     developerOptionsEnabled: (settings ?? SETTINGS_DEFAULTS).developerOptionsEnabled ?? SETTINGS_DEFAULTS.developerOptionsEnabled,
     devPanelPosition:        (settings ?? SETTINGS_DEFAULTS).devPanelPosition        ?? SETTINGS_DEFAULTS.devPanelPosition,
+    ignoreGlobalThemeSwap:   (settings ?? SETTINGS_DEFAULTS).ignoreGlobalThemeSwap   ?? SETTINGS_DEFAULTS.ignoreGlobalThemeSwap,
+    ignoreLocalThemeSwap:    (settings ?? SETTINGS_DEFAULTS).ignoreLocalThemeSwap    ?? SETTINGS_DEFAULTS.ignoreLocalThemeSwap,
   };
 
   // Inject --accent / --accent-hover CSS variables globally

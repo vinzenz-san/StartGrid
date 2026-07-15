@@ -44,7 +44,8 @@ export default function SettingsPanel({ onClose, isOpen }: Props) {
     setWidgetShadowOpacity, setGlobalPresetId,
   } = useTheme();
   const {
-    colorScheme, accentColor, language, developerOptionsEnabled, devPanelPosition, updateSettings,
+    colorScheme, accentColor, language, developerOptionsEnabled, devPanelPosition,
+    ignoreGlobalThemeSwap, updateSettings,
   } = useSettings();
   const { config, setConfig } = useBackground();
   const [devConfirmOpen,   setDevConfirmOpen]   = useState(false);
@@ -63,7 +64,7 @@ export default function SettingsPanel({ onClose, isOpen }: Props) {
     setGlobalGradientIntensity(THEME_DEFAULTS.globalGradientIntensity);
     setWidgetShadowOpacity(THEME_DEFAULTS.widgetShadowOpacity);
     setGlobalPresetId(THEME_DEFAULTS.globalPresetId);
-    updateSettings({ colorScheme: SETTINGS_DEFAULTS.colorScheme, accentColor: SETTINGS_DEFAULTS.accentColor });
+    updateSettings({ colorScheme: SETTINGS_DEFAULTS.colorScheme, accentColor: SETTINGS_DEFAULTS.accentColor, ignoreGlobalThemeSwap: SETTINGS_DEFAULTS.ignoreGlobalThemeSwap });
   }
 
   function handleMatchBackground() {
@@ -148,6 +149,22 @@ export default function SettingsPanel({ onClose, isOpen }: Props) {
             value={widgetShadowOpacity}
             onChange={setWidgetShadowOpacity}
           />
+          <SettingsSlider
+            label="Gradient Intensity"
+            value={globalGradientIntensity}
+            onChange={setGlobalGradientIntensity}
+          />
+          <SettingsSlider
+            label="Dimming"
+            value={Math.round(globalDim)}
+            onChange={v => setGlobalDim(v)}
+          />
+          <SettingsRow label="Ignore light/dark theme swap">
+            <SettingsSwitch
+              checked={ignoreGlobalThemeSwap}
+              onChange={v => updateSettings({ ignoreGlobalThemeSwap: v })}
+            />
+          </SettingsRow>
         </section>
 
         {/* ══ 4. SETTINGS ══ */}
