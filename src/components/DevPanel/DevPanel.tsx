@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import { useEditMode } from '../../contexts/EditModeContext';
 import { useWidgets } from '../../contexts/WidgetContext';
 import { useSettings } from '../../contexts/SettingsContext';
@@ -110,7 +110,14 @@ function StoreSection({ title, data, limit }: { title: string; data: StoreData; 
 function DevPanelInner() {
   const { isEditMode }   = useEditMode();
   const { widgets, loaded } = useWidgets();
-  const { devPanelPosition } = useSettings();
+  const { devPanelPosition, settingsButtonPosition } = useSettings();
+
+  // Cluster is ~36px tall/wide at 14px from the edge.
+  // When DevPanel shares the same corner, offset it clear of the cluster.
+  const clusterOffset = devPanelPosition === settingsButtonPosition ? 58 : 16;
+  const devPanelStyle: CSSProperties = devPanelPosition.startsWith('top')
+    ? { top: clusterOffset }
+    : { bottom: clusterOffset };
   const [stats,   setStats]   = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -124,7 +131,7 @@ function DevPanelInner() {
   useEffect(() => { refresh(); }, [refresh]);
 
   return (
-    <div className={`dev-panel dev-panel--${devPanelPosition}`}>
+    <div className={`dev-panel dev-panel--${devPanelPosition}`} style={devPanelStyle}>
       <div className="dev-panel-title">DEV</div>
 
       <div className="dev-row">

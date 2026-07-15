@@ -1,0 +1,37 @@
+.sg-dir-picker {
+  display: inline-grid;
+  grid-template-columns: repeat(var(--dp-cols), 28px);
+  grid-template-rows: repeat(var(--dp-rows), 28px);
+  gap: 4px;
+}
+
+.sg-dir-picker--disabled { opacity: 0.4; pointer-events: none; }
+
+.sg-dir-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface-hover);
+  color: var(--text-muted);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  padding: 0;
+  line-height: 1;
+}
+
+.sg-dir-btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sg-dir-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}

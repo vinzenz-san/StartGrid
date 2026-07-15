@@ -4,40 +4,52 @@ import BackgroundEditor from '../Background/BackgroundEditor';
 import SwatchPicker, { THEME_SWATCHES } from '../shared/SwatchPicker';
 import BackupRestore, { performFactoryReset } from './BackupRestore';
 import CustomColorPicker from '../shared/CustomColorPicker';
-import { SettingsRow, SettingsSwitch, SegmentedControl, SettingsSlider, ActionButton } from '../shared/Form';
+import { SettingsRow, SettingsSwitch, SegmentedControl, SettingsSlider, ActionButton, DirectionPicker } from '../shared/Form';
 import { useTheme, DEFAULTS as THEME_DEFAULTS } from '../../contexts/ThemeContext';
 import { useSettings, SETTINGS_DEFAULTS } from '../../contexts/SettingsContext';
 import { useBackground } from '../../contexts/BackgroundContext';
+import { useEditMode } from '../../contexts/EditModeContext';
+import ThemeToggle from '../shared/ThemeToggle';
+import { useWidgets } from '../../contexts/WidgetContext';
+import { WIDGET_REGISTRY, WIDGET_MENU_TYPES } from '../widgets/registry';
+import { findFreePosition } from '../../lib/gridUtils';
 import { DEFAULT_BG } from '../../types/background';
-import type { ColorScheme, DevPanelPosition, Language } from '../../contexts/SettingsContext';
+import type { DevPanelPosition, Language, SettingsButtonPosition } from '../../contexts/SettingsContext';
+import type { WidgetType } from '../../types/widget';
 import './SettingsPanel.css';
 
 const APP_NAME = 'Startgrid';
-
-const SCHEME_OPTIONS: { value: ColorScheme; label: string }[] = [
-  { value: 'light',  label: 'Light'  },
-  { value: 'dark',   label: 'Dark'   },
-  { value: 'system', label: 'System' },
-];
 
 const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
   { value: 'en', label: 'EN' },
   { value: 'de', label: 'DE' },
 ];
 
-const PANEL_POSITION_OPTIONS: { value: DevPanelPosition; label: string }[] = [
-  { value: 'bottom-left',  label: 'Bottom Left'  },
-  { value: 'bottom-right', label: 'Bottom Right' },
-  { value: 'top-left',     label: 'Top Left'     },
-  { value: 'top-right',    label: 'Top Right'    },
+// col/row placement in a 3×2 grid (left col = left-side, center = centered, right col = right-side)
+const SETTINGS_BTN_CELLS = [
+  { value: 'top-left'    as SettingsButtonPosition, arrow: '↖', col: 1, row: 1 },
+  { value: 'top'         as SettingsButtonPosition, arrow: '↑', col: 2, row: 1 },
+  { value: 'top-right'   as SettingsButtonPosition, arrow: '↗', col: 3, row: 1 },
+  { value: 'bottom-left' as SettingsButtonPosition, arrow: '↙', col: 1, row: 2 },
+  { value: 'bottom'      as SettingsButtonPosition, arrow: '↓', col: 2, row: 2 },
+  { value: 'bottom-right'as SettingsButtonPosition, arrow: '↘', col: 3, row: 2 },
+];
+
+// col/row placement in a 2×2 grid
+const DEV_PANEL_CELLS = [
+  { value: 'top-left'    as DevPanelPosition, arrow: '↖', col: 1, row: 1 },
+  { value: 'top-right'   as DevPanelPosition, arrow: '↗', col: 2, row: 1 },
+  { value: 'bottom-left' as DevPanelPosition, arrow: '↙', col: 1, row: 2 },
+  { value: 'bottom-right'as DevPanelPosition, arrow: '↘', col: 2, row: 2 },
 ];
 
 interface Props {
   onClose: () => void;
   isOpen:  boolean;
+  settingsButtonPosition: SettingsButtonPosition;
 }
 
-export default function SettingsPanel({ onClose, isOpen }: Props) {
+export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition }: Props) {
   const {
     globalColor, globalOpacity, globalDim, globalGradientIntensity, widgetShadowOpacity,
     setGlobalColor, setGlobalOpacity, setGlobalDim, setGlobalGradientIntensity,
@@ -48,13 +60,24 @@ export default function SettingsPanel({ onClose, isOpen }: Props) {
     ignoreGlobalThemeSwap, updateSettings,
   } = useSettings();
   const { config, setConfig } = useBackground();
+  const { isEditMode, toggleEditMode } = useEditMode();
+  const { widgets, addWidget } = useWidgets();
   const [devConfirmOpen,   setDevConfirmOpen]   = useState(false);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const [pickerOpen,       setPickerOpen]       = useState(false);
+  const [addMenuOpen,      setAddMenuOpen]      = useState(false);
   const accentSwatchRef = useRef<HTMLButtonElement>(null);
+
+  const handleAddWidget = (type: WidgetType) => {
+    const { defaultSize, defaultData } = WIDGET_REGISTRY[type];
+    const { col, row } = findFreePosition(widgets, defaultSize.w, defaultSize.h);
+    addWidget({ type, col, row, w: defaultSize.w, h: defaultSize.h, data: defaultData });
+    setAddMenuOpen(false);
+  };
 
   const transparencyPct = 100 - Math.round(globalOpacity * 100);
   const isDark          = colorScheme !== 'light';
+  const panelSide       = settingsButtonPosition.endsWith('left') ? 'left' : 'right';
 
   function doResetAppearance() {
     setConfig(DEFAULT_BG);
@@ -93,7 +116,7 @@ export default function SettingsPanel({ onClose, isOpen }: Props) {
   }
 
   return (
-    <div className={`sg-settings-panel${isOpen ? ' sg-settings-panel--open' : ''}`} onClick={e => e.stopPropagation()}>
+    <div className={`sg-settings-panel sg-settings-panel--${panelSide}${isOpen ? ' sg-settings-panel--open' : ''}`} onClick={e => e.stopPropagation()}>
 
       {/* ── 1. HEADER ── */}
       <div className="sg-settings-header">
@@ -131,6 +154,43 @@ export default function SettingsPanel({ onClose, isOpen }: Props) {
         <hr className="sg-settings-divider" />
         <section className="settings-section">
           <div className="settings-section-label">Widgets</div>
+
+          {/* Lock / Unlock */}
+          <SettingsRow label={isEditMode ? 'Layout unlocked' : 'Layout locked'}>
+            <button
+              className={`sg-lock-btn${isEditMode ? ' active' : ''}`}
+              onClick={() => { toggleEditMode(); }}
+              title={isEditMode ? 'Lock layout' : 'Unlock layout'}
+            >
+              {isEditMode ? '🔒 Lock' : '🔓 Unlock'}
+            </button>
+          </SettingsRow>
+
+          {/* Add Widget */}
+          <div className="sg-widget-add-section">
+            <button
+              className={`sg-widget-add-toggle${addMenuOpen ? ' active' : ''}`}
+              onClick={() => setAddMenuOpen(o => !o)}
+            >
+              ＋ Add Widget
+            </button>
+            {addMenuOpen && (
+              <div className="sg-widget-add-list">
+                {WIDGET_MENU_TYPES
+                  .filter(type => !WIDGET_REGISTRY[type].devOnly || developerOptionsEnabled)
+                  .map(type => {
+                    const { label, icon } = WIDGET_REGISTRY[type];
+                    return (
+                      <button key={type} className="sg-widget-add-item" onClick={() => handleAddWidget(type)}>
+                        <span className="sg-widget-add-icon">{icon}</span>
+                        {label}
+                      </button>
+                    );
+                  })}
+              </div>
+            )}
+          </div>
+
           <SwatchPicker
             value={globalColor}
             onChange={(color, presetId) => { setGlobalColor(color); setGlobalPresetId(presetId); }}
@@ -159,18 +219,21 @@ export default function SettingsPanel({ onClose, isOpen }: Props) {
             value={Math.round(globalDim)}
             onChange={v => setGlobalDim(v)}
           />
-          <SettingsRow label="Ignore light/dark theme swap">
-            <SettingsSwitch
-              checked={ignoreGlobalThemeSwap}
-              onChange={v => updateSettings({ ignoreGlobalThemeSwap: v })}
-            />
-          </SettingsRow>
         </section>
 
         {/* ══ 4. SETTINGS ══ */}
         <hr className="sg-settings-divider" />
         <section className="settings-section">
           <div className="settings-section-label">Settings</div>
+          <SettingsRow label="Button Position">
+            <DirectionPicker
+              cells={SETTINGS_BTN_CELLS}
+              value={settingsButtonPosition}
+              onChange={v => updateSettings({ settingsButtonPosition: v })}
+              cols={3}
+              rows={2}
+            />
+          </SettingsRow>
           <SettingsRow label="Language">
             <SegmentedControl<Language>
               options={LANGUAGE_OPTIONS}
@@ -178,11 +241,13 @@ export default function SettingsPanel({ onClose, isOpen }: Props) {
               onChange={v => updateSettings({ language: v })}
             />
           </SettingsRow>
-          <SettingsRow label="Theme">
-            <SegmentedControl<ColorScheme>
-              options={SCHEME_OPTIONS}
-              value={colorScheme}
-              onChange={v => updateSettings({ colorScheme: v })}
+          <SettingsRow label="Light/Dark Mode">
+            <ThemeToggle />
+          </SettingsRow>
+          <SettingsRow label="Apply Light/Dark Mode to Background & Widgets">
+            <SettingsSwitch
+              checked={!ignoreGlobalThemeSwap}
+              onChange={v => updateSettings({ ignoreGlobalThemeSwap: !v })}
             />
           </SettingsRow>
           <SettingsRow label="Accent Color">
@@ -219,19 +284,15 @@ export default function SettingsPanel({ onClose, isOpen }: Props) {
               onChange={v => { if (v) setDevConfirmOpen(true); else updateSettings({ developerOptionsEnabled: false }); }}
             />
           </SettingsRow>
-          <SettingsRow
-            label="Panel Position"
-            style={{ opacity: developerOptionsEnabled ? 1 : 0.4, pointerEvents: developerOptionsEnabled ? 'auto' : 'none' } as React.CSSProperties}
-          >
-            <select
-              className="sg-dev-position-select"
+          <SettingsRow label="Panel Position" style={{ opacity: developerOptionsEnabled ? 1 : 0.4 } as React.CSSProperties}>
+            <DirectionPicker
+              cells={DEV_PANEL_CELLS}
               value={devPanelPosition}
-              onChange={e => updateSettings({ devPanelPosition: e.target.value as DevPanelPosition })}
-            >
-              {PANEL_POSITION_OPTIONS.map(o => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+              onChange={v => updateSettings({ devPanelPosition: v })}
+              cols={2}
+              rows={2}
+              disabled={!developerOptionsEnabled}
+            />
           </SettingsRow>
           <ActionButton variant="danger" cooldownTime={developerOptionsEnabled ? 0 : 3} onClick={() => setResetConfirmOpen(true)}>
             Factory Reset

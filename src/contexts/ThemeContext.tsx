@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useStorage } from '../hooks/useStorage';
 import { darkenHex, mixHex } from '../lib/colorUtils';
 import { THEME_SWATCHES } from '../components/shared/SwatchPicker';
@@ -41,6 +41,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useStorage<ThemeConfig>(STORAGE_KEY, DEFAULTS);
   const { colorScheme, ignoreGlobalThemeSwap } = useSettings();
 
+  // Freeze isDark at the moment ignoreGlobalThemeSwap activates.
+  // When the flag is off, effectiveIsDark stays in sync with colorScheme.
+  // When the flag turns on, the effect doesn't call setter → value is frozen.
+  const [effectiveIsDark, setEffectiveIsDark] = useState(colorScheme !== 'light');
+  useEffect(() => {
+    if (!ignoreGlobalThemeSwap) setEffectiveIsDark(colorScheme !== 'light');
+  }, [colorScheme, ignoreGlobalThemeSwap]);
+
   const t = theme ?? DEFAULTS;
   // Backwards-compat: if stored data has the old boolean and no numeric intensity, seed from it
   const legacyIntensity = t.globalGradient === false ? 0 : 100;
@@ -67,7 +75,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (safeTheme.globalPresetId) {
       const swatch = THEME_SWATCHES.find(s => s.id === safeTheme.globalPresetId);
       if (swatch) {
-        const isDark = ignoreGlobalThemeSwap ? true : colorScheme !== 'light';
+        const isDark = effectiveIsDark;
         const endColor   = isDark ? swatch.darkEnd   : swatch.lightEnd;
         const startColor = isDark ? swatch.darkStart : swatch.lightStart;
         const blendedStart = mixHex(endColor, startColor, tVal);
@@ -77,7 +85,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } else {
       document.documentElement.style.removeProperty('--widget-bg-preset-css');
     }
-  }, [safeTheme.globalColor, safeTheme.globalOpacity, safeTheme.globalDim, safeTheme.globalGradientIntensity, safeTheme.widgetShadowOpacity, safeTheme.globalPresetId, colorScheme, ignoreGlobalThemeSwap]);
+  }, [safeTheme.globalColor, safeTheme.globalOpacity, safeTheme.globalDim, safeTheme.globalGradientIntensity, safeTheme.widgetShadowOpacity, safeTheme.globalPresetId, effectiveIsDark]);
 
   const setGlobalColor             = (globalColor: string)    => setTheme(t => ({ ...t, globalColor }));
   const setGlobalOpacity           = (globalOpacity: number)  => setTheme(t => ({ ...t, globalOpacity }));
