@@ -6,8 +6,32 @@ import { resolveBackgroundCss } from '../components/Background/providers';
 import { useSettings } from './SettingsContext';
 import { useUnsplash, UnsplashAttribution } from '../hooks/useUnsplash';
 
-const SYNC_KEY  = 'sg:background';
-const LOCAL_KEY = 'sg:background:image';
+const SYNC_KEY          = 'sg:background';
+const LOCAL_KEY         = 'sg:background:image';
+// Both keys use plain localStorage for synchronous first-render fast-paths,
+// eliminating the white flash caused by async storage.sync / storage.local hydration.
+const FAST_CONFIG_KEY   = 'sg:bg:fastConfig';
+const FAST_URL_KEY      = 'sg:unsplash:fastUrl';
+
+function readFastConfig(): BackgroundConfig | null {
+  try {
+    const raw = localStorage.getItem(FAST_CONFIG_KEY);
+    return raw ? (JSON.parse(raw) as BackgroundConfig) : null;
+  } catch { return null; }
+}
+function writeFastConfig(cfg: BackgroundConfig): void {
+  try { localStorage.setItem(FAST_CONFIG_KEY, JSON.stringify(cfg)); } catch {}
+}
+
+function readFastUrl(): string | null {
+  try { return localStorage.getItem(FAST_URL_KEY); } catch { return null; }
+}
+function writeFastUrl(url: string | null): void {
+  try {
+    if (url) localStorage.setItem(FAST_URL_KEY, url);
+    else localStorage.removeItem(FAST_URL_KEY);
+  } catch {}
+}
 
 interface BackgroundCtx {
   config: BackgroundConfig;
@@ -32,14 +56,21 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
   const { colorScheme, ignoreGlobalThemeSwap } = useSettings();
   const isDark = ignoreGlobalThemeSwap ? true : colorScheme !== 'light';
 
-  const [config, setConfigState]            = useState<BackgroundConfig>(DEFAULT_BG);
+  // Initialise synchronously from localStorage fast-path — avoids first-frame flash
+  const [config, setConfigState]            = useState<BackgroundConfig>(() => readFastConfig() ?? DEFAULT_BG);
   const [customImageUrl, setCustomImageUrl] = useState<string | null>(null);
-  const [unsplashImageUrl, setUnsplashImageUrl] = useState<string | null>(null);
+  const [unsplashImageUrl, setUnsplashImageUrlRaw] = useState<string | null>(readFastUrl);
   const [loaded, setLoaded]                 = useState(false);
   const lastSaved                           = useRef('');
 
+  const setUnsplashImageUrl = (url: string | null) => {
+    setUnsplashImageUrlRaw(url);
+    writeFastUrl(url);
+  };
+
   const { attribution, isFetching, error, fetchNow } = useUnsplash(config, setUnsplashImageUrl);
 
+  // Hydrate from real storage (sync + local) on mount
   useEffect(() => {
     Promise.all([
       storage.get(SYNC_KEY),
@@ -49,32 +80,38 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
         const c = cfg as BackgroundConfig;
         lastSaved.current = JSON.stringify(c);
         setConfigState(c);
+        writeFastConfig(c);
       }
       if (img) setCustomImageUrl(img as string);
       setLoaded(true);
     });
   }, []);
 
+  // Persist config changes to storage.sync + localStorage fast-path
   useEffect(() => {
     if (!loaded) return;
     const serialized = JSON.stringify(config);
     if (serialized === lastSaved.current) return;
     lastSaved.current = serialized;
     storage.set(SYNC_KEY, config);
+    writeFastConfig(config);
   }, [config, loaded]);
 
-  const setConfig = (cfg: BackgroundConfig) => setConfigState(cfg);
+  const setConfig = (cfg: BackgroundConfig) => {
+    setConfigState(cfg);
+    writeFastConfig(cfg); // write immediately so fast-path is always current
+  };
 
   const setCustomImage = (dataUrl: string) => {
     setCustomImageUrl(dataUrl);
     storageLocal.set(LOCAL_KEY, dataUrl);
-    setConfigState({ mode: 'custom', value: '' });
+    setConfig({ mode: 'custom', value: '' });
   };
 
   const clearCustomImage = () => {
     setCustomImageUrl(null);
     storageLocal.remove(LOCAL_KEY);
-    setConfigState(DEFAULT_BG);
+    setConfig(DEFAULT_BG);
   };
 
   const backgroundCss = resolveBackgroundCss(config, {
