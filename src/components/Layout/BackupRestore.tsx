@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { SettingsRow, ActionButton } from '../shared/Form';
 import { useSettings, SETTINGS_DEFAULTS } from '../../contexts/SettingsContext';
 
@@ -84,10 +85,11 @@ function isValidEnvelope(data: unknown): data is BackupEnvelope {
 export default function BackupRestore() {
   const { developerOptionsEnabled } = useSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [importError, setImportError] = useState<string | null>(null);
-  const [importOk,    setImportOk]    = useState(false);
-  const [exporting,   setExporting]   = useState(false);
-  const [importing,   setImporting]   = useState(false);
+  const [importError,      setImportError]      = useState<string | null>(null);
+  const [importOk,         setImportOk]         = useState(false);
+  const [exporting,        setExporting]        = useState(false);
+  const [importing,        setImporting]        = useState(false);
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
   // ── Export ───────────────────────────────────────────────────────────────
   async function handleExport() {
@@ -156,13 +158,11 @@ export default function BackupRestore() {
   }
 
   async function handleFactoryReset() {
-    if (!developerOptionsEnabled) {
-      const confirmed = window.confirm(
-        'Are you really sure you want to perform a factory reset? This will permanently delete all of your settings, widgets, and data.'
-      );
-      if (!confirmed) return;
+    if (developerOptionsEnabled) {
+      await doReset();
+    } else {
+      setResetConfirmOpen(true);
     }
-    await doReset();
   }
 
   return (
@@ -213,6 +213,26 @@ export default function BackupRestore() {
           </ActionButton>
         </SettingsRow>
       </section>
+
+      {resetConfirmOpen && createPortal(
+        <div className="sg-dev-confirm-backdrop" onPointerDown={() => setResetConfirmOpen(false)}>
+          <div className="sg-dev-confirm-dialog" onPointerDown={e => e.stopPropagation()}>
+            <div className="sg-dev-confirm-title">Factory Reset</div>
+            <p className="sg-dev-confirm-body">
+              Are you really sure? All configuration in this addon will be deleted.
+            </p>
+            <div className="sg-dev-confirm-actions">
+              <button className="sg-dev-confirm-btn sg-dev-confirm-btn--cancel" onClick={() => setResetConfirmOpen(false)}>
+                Cancel
+              </button>
+              <button className="sg-dev-confirm-btn sg-dev-confirm-btn--confirm" onClick={async () => { setResetConfirmOpen(false); await doReset(); }}>
+                Delete Everything
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
