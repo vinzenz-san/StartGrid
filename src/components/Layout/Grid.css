@@ -36,63 +36,91 @@
     0 0 16px rgba(255, 87, 34, 0.3);
 }
 
-/* ── Toolbar ─────────────────────────────────────── */
-.sg-toolbar {
+/* ── Floating control cluster ────────────────────── */
+.sg-controls {
+  position: fixed;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  height: var(--toolbar-h);
-  background: rgba(26, 29, 46, 0.85);
+  gap: 2px;
+  z-index: 9000;
+  padding: 4px;
+  border-radius: 999px;
+}
+
+/* Dark pill background — appears on hover */
+.sg-controls::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(8, 10, 20, 0.76);
   backdrop-filter: blur(8px);
-  border-bottom: 1.5px solid var(--border-strong);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  opacity: 0;
+  transition: opacity 0.22s ease;
+  pointer-events: none;
+}
+.sg-controls:hover::before { opacity: 1; }
+
+/* Position variants */
+.sg-controls--top-left     { top: 14px; left: 14px; }
+.sg-controls--top          { top: 14px; left: 50%; transform: translateX(-50%); }
+.sg-controls--top-right    { top: 14px; right: 14px; }
+.sg-controls--bottom-left  { bottom: 14px; left: 14px; }
+.sg-controls--bottom       { bottom: 14px; left: 50%; transform: translateX(-50%); }
+.sg-controls--bottom-right { bottom: 14px; right: 14px; }
+
+/* Invert element order for right-side positions */
+.sg-controls--side-right { flex-direction: row-reverse; }
+
+/* Icon-only control button — no border, no background */
+.sg-btn-control {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: rgba(200, 200, 220, 0.55);
+  cursor: pointer;
   flex-shrink: 0;
-  z-index: 10;
+  transition: color 0.2s ease, transform 0.18s ease;
 }
+.sg-btn-control:hover        { transform: scale(1.15); }
+.sg-controls:hover .sg-btn-control { color: var(--accent); }
+.sg-btn-control.active       { color: var(--accent); }
 
-.sg-logo {
-  font-size: 16px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--accent-hover);
-}
-
-.sg-toolbar-actions {
+/* Elements hidden until hover */
+.sg-controls__reveal {
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 10px;
+}
+.sg-controls:hover .sg-controls__reveal {
+  opacity: 1;
+  pointer-events: auto;
 }
 
-.sg-edit-hint {
-  font-size: 12px;
+/* Light-mode: icons need a dark tint to show against bright backgrounds */
+[data-scheme="light"] .sg-btn-control {
+  color: rgba(30, 30, 50, 0.45);
+}
+[data-scheme="light"] .sg-controls:hover .sg-btn-control {
   color: var(--accent);
-  opacity: 0.8;
 }
 
-.sg-btn-edit {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-
-.sg-btn-edit:hover {
-  background: var(--surface-hover);
-  color: var(--text);
-  border-color: var(--accent);
-}
-
-.sg-btn-edit.active {
-  background: rgba(99, 102, 241, 0.15);
-  color: var(--accent-hover);
-  border-color: var(--accent);
+/* Light-mode: settings gear gets a subtle dark border so it's visible when alone */
+[data-scheme="light"] .sg-btn-control--settings {
+  border: 1px solid rgba(30, 30, 50, 0.25);
+  border-radius: 50%;
 }
 
 /* ── Grid ────────────────────────────────────────── */
@@ -103,6 +131,8 @@
   z-index: 0;
   display: flex;
   justify-content: center;
+  /* Grid now fills full viewport height — no toolbar above it */
+  height: 100%;
 }
 
 .sg-grid {
@@ -125,84 +155,6 @@
   background-position: calc(12px + (100% - 12px) / 16) calc(12px + var(--cell) / 2);
 }
 
-/* ── Add widget menu ─────────────────────────────── */
-.sg-add-wrap {
-  position: relative;
-}
-
-.sg-btn-add {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  background: rgba(99, 102, 241, 0.15);
-  border: 1px solid var(--accent);
-  color: var(--accent-hover);
-  transition: background 0.15s;
-  cursor: pointer;
-}
-
-.sg-btn-add:hover,
-.sg-btn-add.active { background: rgba(99, 102, 241, 0.28); }
-
-.sg-add-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 160px;
-  z-index: 100;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-}
-
-.sg-add-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  color: var(--text);
-  cursor: pointer;
-  transition: background 0.12s;
-  text-align: left;
-  width: 100%;
-}
-
-.sg-add-item:hover { background: var(--surface-hover); }
-
-.sg-add-icon { font-size: 16px; }
-
-/* ── Sun/Moon theme toggle ───────────────────────── */
-.sg-btn-theme {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-muted);
-  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.2s;
-  flex-shrink: 0;
-}
-
-.sg-btn-theme:hover {
-  background: var(--surface-hover);
-  color: var(--accent-hover);
-  border-color: var(--accent);
-  transform: rotate(20deg) scale(1.1);
-}
 
 /* ── Drop ghost ──────────────────────────────────── */
 .sg-drop-ghost {

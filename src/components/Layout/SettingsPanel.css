@@ -2,20 +2,34 @@
 .sg-settings-panel {
   position: fixed;
   top: 0;
-  right: 0;
   width: 270px;
   height: 100vh;
   background: var(--surface);
-  border-left: 1.5px solid var(--border-strong);
-  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.45);
   z-index: 10000;
   display: flex;
   flex-direction: column;
-  transform: translateX(100%);
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.sg-settings-panel--open {
+/* Right side (default) */
+.sg-settings-panel--right {
+  right: 0;
+  border-left: 1.5px solid var(--border-strong);
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.45);
+  transform: translateX(100%);
+}
+.sg-settings-panel--right.sg-settings-panel--open {
+  transform: translateX(0);
+}
+
+/* Left side */
+.sg-settings-panel--left {
+  left: 0;
+  border-right: 1.5px solid var(--border-strong);
+  box-shadow: 12px 0 40px rgba(0, 0, 0, 0.45);
+  transform: translateX(-100%);
+}
+.sg-settings-panel--left.sg-settings-panel--open {
   transform: translateX(0);
 }
 
@@ -87,6 +101,72 @@
 }
 .sg-accent-swatch:hover { border-color: var(--text-muted); transform: scale(1.1); }
 
+/* ── Lock / Unlock button ────────────────────────────────────────────────── */
+.sg-lock-btn {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+.sg-lock-btn:hover { background: var(--surface-hover); border-color: var(--text-muted); color: var(--text); }
+.sg-lock-btn.active { background: rgba(99, 102, 241, 0.12); color: var(--accent-hover); border-color: var(--accent); }
+
+/* ── Add Widget section ──────────────────────────────────────────────────── */
+.sg-widget-add-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.sg-widget-add-toggle {
+  width: 100%;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--accent-hover);
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  background: rgba(99, 102, 241, 0.10);
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.12s, border-color 0.12s;
+}
+.sg-widget-add-toggle:hover,
+.sg-widget-add-toggle.active { background: rgba(99, 102, 241, 0.22); }
+
+.sg-widget-add-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0;
+}
+
+.sg-widget-add-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.12s;
+  text-align: left;
+  width: 100%;
+  border: none;
+  background: transparent;
+}
+.sg-widget-add-item:hover { background: var(--surface-hover); }
+
+.sg-widget-add-icon { font-size: 15px; }
+
 /* ── Match Background button ─────────────────────────────────────────────── */
 .sg-match-bg-btn {
   width: 100%;
@@ -130,19 +210,6 @@
 .sg-backup-error--warn { color: var(--text-muted); }
 .sg-backup-ok          { font-size: 10px; color: #52b152; padding: 2px 0 4px; }
 
-/* ── Dev panel position select ───────────────────────────────────────────── */
-.sg-dev-position-select {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text);
-  background: var(--surface-hover);
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  padding: 3px 6px;
-  cursor: pointer;
-  transition: border-color 0.12s;
-}
-.sg-dev-position-select:focus { outline: none; border-color: var(--accent); }
 
 /* ── Developer Options confirmation dialog ───────────────────────────────── */
 .sg-dev-confirm-backdrop {

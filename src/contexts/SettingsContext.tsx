@@ -4,9 +4,10 @@ import { lightenHex } from '../lib/colorUtils';
 
 const STORAGE_KEY = 'sg:settings';
 
-export type Language        = 'en' | 'de';
-export type ColorScheme     = 'light' | 'dark' | 'system';
-export type DevPanelPosition = 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right';
+export type Language             = 'en' | 'de';
+export type ColorScheme          = 'light' | 'dark' | 'system';
+export type DevPanelPosition     = 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right';
+export type SettingsButtonPosition = 'top-left' | 'top' | 'top-right' | 'bottom-left' | 'bottom' | 'bottom-right';
 
 export interface AppSettings {
   language:                Language;
@@ -14,6 +15,7 @@ export interface AppSettings {
   accentColor:             string;
   developerOptionsEnabled: boolean;
   devPanelPosition:        DevPanelPosition;
+  settingsButtonPosition:  SettingsButtonPosition;
   ignoreGlobalThemeSwap:   boolean;
   ignoreLocalThemeSwap:    boolean;
 }
@@ -24,13 +26,11 @@ export const SETTINGS_DEFAULTS = {
   accentColor:             '#6366f1',
   developerOptionsEnabled: false,
   devPanelPosition:        'bottom-left',
+  settingsButtonPosition:  'top-right',
   ignoreGlobalThemeSwap:   false,
   ignoreLocalThemeSwap:    false,
 } as const satisfies AppSettings;
 
-// GearPosition is retained as an alias so old backup envelopes with this key
-// are silently ignored on restore rather than causing a type error.
-export type GearPosition = 'bottom-right' | 'bottom-left' | 'top-right';
 
 interface SettingsCtx extends AppSettings {
   updateSettings: (patch: Partial<AppSettings>) => void;
@@ -48,6 +48,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     accentColor:             (settings ?? SETTINGS_DEFAULTS).accentColor             ?? SETTINGS_DEFAULTS.accentColor,
     developerOptionsEnabled: (settings ?? SETTINGS_DEFAULTS).developerOptionsEnabled ?? SETTINGS_DEFAULTS.developerOptionsEnabled,
     devPanelPosition:        (settings ?? SETTINGS_DEFAULTS).devPanelPosition        ?? SETTINGS_DEFAULTS.devPanelPosition,
+    settingsButtonPosition:  (() => {
+      const v = (settings ?? SETTINGS_DEFAULTS).settingsButtonPosition ?? SETTINGS_DEFAULTS.settingsButtonPosition;
+      return (v === 'left' || v === 'right') ? SETTINGS_DEFAULTS.settingsButtonPosition : v as SettingsButtonPosition;
+    })(),
     ignoreGlobalThemeSwap:   (settings ?? SETTINGS_DEFAULTS).ignoreGlobalThemeSwap   ?? SETTINGS_DEFAULTS.ignoreGlobalThemeSwap,
     ignoreLocalThemeSwap:    (settings ?? SETTINGS_DEFAULTS).ignoreLocalThemeSwap    ?? SETTINGS_DEFAULTS.ignoreLocalThemeSwap,
   };

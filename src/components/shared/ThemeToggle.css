@@ -1,0 +1,58 @@
+/* ── Pill toggle button ───────────────────────────────────────────────────── */
+.sg-theme-toggle {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* Animated background track */
+.sg-theme-toggle__track {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--surface-hover);
+  transition: background 0.8s ease;
+  pointer-events: none;
+}
+
+.sg-theme-toggle--dark .sg-theme-toggle__track {
+  background: #1e2340;
+}
+
+/* Sliding knob */
+.sg-theme-toggle__knob {
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #f5c842;
+  color: #7a5500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%) translateX(0);
+  transition:
+    transform    0.7s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background   0.8s ease,
+    color        0.8s ease,
+    box-shadow   0.8s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
+/* travel = width(48) - padding-left(4) - padding-right(4) - knob(20) = 20px */
+.sg-theme-toggle--dark .sg-theme-toggle__knob {
+  transform: translateY(-50%) translateX(20px);
+  background: #c8d4f0;
+  color: #3a4070;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}

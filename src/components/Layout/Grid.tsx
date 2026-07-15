@@ -3,10 +3,9 @@ import { useEditMode } from '../../contexts/EditModeContext';
 import { useWidgets } from '../../contexts/WidgetContext';
 import { useSettings } from '../../contexts/SettingsContext';
 import { dragState } from '../../lib/dragState';
-import { findFreePosition, isPositionFree } from '../../lib/gridUtils';
-import type { WidgetType } from '../../types/widget';
-import { WIDGET_REGISTRY, WIDGET_MENU_TYPES } from '../widgets/registry';
+import { isPositionFree } from '../../lib/gridUtils';
 import WidgetContainer from '../shared/WidgetContainer';
+import ThemeToggle from '../shared/ThemeToggle';
 import SettingsPanel from './SettingsPanel';
 import DevPanel from '../DevPanel/DevPanel';
 import './Grid.css';
@@ -20,13 +19,10 @@ interface DropTarget { col: number; row: number; w: number; h: number; valid: bo
 
 export default function Grid() {
   const { isEditMode, toggleEditMode } = useEditMode();
-  const { widgets, addWidget, updateWidget, loaded } = useWidgets();
-  const { developerOptionsEnabled, colorScheme, updateSettings } = useSettings();
-  const isDark = colorScheme !== 'light';
-  const toggleTheme = () => updateSettings({ colorScheme: isDark ? 'light' : 'dark' });
+  const { widgets, updateWidget, loaded } = useWidgets();
+  const { developerOptionsEnabled, settingsButtonPosition } = useSettings();
   const gridRef = useRef<HTMLDivElement>(null);
   const [dropTarget,        setDropTarget]        = useState<DropTarget | null>(null);
-  const [addMenuOpen,       setAddMenuOpen]       = useState(false);
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
 
   const cellFromPoint = (clientX: number, clientY: number) => {
@@ -61,68 +57,53 @@ export default function Grid() {
     if (!gridRef.current?.contains(e.relatedTarget as Node)) setDropTarget(null);
   };
 
-  const handleAddWidget = (type: WidgetType) => {
-    const { defaultSize, defaultData } = WIDGET_REGISTRY[type];
-    const { col, row } = findFreePosition(widgets, defaultSize.w, defaultSize.h);
-    addWidget({ type, col, row, w: defaultSize.w, h: defaultSize.h, data: defaultData });
-    setAddMenuOpen(false);
-  };
-
   return (
     <div className={`sg-root${isEditMode ? ' sg-root--edit' : ''}`}>
-      <header className="sg-toolbar">
-        <span className="sg-logo">⬡ StartGrid</span>
-        <div className="sg-toolbar-actions">
-          <button
-            className="sg-btn-theme"
-            onClick={toggleTheme}
-            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {isDark
-              ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-              : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            }
-          </button>
-          <button
-            className={`sg-btn-edit${settingsPanelOpen ? ' active' : ''}`}
-            onPointerDown={e => { e.stopPropagation(); e.preventDefault(); setSettingsPanelOpen(s => !s); setAddMenuOpen(false); }}
-            title="Settings"
-          >⚙ Settings</button>
-          <div className="sg-add-wrap">
+
+      {/* ── Floating control cluster ── */}
+      {(() => {
+        const isRight = !settingsButtonPosition.endsWith('left');
+        return (
+          <div className={`sg-controls sg-controls--${settingsButtonPosition}${isRight ? ' sg-controls--side-right' : ' sg-controls--side-left'}`}>
+            {/* Settings gear — always visible anchor */}
             <button
-              className={`sg-btn-add${addMenuOpen ? ' active' : ''}`}
-              onPointerDown={e => { e.stopPropagation(); e.preventDefault(); setAddMenuOpen(s => !s); setSettingsPanelOpen(false); }}
-            >＋ Widget</button>
-            {addMenuOpen && (
-              <div className="sg-add-menu">
-                {WIDGET_MENU_TYPES.filter(type => !WIDGET_REGISTRY[type].devOnly || developerOptionsEnabled).map(type => {
-                  const { label, icon } = WIDGET_REGISTRY[type];
-                  return (
-                    <button key={type} className="sg-add-item"
-                      onPointerDown={e => { e.stopPropagation(); e.preventDefault(); handleAddWidget(type); }}>
-                      <span className="sg-add-icon">{icon}</span>
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+              className={`sg-btn-control sg-btn-control--settings${settingsPanelOpen ? ' active' : ''}`}
+              onPointerDown={e => { e.stopPropagation(); e.preventDefault(); setSettingsPanelOpen(s => !s); }}
+              title="Settings"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </button>
+
+            {/* Theme toggle — hidden until hover */}
+            <div className="sg-controls__reveal">
+              <ThemeToggle />
+            </div>
+
+            {/* Lock/unlock — hidden until hover */}
+            <button
+              className={`sg-btn-control sg-controls__reveal${isEditMode ? ' active' : ''}`}
+              onPointerDown={() => { setSettingsPanelOpen(false); toggleEditMode(); }}
+              title={isEditMode ? 'Lock layout (Ctrl+E)' : 'Unlock layout (Ctrl+E)'}
+            >
+              {isEditMode
+                ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+              }
+            </button>
           </div>
-          {isEditMode && <span className="sg-edit-hint">Drag to move</span>}
-          <button
-            className={`sg-btn-edit${isEditMode ? ' active' : ''}`}
-            onPointerDown={() => { setAddMenuOpen(false); setSettingsPanelOpen(false); toggleEditMode(); }}
-            title="Edit mode (Ctrl+E)"
-          >{isEditMode ? '🔒 Lock' : '🔓 Unlock'}</button>
-        </div>
-      </header>
+        );
+      })()}
 
       <SettingsPanel
         onClose={() => setSettingsPanelOpen(false)}
         isOpen={settingsPanelOpen}
+        settingsButtonPosition={settingsButtonPosition}
       />
 
-      <main className="sg-grid-wrapper" onClick={() => { setAddMenuOpen(false); setSettingsPanelOpen(false); }}>
+      <main className="sg-grid-wrapper" onClick={() => setSettingsPanelOpen(false)}>
         <div
           ref={gridRef}
           className="sg-grid"
