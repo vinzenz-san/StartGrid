@@ -1,30 +1,24 @@
-/* ── Root ─────────────────────────────────────────────────────────────────── */
+/* ── Root (slim search bar shell) ────────────────────────────────────────── */
 
 .sg-bks {
   width: 100%;
   height: 100%;
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  align-items: center;
+  padding: 0 10px;
+  box-sizing: border-box;
 }
 
-/* ── Header ──────────────────────────────────────────────────────────────── */
-
-.sg-bks-header {
-  padding: 8px 10px 6px;
-  flex-shrink: 0;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.12);
-}
-
-/* Search row */
+/* ── Search row ──────────────────────────────────────────────────────────── */
 
 .sg-bks-search-row {
   display: flex;
   align-items: center;
   gap: 6px;
+  width: 100%;
   background: rgba(128, 128, 128, 0.1);
   border-radius: 6px;
-  padding: 4px 8px;
+  padding: 5px 8px;
 }
 
 .sg-bks-search-icon {
@@ -60,12 +54,13 @@
 
 .sg-bks-clear:hover { opacity: 1; background: rgba(128, 128, 128, 0.15); }
 
-/* Folder navigation row */
+/* Inline folder nav (shown in the slim bar when navigated into a folder) */
 
 .sg-bks-folder-nav {
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
   min-height: 28px;
 }
 
@@ -94,21 +89,54 @@
   text-overflow: ellipsis;
 }
 
-/* ── Body ─────────────────────────────────────────────────────────────────── */
+/* ── Floating results panel ──────────────────────────────────────────────── */
 
-.sg-bks-body {
+.sg-bks-float-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  min-width: 350px;
+  max-height: 480px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+/* Folder nav header inside the panel */
+
+.sg-bks-float-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 5px;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.12);
+  flex-shrink: 0;
+}
+
+/* Scrollable results body */
+
+.sg-bks-float-body {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(128, 128, 128, 0.25) transparent;
 }
+
+.sg-bks-float-body::-webkit-scrollbar       { width: 5px; }
+.sg-bks-float-body::-webkit-scrollbar-thumb { background: rgba(128, 128, 128, 0.25); border-radius: 3px; }
+
+/* ── Item rows ────────────────────────────────────────────────────────────── */
 
 .sg-bks-list {
   display: flex;
   flex-direction: column;
 }
-
-/* ── Item rows ────────────────────────────────────────────────────────────── */
 
 .sg-bks-item {
   display: flex;
@@ -194,12 +222,25 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 100%;
-  padding: 16px;
+  padding: 20px 16px;
 }
 
 .sg-bks-empty-icon { font-size: 20px; opacity: 0.35; }
 .sg-bks-empty-text { font-size: 12px; opacity: 0.4; text-align: center; }
+
+/* ── Overflow warning banner ──────────────────────────────────────────────── */
+
+.sg-bks-overflow-banner {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: rgba(128, 128, 128, 0.08);
+  border: 1px solid rgba(128, 128, 128, 0.15);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin: 4px 6px;
+  text-align: center;
+  line-height: 1.4;
+}
 
 /* ── Settings ─────────────────────────────────────────────────────────────── */
 
@@ -208,4 +249,17 @@
   flex-direction: column;
   gap: 10px;
   padding: 10px;
+}
+
+.sg-bks-shortcut-badge {
+  font-size: 10px;
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 2px 7px;
+  letter-spacing: 0.03em;
+  user-select: none;
 }

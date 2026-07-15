@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, GmailData, CalendarData, NotesData, PlaceholderData } from '../../types/widget';
 import Clock, { ClockSettings } from './Clock/Clock';
 import Quicklinks, { QuicklinksSettings } from './Quicklinks/Quicklinks';
-import BookmarkExplorer, { BookmarkExplorerSettings } from './BookmarkExplorer/BookmarkExplorer';
+import BookmarkFolder, { BookmarkFolderSettings } from './BookmarkFolder/BookmarkFolder';
 import BookmarkSearch, { BookmarkSearchSettings } from './BookmarkSearch/BookmarkSearch';
 import Gmail, { GmailSettings } from './Gmail/Gmail';
 import Calendar, { CalendarSettings } from './Calendar/Calendar';
@@ -17,6 +17,7 @@ interface TypedEntry<T> {
   icon:        string;
   defaultSize: { w: number; h: number };
   defaultData: T;
+  devOnly?:    boolean;
   titleBehavior:        'optional' | 'auto' | 'none';
   defaultTitle?:        string;
   defaultShowCustomTitle?: boolean;
@@ -32,6 +33,7 @@ export interface WidgetEntry {
   icon:        string;
   defaultSize: { w: number; h: number };
   defaultData: unknown;
+  devOnly?:    boolean;
   titleBehavior:        'optional' | 'auto' | 'none';
   defaultTitle?:        string;
   defaultShowCustomTitle?: boolean;
@@ -71,18 +73,19 @@ const _registry = {
     label:                 'Bookmark Folder',
     icon:                  '🔖',
     defaultSize:           { w: 2, h: 3 },
-    defaultData:           { showIcons: true, compactMode: false } satisfies BookmarksData,
+    defaultData:           { showIcons: true, compactMode: false, sortingMode: 'original' } satisfies BookmarksData,
     titleBehavior:         'optional',
     defaultTitle:          'Bookmarks',
     defaultShowCustomTitle: false,
-    renderComponent: (data, onUpdateData) => <BookmarkExplorer data={data} onUpdateData={onUpdateData} />,
-    renderSettings:  (data, onUpdateData) => <BookmarkExplorerSettings data={data} onUpdateData={onUpdateData} />,
+    resolveDynamicTitle:   (data) => data.folderTitle,
+    renderComponent: (data, onUpdateData) => <BookmarkFolder data={data} onUpdateData={onUpdateData} />,
+    renderSettings:  (data, onUpdateData) => <BookmarkFolderSettings data={data} onUpdateData={onUpdateData} />,
   } satisfies TypedEntry<BookmarksData>,
 
   bookmarkSearch: {
     label:         'Bookmark Search',
     icon:          '🔍',
-    defaultSize:   { w: 2, h: 3 },
+    defaultSize:   { w: 2, h: 1 },
     defaultData:   { maxResults: 10 } satisfies BookmarkSearchData,
     titleBehavior: 'none',
     renderComponent: (data, onUpdateData) => <BookmarkSearch data={data} onUpdateData={onUpdateData} />,
@@ -125,7 +128,8 @@ const _registry = {
     label:         'Placeholder',
     icon:          '⬜',
     defaultSize:   { w: 2, h: 2 },
-    defaultData:   { title: 'New' } satisfies PlaceholderData,
+    defaultData:   { title: 'Placeholder' } satisfies PlaceholderData,
+    devOnly:       true,
     titleBehavior: 'none',
     renderComponent: (data, onUpdateData) => <WidgetPlaceholder widget={{ type: 'placeholder', data, id: '', col: 1, row: 1, w: 1, h: 1 }} />,
     renderSettings:  null,

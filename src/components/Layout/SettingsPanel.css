@@ -1,89 +1,80 @@
+/* ── Sidebar shell ───────────────────────────────────────────────────────── */
 .sg-settings-panel {
-  position: absolute;
-  top: calc(var(--toolbar-h) + 8px);
-  right: 12px;
-  width: 290px;
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 270px;
+  height: 100vh;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
-  z-index: 200;
+  border-left: 1.5px solid var(--border-strong);
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.45);
+  z-index: 10000;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - var(--toolbar-h) - 24px);
-  overflow: hidden;
+  transform: translateX(100%);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.sg-settings-panel--open {
+  transform: translateX(0);
+}
+
+/* ── Fixed header ────────────────────────────────────────────────────────── */
 .sg-settings-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px 10px;
+  padding: 16px 16px 14px;
   border-bottom: 1.5px solid var(--border-strong);
   flex-shrink: 0;
 }
 
+.sg-settings-brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
 .sg-settings-title {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   color: var(--text);
 }
 
 .sg-settings-close {
   font-size: 12px;
   color: var(--text-muted);
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 4px 8px;
+  border-radius: 5px;
   transition: background 0.12s, color 0.12s;
 }
 .sg-settings-close:hover { background: var(--surface-hover); color: var(--text); }
 
-.sg-settings-tabs {
-  display: flex;
-  gap: 0;
-  border-bottom: 1.5px solid var(--border-strong);
-  flex-shrink: 0;
-}
-
-.sg-settings-tab {
-  flex: 1;
-  text-align: center;
-  padding: 8px 14px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-muted);
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: color 0.12s, border-color 0.12s;
-}
-
-.sg-settings-tab:hover { color: var(--text); }
-
-.sg-settings-tab--active {
-  color: var(--accent-hover);
-  border-bottom-color: var(--accent);
-}
-
+/* ── Scrollable content ──────────────────────────────────────────────────── */
 .sg-settings-content {
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
   min-height: 0;
+  padding-bottom: 24px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
 }
 
-/* ── Widgets tab ── */
-/* Section layout and labels come from .settings-section / .settings-section-label (index.css) */
-.sg-settings-widgets {
-  display: flex;
-  flex-direction: column;
+.sg-settings-content::-webkit-scrollbar        { width: 4px; }
+.sg-settings-content::-webkit-scrollbar-track  { background: transparent; }
+.sg-settings-content::-webkit-scrollbar-thumb  { background: var(--border-strong); border-radius: 2px; }
+.sg-settings-content::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ── Section divider ─────────────────────────────────────────────────────── */
+.sg-settings-divider {
+  border: none;
+  border-top: 1.5px solid var(--border-strong);
+  margin: 4px 0;
 }
 
-/* ── General tab ── */
-.sg-settings-general {
-  display: flex;
-  flex-direction: column;
-}
-
+/* ── Accent color swatch ─────────────────────────────────────────────────── */
 .sg-accent-swatch {
   width: 22px;
   height: 22px;
@@ -94,59 +85,31 @@
   transition: border-color 0.12s, transform 0.12s;
   padding: 0;
 }
+.sg-accent-swatch:hover { border-color: var(--text-muted); transform: scale(1.1); }
 
-.sg-accent-swatch:hover {
-  border-color: var(--text-muted);
-  transform: scale(1.1);
-}
-
-
-/* ── Section divider (General tab) ── */
-.sg-settings-divider {
-  border: none;
-  border-top: 1.5px solid var(--border-strong);
-  margin: 0;
-}
-
-/* ── Appearance sub-tabs (pill bar) ── */
-.sg-sub-tabs {
-  display: flex;
-  gap: 3px;
-  background: var(--surface-hover);
-  border-radius: 7px;
-  padding: 3px;
-  margin: 10px 14px 4px;
-  flex-shrink: 0;
-}
-
-.sg-sub-tab {
-  flex: 1;
-  text-align: center;
+/* ── Match Background button ─────────────────────────────────────────────── */
+.sg-match-bg-btn {
+  width: 100%;
   font-size: 11px;
   font-weight: 500;
   color: var(--text-muted);
-  padding: 4px 8px;
-  border-radius: 5px;
-  border: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
   background: transparent;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s, box-shadow 0.12s;
-  white-space: nowrap;
+  text-align: center;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.sg-match-bg-btn:hover { background: var(--surface-hover); border-color: var(--text-muted); color: var(--text); }
+
+/* ── Appearance reset footer row ─────────────────────────────────────────── */
+.sg-appearance-footer {
+  padding: 4px 14px 8px;
 }
 
-.sg-sub-tab:hover { color: var(--text); }
-
-.sg-sub-tab.active {
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-/* ── Backup & Reset tab ── */
-.sg-settings-backup {
-  display: flex;
-  flex-direction: column;
-}
+/* ── Backup & Restore ────────────────────────────────────────────────────── */
+.sg-settings-backup { display: flex; flex-direction: column; }
 
 .sg-backup-btn {
   font-size: 11px;
@@ -160,66 +123,28 @@
   transition: background 0.12s, border-color 0.12s, color 0.12s;
   white-space: nowrap;
 }
+.sg-backup-btn:hover:not(:disabled) { background: var(--border); border-color: var(--text-muted); }
+.sg-backup-btn:disabled { opacity: 0.5; cursor: default; }
 
-.sg-backup-btn:hover:not(:disabled) {
-  background: var(--border);
-  border-color: var(--text-muted);
-}
+.sg-backup-error       { font-size: 10px; color: #e05252; padding: 2px 0 4px; line-height: 1.4; }
+.sg-backup-error--warn { color: var(--text-muted); }
+.sg-backup-ok          { font-size: 10px; color: #52b152; padding: 2px 0 4px; }
 
-.sg-backup-btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-
-.sg-backup-error {
-  font-size: 10px;
-  color: #e05252;
-  padding: 2px 0 4px;
-  line-height: 1.4;
-}
-
-.sg-backup-error--warn {
-  color: var(--text-muted);
-}
-
-.sg-backup-ok {
-  font-size: 10px;
-  color: #52b152;
-  padding: 2px 0 4px;
-}
-
-/* ── Appearance tab footer (Reset button) ── */
-.sg-appearance-footer {
-  border-top: 1.5px solid var(--border-strong);
-  padding: 10px 14px 12px;
-  display: flex;
-  justify-content: flex-end;
-  flex-shrink: 0;
-}
-
-.sg-appearance-reset-btn {
+/* ── Dev panel position select ───────────────────────────────────────────── */
+.sg-dev-position-select {
   font-size: 11px;
   font-weight: 500;
-  color: var(--text-muted);
-  padding: 3px 10px;
-  border-radius: 5px;
-  border: 1px solid var(--border);
-  background: transparent;
-  cursor: pointer;
-  min-width: 210px;
-  text-align: center;
-  transition: color 0.12s, border-color 0.12s, background 0.12s;
-}
-
-.sg-appearance-reset-btn:hover {
   color: var(--text);
-  border-color: var(--text-muted);
   background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 3px 6px;
+  cursor: pointer;
+  transition: border-color 0.12s;
 }
+.sg-dev-position-select:focus { outline: none; border-color: var(--accent); }
 
-
-/* ── Developer Options confirmation dialog ── */
+/* ── Developer Options confirmation dialog ───────────────────────────────── */
 .sg-dev-confirm-backdrop {
   position: fixed;
   inset: 0;
@@ -244,25 +169,11 @@
   gap: 10px;
 }
 
-.sg-dev-confirm-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-}
+.sg-dev-confirm-title { font-size: 13px; font-weight: 600; color: var(--text); }
 
-.sg-dev-confirm-body {
-  font-size: 12px;
-  line-height: 1.55;
-  color: var(--text-muted);
-  margin: 0;
-}
+.sg-dev-confirm-body  { font-size: 12px; line-height: 1.55; color: var(--text-muted); margin: 0; }
 
-.sg-dev-confirm-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 4px;
-}
+.sg-dev-confirm-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
 
 .sg-dev-confirm-btn {
   font-size: 12px;
@@ -274,24 +185,7 @@
   transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
 
-.sg-dev-confirm-btn--cancel {
-  background: transparent;
-  color: var(--text-muted);
-}
-
-.sg-dev-confirm-btn--cancel:hover {
-  background: var(--surface-hover);
-  color: var(--text);
-  border-color: var(--text-muted);
-}
-
-.sg-dev-confirm-btn--confirm {
-  background: rgba(224, 82, 82, 0.12);
-  color: #e05252;
-  border-color: rgba(224, 82, 82, 0.4);
-}
-
-.sg-dev-confirm-btn--confirm:hover {
-  background: rgba(224, 82, 82, 0.22);
-  border-color: rgba(224, 82, 82, 0.7);
-}
+.sg-dev-confirm-btn--cancel          { background: transparent; color: var(--text-muted); }
+.sg-dev-confirm-btn--cancel:hover    { background: var(--surface-hover); color: var(--text); border-color: var(--text-muted); }
+.sg-dev-confirm-btn--confirm         { background: rgba(224, 82, 82, 0.12); color: #e05252; border-color: rgba(224, 82, 82, 0.4); }
+.sg-dev-confirm-btn--confirm:hover   { background: rgba(224, 82, 82, 0.22); border-color: rgba(224, 82, 82, 0.7); }

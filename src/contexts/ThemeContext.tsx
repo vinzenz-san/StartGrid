@@ -11,6 +11,7 @@ interface ThemeConfig {
   globalOpacity:           number;
   globalDim:               number;
   globalGradientIntensity: number;   // 0-100; replaces globalGradient boolean
+  widgetShadowOpacity:     number;   // 0-100
   /** @deprecated kept for backwards-compat with stored data */
   globalGradient?:         boolean;
   globalPresetId?:         string;
@@ -21,6 +22,7 @@ export const DEFAULTS: ThemeConfig = {
   globalOpacity:           1,
   globalDim:               0,
   globalGradientIntensity: 100,
+  widgetShadowOpacity:     75,
   globalPresetId:          'midnight',
 };
 
@@ -29,6 +31,7 @@ interface ThemeCtx extends ThemeConfig {
   setGlobalOpacity:           (opacity: number) => void;
   setGlobalDim:               (dim: number) => void;
   setGlobalGradientIntensity: (intensity: number) => void;
+  setWidgetShadowOpacity:     (opacity: number) => void;
   setGlobalPresetId:          (id: string | undefined) => void;
 }
 
@@ -46,6 +49,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     globalOpacity:           t.globalOpacity           ?? DEFAULTS.globalOpacity,
     globalDim:               t.globalDim               ?? DEFAULTS.globalDim,
     globalGradientIntensity: t.globalGradientIntensity ?? legacyIntensity,
+    widgetShadowOpacity:     t.widgetShadowOpacity     ?? DEFAULTS.widgetShadowOpacity,
     globalPresetId:          t.globalPresetId,
   };
 
@@ -53,10 +57,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const intensity = safeTheme.globalGradientIntensity;
     const tVal = intensity / 100;
     const colorEnd = mixHex(safeTheme.globalColor, darkenHex(safeTheme.globalColor), tVal);
-    document.documentElement.style.setProperty('--widget-bg-color',     safeTheme.globalColor);
-    document.documentElement.style.setProperty('--widget-bg-color-end', colorEnd);
-    document.documentElement.style.setProperty('--widget-bg-opacity',   String(safeTheme.globalOpacity));
-    document.documentElement.style.setProperty('--widget-dim',          String(safeTheme.globalDim));
+    document.documentElement.style.setProperty('--widget-bg-color',       safeTheme.globalColor);
+    document.documentElement.style.setProperty('--widget-bg-color-end',   colorEnd);
+    document.documentElement.style.setProperty('--widget-bg-opacity',     String(safeTheme.globalOpacity));
+    document.documentElement.style.setProperty('--widget-dim',            String(safeTheme.globalDim));
+    document.documentElement.style.setProperty('--widget-shadow-opacity', String(safeTheme.widgetShadowOpacity));
 
     // Named global preset: compute intensity-blended gradient and inject as CSS var
     if (safeTheme.globalPresetId) {
@@ -72,16 +77,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } else {
       document.documentElement.style.removeProperty('--widget-bg-preset-css');
     }
-  }, [safeTheme.globalColor, safeTheme.globalOpacity, safeTheme.globalDim, safeTheme.globalGradientIntensity, safeTheme.globalPresetId, colorScheme]);
+  }, [safeTheme.globalColor, safeTheme.globalOpacity, safeTheme.globalDim, safeTheme.globalGradientIntensity, safeTheme.widgetShadowOpacity, safeTheme.globalPresetId, colorScheme]);
 
   const setGlobalColor             = (globalColor: string)    => setTheme(t => ({ ...t, globalColor }));
   const setGlobalOpacity           = (globalOpacity: number)  => setTheme(t => ({ ...t, globalOpacity }));
   const setGlobalDim               = (globalDim: number)      => setTheme(t => ({ ...t, globalDim }));
   const setGlobalGradientIntensity = (globalGradientIntensity: number) => setTheme(t => ({ ...t, globalGradientIntensity }));
+  const setWidgetShadowOpacity     = (widgetShadowOpacity: number)     => setTheme(t => ({ ...t, widgetShadowOpacity }));
   const setGlobalPresetId          = (globalPresetId: string | undefined) => setTheme(t => ({ ...t, globalPresetId }));
 
   return (
-    <Ctx.Provider value={{ ...safeTheme, setGlobalColor, setGlobalOpacity, setGlobalDim, setGlobalGradientIntensity, setGlobalPresetId }}>
+    <Ctx.Provider value={{ ...safeTheme, setGlobalColor, setGlobalOpacity, setGlobalDim, setGlobalGradientIntensity, setWidgetShadowOpacity, setGlobalPresetId }}>
       {children}
     </Ctx.Provider>
   );

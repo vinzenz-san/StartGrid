@@ -6,11 +6,12 @@ interface Props {
 }
 
 export default function WidgetPlaceholder({ widget }: Props) {
-  const title = String(widget.data.title ?? 'Widget');
+  const title = String(widget.data.title ?? 'Placeholder');
   return (
     <div className="sg-placeholder">
+      <span className="sg-placeholder-icon">⬜</span>
       <span className="sg-placeholder-title">{title}</span>
-      <span className="sg-placeholder-pos">col {widget.col}, row {widget.row}</span>
+      <span className="sg-placeholder-hint">Empty slot — use edit mode to remove or resize</span>
     </div>
   );
 }

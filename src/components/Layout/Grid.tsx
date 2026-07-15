@@ -7,7 +7,7 @@ import { findFreePosition, isPositionFree } from '../../lib/gridUtils';
 import type { WidgetType } from '../../types/widget';
 import { WIDGET_REGISTRY, WIDGET_MENU_TYPES } from '../widgets/registry';
 import WidgetContainer from '../shared/WidgetContainer';
-import SettingsPanel, { type SettingsTab, type AppearanceSubTab } from './SettingsPanel';
+import SettingsPanel from './SettingsPanel';
 import DevPanel from '../DevPanel/DevPanel';
 import './Grid.css';
 
@@ -28,8 +28,6 @@ export default function Grid() {
   const [dropTarget,        setDropTarget]        = useState<DropTarget | null>(null);
   const [addMenuOpen,       setAddMenuOpen]       = useState(false);
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
-  const [activeTab,         setActiveTab]         = useState<SettingsTab>('general');
-  const [activeSubTab,      setActiveSubTab]      = useState<AppearanceSubTab>('background');
 
   const cellFromPoint = (clientX: number, clientY: number) => {
     const rect = gridRef.current!.getBoundingClientRect();
@@ -70,13 +68,8 @@ export default function Grid() {
     setAddMenuOpen(false);
   };
 
-  const focusClass =
-    settingsPanelOpen && activeTab === 'appearance'
-      ? activeSubTab === 'widgets' ? ' sg-focus-widgets' : ' sg-focus-bg'
-      : '';
-
   return (
-    <div className={`sg-root${isEditMode ? ' sg-root--edit' : ''}${focusClass}`}>
+    <div className={`sg-root${isEditMode ? ' sg-root--edit' : ''}`}>
       <header className="sg-toolbar">
         <span className="sg-logo">⬡ StartGrid</span>
         <div className="sg-toolbar-actions">
@@ -95,28 +88,26 @@ export default function Grid() {
             onPointerDown={e => { e.stopPropagation(); e.preventDefault(); setSettingsPanelOpen(s => !s); setAddMenuOpen(false); }}
             title="Settings"
           >⚙ Settings</button>
-          {isEditMode && (
-            <div className="sg-add-wrap">
-              <button
-                className={`sg-btn-add${addMenuOpen ? ' active' : ''}`}
-                onPointerDown={e => { e.stopPropagation(); e.preventDefault(); setAddMenuOpen(s => !s); setSettingsPanelOpen(false); }}
-              >＋ Widget</button>
-              {addMenuOpen && (
-                <div className="sg-add-menu">
-                  {WIDGET_MENU_TYPES.map(type => {
-                    const { label, icon } = WIDGET_REGISTRY[type];
-                    return (
-                      <button key={type} className="sg-add-item"
-                        onPointerDown={e => { e.stopPropagation(); e.preventDefault(); handleAddWidget(type); }}>
-                        <span className="sg-add-icon">{icon}</span>
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
+          <div className="sg-add-wrap">
+            <button
+              className={`sg-btn-add${addMenuOpen ? ' active' : ''}`}
+              onPointerDown={e => { e.stopPropagation(); e.preventDefault(); setAddMenuOpen(s => !s); setSettingsPanelOpen(false); }}
+            >＋ Widget</button>
+            {addMenuOpen && (
+              <div className="sg-add-menu">
+                {WIDGET_MENU_TYPES.filter(type => !WIDGET_REGISTRY[type].devOnly || developerOptionsEnabled).map(type => {
+                  const { label, icon } = WIDGET_REGISTRY[type];
+                  return (
+                    <button key={type} className="sg-add-item"
+                      onPointerDown={e => { e.stopPropagation(); e.preventDefault(); handleAddWidget(type); }}>
+                      <span className="sg-add-icon">{icon}</span>
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
           {isEditMode && <span className="sg-edit-hint">Drag to move</span>}
           <button
             className={`sg-btn-edit${isEditMode ? ' active' : ''}`}
@@ -126,15 +117,10 @@ export default function Grid() {
         </div>
       </header>
 
-      {settingsPanelOpen && (
-        <SettingsPanel
-          onClose={() => setSettingsPanelOpen(false)}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          activeSubTab={activeSubTab}
-          onSubTabChange={setActiveSubTab}
-        />
-      )}
+      <SettingsPanel
+        onClose={() => setSettingsPanelOpen(false)}
+        isOpen={settingsPanelOpen}
+      />
 
       <main className="sg-grid-wrapper" onClick={() => { setAddMenuOpen(false); setSettingsPanelOpen(false); }}>
         <div

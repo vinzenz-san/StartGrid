@@ -27,10 +27,14 @@ export interface QuicklinksData {
   textSize?: 'S' | 'M' | 'L';
 }
 
+export type BookmarkSortMode = 'original' | 'foldersFirst' | 'alphabetical';
+
 export interface BookmarksData {
   rootFolderId?: string;
+  folderTitle?:  string;
   showIcons:     boolean;
   compactMode:   boolean;
+  sortingMode?:  BookmarkSortMode;
 }
 
 export interface BookmarkSearchData {
