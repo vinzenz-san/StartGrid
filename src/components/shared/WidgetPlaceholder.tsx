@@ -6,7 +6,7 @@ interface Props {
 }
 
 export default function WidgetPlaceholder({ widget }: Props) {
-  const title = String(widget.data.title ?? 'Placeholder');
+  const title = String((widget.data as { title?: string }).title ?? 'Placeholder');
   return (
     <div className="sg-placeholder">
       <span className="sg-placeholder-icon">⬜</span>

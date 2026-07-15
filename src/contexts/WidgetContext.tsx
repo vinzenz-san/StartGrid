@@ -52,7 +52,7 @@ export function WidgetProvider({ children }: { children: ReactNode }) {
   const [widgets, setWidgets, loaded] = useStorage<Widget[]>('widgets', DEFAULT_WIDGETS);
 
   const updateWidget = (id: string, updates: Partial<Widget>) => {
-    setWidgets(prev => prev.map(w => w.id === id ? { ...w, ...updates } : w));
+    setWidgets(prev => prev.map(w => w.id === id ? { ...w, ...updates } as Widget : w));
   };
 
   const removeWidget = (id: string) => {
