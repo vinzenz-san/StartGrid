@@ -3,7 +3,7 @@ import { MOCK_TREE, flattenNodes, findNode } from './bookmarks.mock';
 
 const isExtension = typeof chrome !== 'undefined' && !!chrome.bookmarks;
 
-export function useBookmarkExplorer() {
+export function useBookmarkFolder() {
   async function getChildren(folderId: string): Promise<BmNode[]> {
     if (isExtension) {
       const { default: browser } = await import('webextension-polyfill');

@@ -4,14 +4,16 @@ import { lightenHex } from '../lib/colorUtils';
 
 const STORAGE_KEY = 'sg:settings';
 
-export type Language    = 'en' | 'de';
-export type ColorScheme = 'light' | 'dark' | 'system';
+export type Language        = 'en' | 'de';
+export type ColorScheme     = 'light' | 'dark' | 'system';
+export type DevPanelPosition = 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right';
 
 export interface AppSettings {
   language:                Language;
   colorScheme:             ColorScheme;
   accentColor:             string;
   developerOptionsEnabled: boolean;
+  devPanelPosition:        DevPanelPosition;
 }
 
 export const SETTINGS_DEFAULTS = {
@@ -19,6 +21,7 @@ export const SETTINGS_DEFAULTS = {
   colorScheme:             'system',
   accentColor:             '#6366f1',
   developerOptionsEnabled: false,
+  devPanelPosition:        'bottom-left',
 } as const satisfies AppSettings;
 
 // GearPosition is retained as an alias so old backup envelopes with this key
@@ -40,6 +43,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     colorScheme:             (settings ?? SETTINGS_DEFAULTS).colorScheme             ?? SETTINGS_DEFAULTS.colorScheme,
     accentColor:             (settings ?? SETTINGS_DEFAULTS).accentColor             ?? SETTINGS_DEFAULTS.accentColor,
     developerOptionsEnabled: (settings ?? SETTINGS_DEFAULTS).developerOptionsEnabled ?? SETTINGS_DEFAULTS.developerOptionsEnabled,
+    devPanelPosition:        (settings ?? SETTINGS_DEFAULTS).devPanelPosition        ?? SETTINGS_DEFAULTS.devPanelPosition,
   };
 
   // Inject --accent / --accent-hover CSS variables globally

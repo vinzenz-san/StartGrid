@@ -75,23 +75,20 @@
 .sg-widget[data-preset="ember"]    { --preset-bg: linear-gradient(135deg, #7c2d12 0%, #9a3412 100%); }
 
 html[data-scheme="light"] .sg-widget {
+  color: var(--text);
+  backdrop-filter: blur(12px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, calc(0.60 * var(--widget-bg-opacity, 1)));
+  box-shadow: 0 2px 12px rgba(0, 0, 0, calc(0.08 * var(--widget-bg-opacity, 1))),
+              0 1px 3px  rgba(0, 0, 0, calc(0.05 * var(--widget-bg-opacity, 1)));
+}
+
+html[data-scheme="light"] .sg-widget::before {
+  /* Same opacity-controlled approach as dark mode — no inverse glass formula */
   background: var(--preset-bg, var(--widget-bg-preset-css, linear-gradient(135deg,
     var(--widget-bg-color, #e2e8f0),
     var(--widget-bg-color-end, #e2e8f0)
   )));
-  color: var(--text);
-  backdrop-filter: blur(12px) saturate(1.4);
-  border: 1px solid rgba(255, 255, 255, calc(0.60 * var(--widget-bg-opacity, 1)));
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-html[data-scheme="light"] .sg-widget::before {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, calc(0.90 * (1 - var(--widget-bg-opacity, 1)))) 0%,
-    rgba(255, 255, 255, calc(0.70 * (1 - var(--widget-bg-opacity, 1)))) 100%
-  );
-  opacity: 1;
+  opacity: var(--widget-bg-opacity, 1);
 }
 
 /* ════════════════════════════════════════════════════ */
@@ -148,10 +145,10 @@ button {
 }
 
 .settings-section-label {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--text-muted);
 }
 

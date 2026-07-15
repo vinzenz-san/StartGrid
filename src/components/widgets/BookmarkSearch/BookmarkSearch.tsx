@@ -1,8 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import { useFloating, offset, flip, shift, size, autoUpdate } from '@floating-ui/react';
 import type { BookmarkSearchData } from '../../../types/widget';
 import { SettingsSlider } from '../../shared/Form';
-import { useBookmarkExplorer } from '../BookmarkExplorer/useBookmarkExplorer';
-import type { BmNode } from '../BookmarkExplorer/bookmarks.mock';
+import { SettingsRow } from '../../shared/Form';
+import { useBookmarkFolder } from '../BookmarkFolder/useBookmarkFolder';
+import type { BmNode } from '../BookmarkFolder/bookmarks.mock';
 import './BookmarkSearch.css';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -78,6 +81,9 @@ export function BookmarkSearchSettings({ data, onUpdateData }: SettingsProps) {
         onChange={v => onUpdateData({ maxResults: v })}
         valueFormatter={v => String(v)}
       />
+      <SettingsRow label="Focus shortcut">
+        <span className="sg-bks-shortcut-badge">Ctrl + Shift + F</span>
+      </SettingsRow>
     </div>
   );
 }
@@ -92,32 +98,123 @@ interface Props {
 }
 
 export default function BookmarkSearch({ data }: Props) {
-  const bookmarks  = useBookmarkExplorer();
+  const bookmarks  = useBookmarkFolder();
   const maxResults = data.maxResults ?? 10;
 
-  const [query,         setQuery]         = useState('');
-  const [searchResults, setSearchResults] = useState<BmNode[]>([]);
-  const [folderStack,   setFolderStack]   = useState<NavEntry[]>([]);
-  const [folderItems,   setFolderItems]   = useState<BmNode[]>([]);
-  const [loading,       setLoading]       = useState(false);
-  const searchRef = useRef<HTMLInputElement>(null);
+  const [query,            setQuery]            = useState('');
+  const [searchResults,    setSearchResults]    = useState<BmNode[]>([]);
+  const [totalResultCount, setTotalResultCount] = useState(0);
+  const [folderStack,      setFolderStack]      = useState<NavEntry[]>([]);
+  const [folderItems,      setFolderItems]      = useState<BmNode[]>([]);
+  const [loading,          setLoading]          = useState(false);
+  const [isFocused,        setIsFocused]        = useState(false);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const searchRef    = useRef<HTMLInputElement>(null);
 
   const isInFolder    = folderStack.length > 0;
   const currentFolder = folderStack[folderStack.length - 1];
   const hasQuery      = query.trim().length > 0;
+  const panelOpen     = isFocused || isInFolder;
 
-  // Live search (only in search mode)
+  // ── Floating panel setup ───────────────────────────────────────────────────
+
+  const { refs, floatingStyles } = useFloating({
+    placement: 'bottom',
+    middleware: [
+      offset(6),
+      flip({ padding: 8 }),
+      shift({ padding: 8 }),
+      size({
+        apply({ rects, elements }) {
+          Object.assign(elements.floating.style, {
+            width: `${Math.max(rects.reference.width, 350)}px`,
+          });
+        },
+      }),
+    ],
+    whileElementsMounted: autoUpdate,
+  });
+
+  // Attach the reference to the container div
+  const setContainerRef = useCallback((node: HTMLDivElement | null) => {
+    (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+    refs.setReference(node);
+  }, [refs]);
+
+  // ── Close panel on outside click ───────────────────────────────────────────
+
+  useEffect(() => {
+    if (!panelOpen) return;
+    const handler = (e: PointerEvent) => {
+      const target = e.target as Element;
+      // Keep open: results panel, the widget body itself, the widget settings panel, gear button
+      if (target.closest('.sg-bks-float-panel')) return;
+      if (containerRef.current?.contains(target)) return;
+      if (target.closest('.sg-widget-float-panel')) return;
+      if (target.closest('.sg-widget-gear')) return;
+      setIsFocused(false);
+      setFolderStack([]);
+    };
+    document.addEventListener('pointerdown', handler, { capture: true });
+    return () => document.removeEventListener('pointerdown', handler, { capture: true });
+  }, [panelOpen]);
+
+  // ── Global focus shortcut ─────────────────────────────────────────────────
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== 'F' || !e.ctrlKey || !e.shiftKey || e.altKey || e.metaKey) return;
+      e.preventDefault();
+      setIsFocused(true);
+      searchRef.current?.focus();
+      searchRef.current?.select();
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
+
+  // Derived display list — needed by handleKeyDown below (must precede it)
+  const displayItems = isInFolder ? folderItems : searchResults;
+
+  // ── Escape / Enter key ────────────────────────────────────────────────────
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      if (isInFolder) {
+        setFolderStack([]);
+      } else {
+        setIsFocused(false);
+        setQuery('');
+        searchRef.current?.blur();
+      }
+      return;
+    }
+    if (e.key === 'Enter' && displayItems.length > 0) {
+      const first = displayItems[0];
+      if (!first.url) {
+        enterFolder(first);
+      } else {
+        openBookmark(first.url);
+      }
+    }
+  };
+
+  // ── Live search ───────────────────────────────────────────────────────────
+
   useEffect(() => {
     if (isInFolder) return;
-    if (!query.trim()) { setSearchResults([]); setLoading(false); return; }
+    if (!query.trim()) { setSearchResults([]); setTotalResultCount(0); setLoading(false); return; }
     setLoading(true);
     bookmarks.search(query.trim()).then(results => {
+      setTotalResultCount(results.length);
       setSearchResults(results.slice(0, maxResults));
       setLoading(false);
     });
   }, [query, maxResults]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Load folder contents when entering a folder
+  // ── Load folder contents ──────────────────────────────────────────────────
+
   useEffect(() => {
     if (!isInFolder) return;
     setLoading(true);
@@ -128,6 +225,7 @@ export default function BookmarkSearch({ data }: Props) {
 
   function enterFolder(node: BmNode) {
     setFolderStack(prev => [...prev, { id: node.id, name: node.title || '(Folder)' }]);
+    setIsFocused(true);
   }
 
   function goBack() {
@@ -138,41 +236,26 @@ export default function BookmarkSearch({ data }: Props) {
     bookmarks.openUrl(url);
   }
 
-  const displayItems = isInFolder ? folderItems : searchResults;
+  // ── Floating panel content ─────────────────────────────────────────────────
 
-  return (
-    <div className="sg-bks">
-      {/* Header */}
-      <div className="sg-bks-header">
-        {isInFolder ? (
-          <div className="sg-bks-folder-nav">
-            <button className="sg-bks-back" onClick={goBack}>‹</button>
-            <span className="sg-bks-folder-name">{currentFolder.name}</span>
-          </div>
-        ) : (
-          <div className="sg-bks-search-row">
-            <span className="sg-bks-search-icon">⌕</span>
-            <input
-              ref={searchRef}
-              className="sg-bks-search"
-              type="text"
-              placeholder="Search bookmarks…"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              onPointerDown={e => e.stopPropagation()}
-            />
-            {query && (
-              <button
-                className="sg-bks-clear"
-                onClick={() => { setQuery(''); searchRef.current?.focus(); }}
-              >✕</button>
-            )}
-          </div>
-        )}
-      </div>
 
-      {/* Body */}
-      <div className="sg-bks-body">
+  const floatingPanel = panelOpen && createPortal(
+    <div
+      ref={refs.setFloating}
+      className="sg-bks-float-panel"
+      style={floatingStyles}
+      onPointerDown={e => e.stopPropagation()}
+    >
+      {/* Folder navigation header inside the panel */}
+      {isInFolder && (
+        <div className="sg-bks-float-nav">
+          <button className="sg-bks-back" onClick={goBack}>‹</button>
+          <span className="sg-bks-folder-name">{currentFolder.name}</span>
+        </div>
+      )}
+
+      {/* Results body */}
+      <div className="sg-bks-float-body">
         {loading ? (
           <div className="sg-bks-empty">
             <span className="sg-bks-empty-text">Loading…</span>
@@ -197,9 +280,57 @@ export default function BookmarkSearch({ data }: Props) {
                 onBookmarkClick={openBookmark}
               />
             ))}
+            {!isInFolder && totalResultCount > maxResults && (
+              <div className="sg-bks-overflow-banner">
+                Showing top {maxResults} results. Refine your search to see more.
+              </div>
+            )}
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
+  );
+
+  // ── Widget render (slim shell) ─────────────────────────────────────────────
+
+  return (
+    <>
+      <div
+        ref={setContainerRef}
+        className="sg-bks"
+        onKeyDown={handleKeyDown}
+      >
+        {isInFolder ? (
+          <div className="sg-bks-folder-nav">
+            <button className="sg-bks-back" onClick={goBack} onPointerDown={e => e.stopPropagation()}>‹</button>
+            <span className="sg-bks-folder-name">{currentFolder.name}</span>
+          </div>
+        ) : (
+          <div className="sg-bks-search-row">
+            <span className="sg-bks-search-icon">⌕</span>
+            <input
+              ref={searchRef}
+              className="sg-bks-search"
+              type="text"
+              placeholder="Search bookmarks…"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onFocus={() => setIsFocused(true)}
+              onPointerDown={e => e.stopPropagation()}
+            />
+            {query && (
+              <button
+                className="sg-bks-clear"
+                onPointerDown={e => e.stopPropagation()}
+                onClick={() => { setQuery(''); searchRef.current?.focus(); }}
+              >✕</button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {floatingPanel}
+    </>
   );
 }

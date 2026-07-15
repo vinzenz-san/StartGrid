@@ -60,6 +60,19 @@ async function clearAllStorage(): Promise<void> {
   keysToRemove.forEach(k => localStorage.removeItem(k));
 }
 
+// ── Exported factory reset (used by SettingsPanel) ────────────────────────
+
+export async function performFactoryReset(developerOptionsEnabled: boolean): Promise<void> {
+  await clearAllStorage();
+  if (developerOptionsEnabled) {
+    await writeAllStorage(
+      { 'sg:settings': { ...SETTINGS_DEFAULTS, developerOptionsEnabled: true } },
+      {},
+    );
+  }
+  setTimeout(() => window.location.reload(), 50);
+}
+
 // ── Backup envelope ────────────────────────────────────────────────────────
 
 interface BackupEnvelope {
@@ -82,7 +95,7 @@ function isValidEnvelope(data: unknown): data is BackupEnvelope {
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export default function BackupRestore() {
+export default function BackupRestore({ compact }: { compact?: boolean }) {
   const { developerOptionsEnabled } = useSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importError,      setImportError]      = useState<string | null>(null);
@@ -163,6 +176,27 @@ export default function BackupRestore() {
     } else {
       setResetConfirmOpen(true);
     }
+  }
+
+  if (compact) {
+    return (
+      <div className="sg-settings-backup">
+        <section className="settings-section">
+          <SettingsRow label="Export">
+            <button className="sg-backup-btn" onClick={handleExport} disabled={exporting}>
+              {exporting ? 'Exporting…' : 'Download JSON'}
+            </button>
+          </SettingsRow>
+          <SettingsRow label="Import">
+            <button className="sg-backup-btn" onClick={() => fileInputRef.current?.click()} disabled={importing}>
+              {importing ? 'Restoring…' : 'Choose file…'}
+            </button>
+            <input ref={fileInputRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={handleFileChange} />
+          </SettingsRow>
+          {importError && <p className="sg-backup-error">{importError}</p>}
+        </section>
+      </div>
+    );
   }
 
   return (

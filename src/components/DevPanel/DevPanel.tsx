@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useEditMode } from '../../contexts/EditModeContext';
 import { useWidgets } from '../../contexts/WidgetContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import './DevPanel.css';
 
 const isExtension = typeof chrome !== 'undefined' && !!chrome.storage;
@@ -109,6 +110,7 @@ function StoreSection({ title, data, limit }: { title: string; data: StoreData; 
 function DevPanelInner() {
   const { isEditMode }   = useEditMode();
   const { widgets, loaded } = useWidgets();
+  const { devPanelPosition } = useSettings();
   const [stats,   setStats]   = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -122,7 +124,7 @@ function DevPanelInner() {
   useEffect(() => { refresh(); }, [refresh]);
 
   return (
-    <div className="dev-panel">
+    <div className={`dev-panel dev-panel--${devPanelPosition}`}>
       <div className="dev-panel-title">DEV</div>
 
       <div className="dev-row">

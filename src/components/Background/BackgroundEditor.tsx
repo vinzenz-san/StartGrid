@@ -112,7 +112,7 @@ export default function BackgroundEditor() {
       {/* Global Dimming */}
       <section className="settings-section">
         <SettingsSlider
-          label="Global Dimming"
+          label="Dimming"
           value={dimPct}
           onChange={v => setConfig({ ...config, dimAmount: v / 100 })}
         />
@@ -168,7 +168,7 @@ export default function BackgroundEditor() {
             </div>
             {(config.scalingMode ?? 'fit') === 'fit' && (
               <div className="bg-scaling-row">
-                <span className="bg-scaling-label">Bar color</span>
+                <span className="bg-scaling-label">Background</span>
                 <button
                   ref={letterboxBtnRef}
                   className="bg-color-swatch bg-letterbox-swatch"

@@ -28,6 +28,7 @@ export default function WidgetContainer({ widget }: Props) {
   const elRef = useRef<HTMLDivElement>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [resizePreview, setResizePreview] = useState<{ w: number; h: number } | null>(null);
+  const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
 
   const displayW = resizePreview?.w ?? widget.w;
   const displayH = resizePreview?.h ?? widget.h;
@@ -48,8 +49,9 @@ export default function WidgetContainer({ widget }: Props) {
       >
         <div className="sg-widget-orphan-body">
           <span className="sg-widget-orphan-icon">⚠</span>
-          <span className="sg-widget-orphan-title">Unsupported Widget</span>
-          <span className="sg-widget-orphan-type">Type: &ldquo;{widget.type}&rdquo;</span>
+          <span className="sg-widget-orphan-title">Missing Widget</span>
+          <span className="sg-widget-orphan-type">&ldquo;{widget.type}&rdquo; could not be loaded</span>
+          <span className="sg-widget-orphan-desc">This safe fallback preserves your layout slot. Remove it or restore the widget type.</span>
           <button
             className="sg-widget-orphan-remove"
             onClick={() => removeWidget(widget.id)}
@@ -325,7 +327,7 @@ export default function WidgetContainer({ widget }: Props) {
             <div className="sg-widget-actions">
               <button className="sg-widget-action danger"
                 onPointerDown={e => e.stopPropagation()}
-                onClick={e => { e.stopPropagation(); if (window.confirm('Remove this widget?')) removeWidget(widget.id); }}
+                onClick={e => { e.stopPropagation(); setRemoveConfirmOpen(true); }}
                 title="Remove widget">✕</button>
             </div>
           </div>
@@ -351,6 +353,26 @@ export default function WidgetContainer({ widget }: Props) {
       </div>
 
       {floatingPanel}
+
+      {removeConfirmOpen && createPortal(
+        <div className="sg-modal-confirm-backdrop" onPointerDown={() => setRemoveConfirmOpen(false)}>
+          <div className="sg-modal-confirm-dialog" onPointerDown={e => e.stopPropagation()}>
+            <div className="sg-modal-confirm-title">Remove Widget</div>
+            <p className="sg-modal-confirm-body">
+              Remove this widget from the dashboard?
+            </p>
+            <div className="sg-modal-confirm-actions">
+              <button className="sg-modal-confirm-btn sg-modal-confirm-btn--cancel" onClick={() => setRemoveConfirmOpen(false)}>
+                Cancel
+              </button>
+              <button className="sg-modal-confirm-btn sg-modal-confirm-btn--confirm" onClick={() => { setRemoveConfirmOpen(false); removeWidget(widget.id); }}>
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </>
   );
 }
