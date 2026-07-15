@@ -245,7 +245,7 @@
   flex-direction: column;
   gap: 1px;
   overflow-y: auto;
-  max-height: 180px;
+  height: 308px;
 }
 
 .sg-bx-fp-node { display: flex; flex-direction: column; }
@@ -264,15 +264,20 @@
 .sg-bx-fp-row--selected { background: rgba(99, 102, 241, 0.15); }
 .sg-bx-fp-row--selected:hover { background: rgba(99, 102, 241, 0.2); }
 
-.sg-bx-fp-toggle {
-  font-size: 9px;
-  opacity: 0.5;
-  width: 10px;
+.sg-bx-fp-arrow {
+  width: 8px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+}
+
+.sg-bx-fp-toggle {
+  font-size: 14px;
+  opacity: 0.6;
   user-select: none;
-  padding: 4px 6px;
-  margin: -4px -6px;
+  line-height: 1;
 }
 
 .sg-bx-fp-icon { font-size: 12px; flex-shrink: 0; }

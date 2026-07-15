@@ -17,46 +17,60 @@ function faviconUrl(hostname: string): string {
 
 // ── Folder picker (settings only) ─────────────────────────────────────────────
 
-interface FolderPickerNodeProps {
-  node:       BmNode;
-  selectedId: string;
-  onSelect:   (id: string, title: string) => void;
-  depth:      number;
+function findAncestorIds(nodes: BmNode[], targetId: string): Set<string> {
+  const result = new Set<string>();
+  function walk(node: BmNode): boolean {
+    if (node.id === targetId) return true;
+    for (const child of node.children ?? []) {
+      if (walk(child)) { result.add(node.id); return true; }
+    }
+    return false;
+  }
+  for (const node of nodes) walk(node);
+  return result;
 }
 
-function FolderPickerNode({ node, selectedId, onSelect, depth }: FolderPickerNodeProps) {
-  const [open, setOpen] = useState(depth < 2);
+interface FolderPickerNodeProps {
+  node:        BmNode;
+  selectedId:  string;
+  onSelect:    (id: string, title: string) => void;
+  depth:       number;
+  expandedIds: Set<string>;
+}
+
+function FolderPickerNode({ node, selectedId, onSelect, depth, expandedIds }: FolderPickerNodeProps) {
+  const [open, setOpen] = useState(() => (expandedIds ?? new Set<string>()).has(node.id));
   const subFolders = node.children?.filter(c => !c.url) ?? [];
 
   if (!node.id) {
     return (
       <>
         {subFolders.map(f => (
-          <FolderPickerNode key={f.id} node={f} selectedId={selectedId} onSelect={onSelect} depth={depth + 1} />
+          <FolderPickerNode key={f.id} node={f} selectedId={selectedId} onSelect={onSelect} depth={depth + 1} expandedIds={expandedIds} />
         ))}
       </>
     );
   }
 
   return (
-    <div className="sg-bx-fp-node" style={{ paddingLeft: depth > 0 ? depth * 12 : 0 }}>
+    <div className="sg-bx-fp-node" style={{ paddingLeft: depth > 0 ? depth * 6 : 0 }}>
       <div
         className={`sg-bx-fp-row${selectedId === node.id ? ' sg-bx-fp-row--selected' : ''}`}
         onClick={() => onSelect(node.id, node.title)}
       >
-        {subFolders.length > 0 && (
-          <span
-            className="sg-bx-fp-toggle"
-            onClick={e => { e.stopPropagation(); setOpen(o => !o); }}
-          >
-            {open ? '▾' : '▸'}
-          </span>
-        )}
+        <span
+          className="sg-bx-fp-arrow"
+          onClick={e => { e.stopPropagation(); if (subFolders.length > 0) setOpen(o => !o); }}
+        >
+          {subFolders.length > 0 && (
+            <span className="sg-bx-fp-toggle">{open ? '▾' : '▸'}</span>
+          )}
+        </span>
         <span className="sg-bx-fp-icon">📁</span>
         <span className="sg-bx-fp-name">{node.title || '(Root)'}</span>
       </div>
       {open && subFolders.map(f => (
-        <FolderPickerNode key={f.id} node={f} selectedId={selectedId} onSelect={onSelect} depth={depth + 1} />
+        <FolderPickerNode key={f.id} node={f} selectedId={selectedId} onSelect={onSelect} depth={depth + 1} expandedIds={expandedIds ?? new Set()} />
       ))}
     </div>
   );
@@ -71,11 +85,17 @@ interface SettingsProps {
 
 export function BookmarkExplorerSettings({ data, onUpdateData }: SettingsProps) {
   const bookmarks = useBookmarkExplorer();
-  const [tree, setTree]       = useState<BmNode[]>([]);
+  const [tree, setTree]             = useState<BmNode[]>([]);
   const [treeLoading, setTreeLoading] = useState(true);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    bookmarks.getTree().then(t => { setTree(t); setTreeLoading(false); });
+    bookmarks.getTree().then(t => {
+      setTree(t);
+      setTreeLoading(false);
+      const topLevel = t[0]?.children ?? [];
+      setExpandedIds(findAncestorIds(topLevel, selectedId));
+    });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedId = data.rootFolderId ?? '1';
@@ -106,6 +126,7 @@ export function BookmarkExplorerSettings({ data, onUpdateData }: SettingsProps) 
               selectedId={selectedId}
               onSelect={(id, title) => onUpdateData({ rootFolderId: id })}
               depth={0}
+              expandedIds={expandedIds}
             />
           ))}
         </div>
