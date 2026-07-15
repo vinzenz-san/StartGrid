@@ -1,29 +1,84 @@
-export type BackgroundMode = 'color' | 'gradient' | 'preset' | 'custom';
-
-export interface BackgroundConfig {
-  mode: BackgroundMode;
-  /** hex color for 'color', CSS gradient string for 'gradient', preset id for 'preset', unused for 'custom' */
-  value: string;
-  gradientIntensity?: number;  // 0-100; replaces customGradient. Default 100 (full gradient).
-  dimAmount?: number;
+// ─── Shared across all modes ───────────────────────────────────────────────
+export interface BackgroundShared {
+  dimAmount?: number;        // 0–1, global dim overlay
+  // Fields below are shared optionals used by multiple modes; kept here so
+  // BackgroundEditor can read them without mode-narrowing until editor panels
+  // are split per-provider (future step).
+  gradientIntensity?: number;
+  customColor?: string;
   scalingMode?: 'cover' | 'fit';
   letterboxColor?: string;
-  customColor?: string;
-  /** @deprecated use gradientIntensity instead; kept for backwards-compat with stored configs */
+  /** @deprecated kept for backwards-compat with stored configs */
   customGradient?: boolean;
 }
 
-export const DEFAULT_BG: BackgroundConfig = {
+// ─── Per-mode discriminated configs ────────────────────────────────────────
+export interface PresetConfig extends BackgroundShared {
+  mode: 'preset';
+  value: string;             // preset id
+}
+
+export interface ColorConfig extends BackgroundShared {
+  mode: 'color' | 'gradient';
+  value: string;             // CSS gradient string or hex
+}
+
+export interface CustomImageConfig extends BackgroundShared {
+  mode: 'custom';
+  value: string;             // unused; kept for storage shape compat
+}
+
+export interface UnsplashConfig extends BackgroundShared {
+  mode: 'unsplash';
+  value: string;             // unused placeholder (keeps storage shape uniform)
+  query?: string;            // free-text search term
+  topics?: string[];         // Unsplash topic ids
+  source?: 'search' | 'topics' | 'random';
+  rotationInterval?: number; // seconds between photo changes, default 900
+  showAttribution?: boolean; // default true
+  apiKey?: string;           // stored in sync; user-supplied
+  // attribution data cached alongside the image url
+  photographerName?: string;
+  photographerUrl?: string;
+  unsplashPhotoUrl?: string;
+}
+
+export type BackgroundConfig =
+  | PresetConfig
+  | ColorConfig
+  | CustomImageConfig
+  | UnsplashConfig;
+
+export type BackgroundMode = BackgroundConfig['mode'];
+
+// ─── Defaults ──────────────────────────────────────────────────────────────
+export const DEFAULT_BG: PresetConfig = {
   mode: 'preset',
   value: 'midnight',
   gradientIntensity: 100,
 };
 
+// ─── Provider registry interface ───────────────────────────────────────────
+export interface BackgroundProviderDef<C extends BackgroundConfig = BackgroundConfig> {
+  mode: C['mode'];
+  label: string;
+  /** Resolves the CSS `background` value from config + runtime data */
+  resolveCss: (config: C, ctx: BackgroundRenderCtx) => string;
+}
+
+export interface BackgroundRenderCtx {
+  isDark: boolean;
+  customImageUrl: string | null;
+  /** Current cached Unsplash image URL (populated by UnsplashProvider) */
+  unsplashImageUrl?: string | null;
+}
+
+// ─── Preset definitions (unchanged) ────────────────────────────────────────
 export interface PresetDef {
   id: string;
   label: string;
-  css: string;       // dark-mode full gradient (kept for backwards compat)
-  flatColor: string; // dark-mode flat
+  css: string;
+  flatColor: string;
   darkStart: string;
   darkEnd: string;
   lightStart: string;
