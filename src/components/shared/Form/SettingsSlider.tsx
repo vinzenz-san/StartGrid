@@ -19,6 +19,11 @@ export default function SettingsSlider({
   valueFormatter = pct,
   onPointerDown,
 }: Props) {
+  // Percentage of the track that is "filled" left of the thumb. Firefox paints
+  // this natively via ::-moz-range-progress; WebKit has no such pseudo-element,
+  // so we expose it as a CSS var and paint a hard-stop gradient on the track.
+  const fillPct = max > min ? ((value - min) / (max - min)) * 100 : 0;
+
   return (
     <div className="sg-settings-slider">
       <div className="sg-settings-slider-header">
@@ -33,6 +38,7 @@ export default function SettingsSlider({
         value={value}
         onChange={e => onChange(Number(e.target.value))}
         onPointerDown={onPointerDown}
+        style={{ ['--sg-slider-fill' as string]: `${fillPct}%` }}
       />
     </div>
   );

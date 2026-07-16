@@ -38,7 +38,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 16px 14px;
+  padding: 16px 16px 18px;
   border-bottom: 1.5px solid var(--border-strong);
   flex-shrink: 0;
 }
@@ -183,28 +183,105 @@
 }
 .sg-match-bg-btn:hover { background: var(--surface-hover); border-color: var(--text-muted); color: var(--text); }
 
-/* ── Appearance reset footer row ─────────────────────────────────────────── */
-.sg-appearance-footer {
-  padding: 4px 14px 8px;
+/* ── Top-level panel sections ────────────────────────────────────────────────
+   One rule drives spacing to every divider in the sidebar: 14px top+bottom
+   padding here + the divider's own 4px margin = 18px, always, on both sides
+   of every <hr>, for every section — collapsible or not, regardless of what
+   its last child is. A dedicated class (not the shared .settings-section,
+   which twelve other files reuse for unrelated nested groupings) so this
+   rule can't leak elsewhere, and future sections just need this one class
+   to fall into the same rhythm — no per-section padding/margin overrides. */
+.sg-panel-section {
+  padding: 14px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
-/* ── Backup & Restore ────────────────────────────────────────────────────── */
-.sg-settings-backup { display: flex; flex-direction: column; }
+/* Row-to-row spacing (the old shared-gap job) lives in this separate inner
+   wrapper instead of the section's own padding, so a section's top/bottom
+   spacing to its divider never depends on how many rows it holds or how
+   tall its last row is — wrap a section's content in this whenever multiple
+   rows need breathing room between them. */
+.sg-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-.sg-backup-btn {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text);
-  padding: 3px 10px;
-  border-radius: 5px;
-  border: 1px solid var(--border);
-  background: var(--surface-hover);
+/* ── Collapsible sidebar sections ────────────────────────────────────────── */
+.sg-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
   cursor: pointer;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
-  white-space: nowrap;
 }
-.sg-backup-btn:hover:not(:disabled) { background: var(--border); border-color: var(--text-muted); }
-.sg-backup-btn:disabled { opacity: 0.5; cursor: default; }
+
+.sg-section-chevron {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: color 0.12s;
+}
+.sg-section-header:hover .sg-section-chevron { color: var(--text); }
+
+/* Accordion collapse. The grid-template-rows 0fr→1fr trick was tried first
+   but proved unreliable here: this element is a flex item of
+   .sg-panel-section (display:flex), and animating a property whose target
+   value itself depends on intrinsic content sizing (1fr in an auto-height
+   grid) is inconsistently resolved across real page-load/transition timing
+   — it would intermittently settle at 0px even while "expanded". max-height
+   with a generous cap sidesteps that whole class of bug and is CSS-only. */
+.sg-section-collapse {
+  max-height: 0;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: max-height 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sg-section-collapse--expanded {
+  max-height: 2000px; /* generous cap — real content clamps well under this */
+}
+.sg-section-collapse-inner--gap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* padding-top is 0 at rest so the collapsed row's min-content height is
+     truly 0 — padding survives min-height:0 even when fully clipped, so an
+     unconditional padding-top here was the exact leftover height keeping the
+     "collapsed" row from ever reaching 0. Applied only once expanded. */
+  padding-top: 0;
+  transition: padding-top 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+/* .sg-panel-section no longer contributes any gap of its own (see above), so
+   this padding-top carries the ENTIRE header-to-content distance by itself —
+   18px, matching the same standard as every divider in the panel. */
+.sg-section-collapse--expanded .sg-section-collapse-inner--gap {
+  padding-top: 18px;
+}
+/* Background's content opens straight into the Colors/Image/Unsplash tab
+   switcher, which reads as cramped at the shared 18px — a bit more room here
+   specifically (Widgets, starting with a plain settings row, is fine as-is). */
+.sg-section-collapse--expanded .sg-section-collapse-inner--gap-bg {
+  padding-top: 24px;
+}
+
+/* ── Data Management ─────────────────────────────────────────────────────── */
+.sg-data-mgmt-row {
+  display: flex;
+  gap: 8px;
+}
+/* Import/Export sit side-by-side (50/50) but are otherwise plain .sg-action-btn
+   — same height/padding/weight as Reset Appearance & Factory Reset below. */
+.sg-data-mgmt-row .sg-action-btn {
+  width: auto;
+  flex: 1;
+}
 
 .sg-backup-error       { font-size: 10px; color: #e05252; padding: 2px 0 4px; line-height: 1.4; }
 .sg-backup-error--warn { color: var(--text-muted); }

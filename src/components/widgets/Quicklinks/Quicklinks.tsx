@@ -48,14 +48,6 @@ function generateId() {
 
 // ── Single link item ───────────────────────────────────────────────────────
 
-interface LinkItemProps {
-  link: QuickLink;
-  iconSize: 'small' | 'medium' | 'large';
-  showTitle: boolean;
-  showWhiteBadge: boolean;
-  textSize: 'S' | 'M' | 'L';
-}
-
 const INTERNAL_URL = /^(about|chrome|edge|moz-extension):/i;
 
 function clipboardFallback(url: string) {
@@ -69,6 +61,14 @@ function openInternalUrl(url: string, newTab: boolean) {
     const action = newTab ? browser.tabs.create({ url }) : browser.tabs.update({ url });
     action.catch(() => clipboardFallback(url));
   } else { clipboardFallback(url); }
+}
+
+interface LinkItemProps {
+  link: QuickLink;
+  iconSize: 'small' | 'medium' | 'large';
+  showTitle: boolean;
+  showWhiteBadge: boolean;
+  textSize: 'S' | 'M' | 'L';
 }
 
 function LinkItem({ link, iconSize, showTitle, showWhiteBadge, textSize }: LinkItemProps) {
@@ -118,7 +118,12 @@ function LinkItem({ link, iconSize, showTitle, showWhiteBadge, textSize }: LinkI
   }
 
   return (
-    <a className={`sg-ql-link sg-ql-link--${iconSize}`} href={link.url} title={label} draggable={false}>
+    <a
+      className={`sg-ql-link sg-ql-link--${iconSize}`}
+      href={link.url}
+      title={label}
+      draggable={false}
+    >
       {iconContent}
       {showTitle && <span className={`sg-ql-title sg-ql-text--${textSize.toLowerCase()}`}>{label}</span>}
     </a>
@@ -293,10 +298,9 @@ export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
 interface Props {
   data: QuicklinksData;
   onUpdateData: (patch: Partial<QuicklinksData>) => void;
-  isSettingsOpen?: boolean;
 }
 
-export default function Quicklinks({ data, onUpdateData, isSettingsOpen = false }: Props) {
+export default function Quicklinks({ data, onUpdateData }: Props) {
   const { links = [], layout = 'grid' } = data;
   const iconSize    = data.iconSize   ?? 'medium';
   const showTitles  = data.showTitles ?? true;
@@ -306,6 +310,11 @@ export default function Quicklinks({ data, onUpdateData, isSettingsOpen = false 
   const [compact,   setCompact]         = useState(false);
   const [dragIndex, setDragIndex]       = useState<number | null>(null);
   const [overIndex, setOverIndex]       = useState<number | null>(null);
+  // Set true the instant a real drag (past the pixel threshold) completes;
+  // consumed by the item's own click-capture guard below so the browser's
+  // synthesized post-drag click never navigates. A ref, not state — it must
+  // be readable synchronously by the very next click, before any re-render.
+  const justDraggedRef                  = useRef(false);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -339,7 +348,7 @@ export default function Quicklinks({ data, onUpdateData, isSettingsOpen = false 
 
     const onMove = (ev: PointerEvent) => {
       if (!isDragging) {
-        if (Math.hypot(ev.clientX - startX, ev.clientY - startY) < 4) return;
+        if (Math.hypot(ev.clientX - startX, ev.clientY - startY) < 6) return;
         isDragging = true;
         tileEl.setPointerCapture(pointerId);
         setDragIndex(startIdx);
@@ -364,9 +373,12 @@ export default function Quicklinks({ data, onUpdateData, isSettingsOpen = false 
       document.removeEventListener('pointerup',     onUp);
       document.removeEventListener('pointercancel', onUp);
       if (!isDragging) return;
-      // Absorb the click that follows pointerup so the link doesn't open
-      document.addEventListener('click', (ev: MouseEvent) => { ev.stopPropagation(); ev.preventDefault(); },
-        { capture: true, once: true });
+      // A drag occurred: the browser synthesizes a `click` after this pointerup
+      // (targeting the capture element in Chrome, the original <a> in Firefox).
+      // Flag it so the item's own onClickCapture (always-mounted, no
+      // registration-timing window) swallows that click regardless of which
+      // element it lands on.
+      justDraggedRef.current = true;
       const adjusted = currentOver > startIdx ? currentOver - 1 : currentOver;
       if (adjusted !== startIdx) {
         const next = [...startLinks];
@@ -399,15 +411,22 @@ export default function Quicklinks({ data, onUpdateData, isSettingsOpen = false 
               key={link.id}
               className={[
                 'sg-ql-item',
-                isSettingsOpen && !compact          ? 'sg-ql-item--sortable'    : '',
+                !compact                            ? 'sg-ql-item--sortable'    : '',
                 dragIndex === idx                   ? 'sg-ql-item--dragging'    : '',
                 dragIndex !== null && overIndex === idx                                  ? 'sg-ql-item--drop-before' : '',
                 dragIndex !== null && overIndex === idx + 1 && idx === links.length - 1 ? 'sg-ql-item--drop-after'  : '',
               ].filter(Boolean).join(' ')}
               data-ql-index={idx}
-              onPointerDown={isSettingsOpen && !compact ? e => handleItemDown(e, idx) : undefined}
-              onMouseDown={isSettingsOpen && !compact ? e => e.stopPropagation() : undefined}
+              onPointerDown={!compact ? e => handleItemDown(e, idx) : undefined}
+              onMouseDown={!compact ? e => e.stopPropagation() : undefined}
               onDragStart={e => e.preventDefault()}
+              onClickCapture={e => {
+                if (justDraggedRef.current) {
+                  justDraggedRef.current = false;
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
             >
               <LinkItem
                 link={link}

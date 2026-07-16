@@ -24,7 +24,7 @@ export default function WidgetContainer({ widget }: Props) {
   const { isEditMode } = useEditMode();
   const { removeWidget, updateWidget } = useWidgets();
   const { globalColor, globalOpacity, globalDim, globalGradientIntensity, globalPresetId, widgetShadowOpacity } = useTheme();
-  const { colorScheme } = useSettings();
+  const { colorScheme, enableCustomContextMenu } = useSettings();
   const elRef = useRef<HTMLDivElement>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [resizePreview, setResizePreview] = useState<{ w: number; h: number } | null>(null);
@@ -363,6 +363,7 @@ export default function WidgetContainer({ widget }: Props) {
         draggable={isEditMode && !resizePreview}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
+        onContextMenu={enableCustomContextMenu ? e => e.preventDefault() : undefined}
         style={{
           gridColumn: `${widget.col} / span ${displayW}`,
           gridRow:    `${widget.row} / span ${displayH}`,

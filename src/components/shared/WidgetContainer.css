@@ -265,15 +265,14 @@
   background: rgba(0, 0, 0, 0.18);
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 8px;   /* canonical section gap — mirrors .settings-section, no per-block margins */
 }
 
-/* Logical section group — adds breathing room between blocks */
+/* Logical section group — spacing comes from the parent's 8px gap, not ad-hoc margins */
 .sg-widget-appearance-section {
-  margin-top: 20px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 4px;
 }
 
 .sg-widget-appearance-label {

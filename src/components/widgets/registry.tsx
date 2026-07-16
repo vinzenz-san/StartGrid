@@ -65,7 +65,7 @@ const _registry = {
     titleBehavior:         'optional',
     defaultTitle:          'Quicklinks',
     defaultShowCustomTitle: false,
-    renderComponent: (data, onUpdateData, isSettingsOpen) => <Quicklinks data={data} onUpdateData={onUpdateData} isSettingsOpen={isSettingsOpen} />,
+    renderComponent: (data, onUpdateData) => <Quicklinks data={data} onUpdateData={onUpdateData} />,
     renderSettings:  (data, onUpdateData) => <QuicklinksSettings data={data} onUpdateData={onUpdateData} />,
   } satisfies TypedEntry<QuicklinksData>,
 

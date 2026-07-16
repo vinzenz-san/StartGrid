@@ -208,7 +208,7 @@ export default function BackgroundEditor() {
       {activeTab === 'unsplash' && <UnsplashSettings />}
 
       {/* ── Dimming — always visible ── */}
-      <section className="settings-section">
+      <section className="settings-section settings-section--slider-only">
         <SettingsSlider
           label="Dimming"
           value={dimPct}

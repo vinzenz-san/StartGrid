@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { SettingsRow, ActionButton } from '../shared/Form';
-import { useSettings, SETTINGS_DEFAULTS } from '../../contexts/SettingsContext';
+import { SETTINGS_DEFAULTS } from '../../contexts/SettingsContext';
+
+// Backup / restore / factory-reset storage logic. Pure functions — SettingsPanel
+// renders the Data Management UI and calls directly into these.
 
 const isExtension = typeof chrome !== 'undefined' && !!chrome.storage;
 
@@ -60,7 +60,7 @@ async function clearAllStorage(): Promise<void> {
   keysToRemove.forEach(k => localStorage.removeItem(k));
 }
 
-// ── Exported factory reset (used by SettingsPanel) ────────────────────────
+// ── Factory reset ──────────────────────────────────────────────────────────
 
 export async function performFactoryReset(developerOptionsEnabled: boolean): Promise<void> {
   await clearAllStorage();
@@ -93,49 +93,30 @@ function isValidEnvelope(data: unknown): data is BackupEnvelope {
   );
 }
 
-// ── Component ──────────────────────────────────────────────────────────────
+// ── Export ───────────────────────────────────────────────────────────────
 
-export default function BackupRestore({ compact }: { compact?: boolean }) {
-  const { developerOptionsEnabled } = useSettings();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [importError,      setImportError]      = useState<string | null>(null);
-  const [importOk,         setImportOk]         = useState(false);
-  const [exporting,        setExporting]        = useState(false);
-  const [importing,        setImporting]        = useState(false);
-  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+export async function exportBackup(): Promise<void> {
+  const { sync, local } = await readAllStorage();
+  const envelope: BackupEnvelope = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    sync,
+    local,
+  };
+  const blob = new Blob([JSON.stringify(envelope, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const date = new Date().toISOString().slice(0, 10);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `startpage-backup-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
-  // ── Export ───────────────────────────────────────────────────────────────
-  async function handleExport() {
-    setExporting(true);
-    try {
-      const { sync, local } = await readAllStorage();
-      const envelope: BackupEnvelope = {
-        version: 1,
-        exportedAt: new Date().toISOString(),
-        sync,
-        local,
-      };
-      const blob = new Blob([JSON.stringify(envelope, null, 2)], { type: 'application/json' });
-      const url  = URL.createObjectURL(blob);
-      const date = new Date().toISOString().slice(0, 10);
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = `startpage-backup-${date}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } finally {
-      setExporting(false);
-    }
-  }
+// ── Import ───────────────────────────────────────────────────────────────
 
-  // ── Import ───────────────────────────────────────────────────────────────
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImportError(null);
-    setImportOk(false);
-    setImporting(true);
-
+export function importBackup(file: File): Promise<void> {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = async (ev) => {
       try {
@@ -146,127 +127,12 @@ export default function BackupRestore({ compact }: { compact?: boolean }) {
           throw new Error('Invalid backup file. Expected a Startpage backup with version, sync, and local keys.');
         }
         await writeAllStorage(parsed.sync, parsed.local);
-        setTimeout(() => window.location.reload(), 50);
+        resolve();
       } catch (err) {
-        setImportError(err instanceof Error ? err.message : 'Unknown error.');
-        setImporting(false);
+        reject(err instanceof Error ? err : new Error('Unknown error.'));
       }
     };
+    reader.onerror = () => reject(new Error('Could not read file.'));
     reader.readAsText(file);
-    e.target.value = '';
-  }
-
-  // ── Factory Reset ─────────────────────────────────────────────────────────
-  async function doReset() {
-    // Snapshot before the async wipe so dev mode survives the reload
-    const preserveDevOptions = developerOptionsEnabled;
-    await clearAllStorage();
-    if (preserveDevOptions) {
-      await writeAllStorage(
-        { 'sg:settings': { ...SETTINGS_DEFAULTS, developerOptionsEnabled: true } },
-        {},
-      );
-    }
-    setTimeout(() => window.location.reload(), 50);
-  }
-
-  async function handleFactoryReset() {
-    if (developerOptionsEnabled) {
-      await doReset();
-    } else {
-      setResetConfirmOpen(true);
-    }
-  }
-
-  if (compact) {
-    return (
-      <div className="sg-settings-backup">
-        <section className="settings-section">
-          <SettingsRow label="Export">
-            <button className="sg-backup-btn" onClick={handleExport} disabled={exporting}>
-              {exporting ? 'Exporting…' : 'Download JSON'}
-            </button>
-          </SettingsRow>
-          <SettingsRow label="Import">
-            <button className="sg-backup-btn" onClick={() => fileInputRef.current?.click()} disabled={importing}>
-              {importing ? 'Restoring…' : 'Choose file…'}
-            </button>
-            <input ref={fileInputRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={handleFileChange} />
-          </SettingsRow>
-          {importError && <p className="sg-backup-error">{importError}</p>}
-        </section>
-      </div>
-    );
-  }
-
-  return (
-    <div className="sg-settings-backup">
-      {/* ── Export ── */}
-      <section className="settings-section">
-        <div className="settings-section-label">Export</div>
-        <SettingsRow label="Backup">
-          <button
-            className="sg-backup-btn"
-            onClick={handleExport}
-            disabled={exporting}
-          >
-            {exporting ? 'Exporting…' : 'Download JSON'}
-          </button>
-        </SettingsRow>
-      </section>
-
-      {/* ── Import ── */}
-      <section className="settings-section">
-        <div className="settings-section-label">Import</div>
-        <SettingsRow label="Restore">
-          <button
-            className="sg-backup-btn"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={importing}
-          >
-            {importing ? 'Restoring…' : 'Choose file…'}
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json,application/json"
-            style={{ display: 'none' }}
-            onChange={handleFileChange}
-          />
-        </SettingsRow>
-        {importError && <p className="sg-backup-error">{importError}</p>}
-        {importOk    && <p className="sg-backup-ok">Restored — reloading…</p>}
-      </section>
-
-      {/* ── Danger Zone ── */}
-      <section className="settings-section" style={{ paddingBottom: 12 }}>
-        <div className="settings-section-label">Danger Zone</div>
-        <SettingsRow label="Factory Reset">
-          <ActionButton variant="danger" cooldownTime={3} onClick={handleFactoryReset}>
-            Factory Reset
-          </ActionButton>
-        </SettingsRow>
-      </section>
-
-      {resetConfirmOpen && createPortal(
-        <div className="sg-dev-confirm-backdrop" onPointerDown={() => setResetConfirmOpen(false)}>
-          <div className="sg-dev-confirm-dialog" onPointerDown={e => e.stopPropagation()}>
-            <div className="sg-dev-confirm-title">Factory Reset</div>
-            <p className="sg-dev-confirm-body">
-              Are you really sure? All configuration in this addon will be deleted.
-            </p>
-            <div className="sg-dev-confirm-actions">
-              <button className="sg-dev-confirm-btn sg-dev-confirm-btn--cancel" onClick={() => setResetConfirmOpen(false)}>
-                Cancel
-              </button>
-              <button className="sg-dev-confirm-btn sg-dev-confirm-btn--confirm" onClick={async () => { setResetConfirmOpen(false); await doReset(); }}>
-                Delete Everything
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-    </div>
-  );
+  });
 }

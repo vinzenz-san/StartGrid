@@ -45,8 +45,8 @@
 .sg-settings-slider {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 6px 0;
+  gap: 4px;
+  padding: 5px 0;
 }
 
 .sg-settings-slider-header {
@@ -85,7 +85,13 @@
 
 .sg-settings-slider input[type="range"]::-webkit-slider-runnable-track {
   height: 4px;
-  background: rgba(128, 128, 128, 0.40);
+  /* WebKit has no ::-moz-range-progress equivalent, so paint the accent fill
+     ourselves: solid accent up to the thumb position, base track after it. */
+  background: linear-gradient(
+    to right,
+    var(--accent) 0 var(--sg-slider-fill, 0%),
+    rgba(128, 128, 128, 0.40) var(--sg-slider-fill, 0%) 100%
+  );
   border-radius: 2px;
 }
 
@@ -146,6 +152,11 @@
 .sg-action-btn:hover:not(:disabled):not(.sg-action-btn--cooldown) {
   background: rgba(128, 128, 128, 0.15);
   border-color: rgba(128, 128, 128, 0.4);
+}
+
+.sg-action-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .sg-action-btn--danger {

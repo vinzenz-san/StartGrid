@@ -349,10 +349,12 @@
   width: 100%;
 }
 
-/* Explorer-style: entire tile is draggable when settings panel is open */
+/* Explorer-style: entire tile is draggable. Hover stays a normal pointer —
+   only the active drag itself shows the grabbing hand (below) — so a plain
+   click still reads as a click, not a "grab this" affordance. */
 .sg-ql-item--sortable,
 .sg-ql-item--sortable * {
-  cursor: grab !important;
+  cursor: default !important;
   touch-action: none;
   user-select: none;
 }
