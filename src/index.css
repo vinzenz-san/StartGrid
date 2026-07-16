@@ -145,6 +145,12 @@ button {
   gap: 8px;
 }
 
+/* A section holding only a slider (no heading) aligns to the 8px slider rhythm
+   instead of the 10px heading padding, so it matches inter-slider spacing elsewhere. */
+.settings-section--slider-only {
+  padding-top: 8px;
+}
+
 .settings-section-label {
   font-size: 0.8rem;
   font-weight: 700;

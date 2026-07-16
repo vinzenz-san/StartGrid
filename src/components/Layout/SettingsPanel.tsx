@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import BackgroundEditor from '../Background/BackgroundEditor';
 import SwatchPicker, { THEME_SWATCHES } from '../shared/SwatchPicker';
-import BackupRestore, { performFactoryReset } from './BackupRestore';
+import { performFactoryReset, exportBackup, importBackup } from './BackupRestore';
 import CustomColorPicker from '../shared/CustomColorPicker';
 import { SettingsRow, SettingsSwitch, SegmentedControl, SettingsSlider, ActionButton, DirectionPicker } from '../shared/Form';
 import { useTheme, DEFAULTS as THEME_DEFAULTS } from '../../contexts/ThemeContext';
@@ -43,6 +43,17 @@ const DEV_PANEL_CELLS = [
   { value: 'bottom-right'as DevPanelPosition, arrow: '↘', col: 2, row: 2 },
 ];
 
+// ── Collapsible section state (UI-only preference, not synced) ─────────────
+type SectionKey = 'background' | 'widgets';
+const SECTIONS_STORAGE_KEY = 'sg:ui:sections';
+
+function loadSectionState(): Record<string, boolean> {
+  try {
+    const raw = localStorage.getItem(SECTIONS_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
 interface Props {
   onClose: () => void;
   isOpen:  boolean;
@@ -57,7 +68,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
   } = useTheme();
   const {
     colorScheme, accentColor, language, developerOptionsEnabled, devPanelPosition,
-    ignoreGlobalThemeSwap, updateSettings,
+    ignoreGlobalThemeSwap, enableCustomContextMenu, updateSettings,
   } = useSettings();
   const { config, setConfig } = useBackground();
   const { isEditMode, toggleEditMode } = useEditMode();
@@ -67,6 +78,40 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
   const [pickerOpen,       setPickerOpen]       = useState(false);
   const [addMenuOpen,      setAddMenuOpen]      = useState(false);
   const accentSwatchRef = useRef<HTMLButtonElement>(null);
+
+  const [sections, setSections] = useState<Record<string, boolean>>(loadSectionState);
+  const isSectionOpen = (key: SectionKey) => sections[key] ?? false;
+  const toggleSection = (key: SectionKey) => {
+    setSections(prev => {
+      const next = { ...prev, [key]: !(prev[key] ?? false) };
+      try { localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importing,   setImporting]   = useState(false);
+  const [exporting,   setExporting]   = useState(false);
+
+  async function handleExportClick() {
+    setExporting(true);
+    try { await exportBackup(); } finally { setExporting(false); }
+  }
+
+  function handleImportFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportError(null);
+    setImporting(true);
+    importBackup(file)
+      .then(() => { setTimeout(() => window.location.reload(), 50); })
+      .catch(err => {
+        setImportError(err instanceof Error ? err.message : 'Unknown error.');
+        setImporting(false);
+      });
+    e.target.value = '';
+  }
 
   const handleAddWidget = (type: WidgetType) => {
     const { defaultSize, defaultData } = WIDGET_REGISTRY[type];
@@ -87,7 +132,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
     setGlobalGradientIntensity(THEME_DEFAULTS.globalGradientIntensity);
     setWidgetShadowOpacity(THEME_DEFAULTS.widgetShadowOpacity);
     setGlobalPresetId(THEME_DEFAULTS.globalPresetId);
-    updateSettings({ colorScheme: SETTINGS_DEFAULTS.colorScheme, accentColor: SETTINGS_DEFAULTS.accentColor, ignoreGlobalThemeSwap: SETTINGS_DEFAULTS.ignoreGlobalThemeSwap });
+    updateSettings({ colorScheme: SETTINGS_DEFAULTS.colorScheme, accentColor: SETTINGS_DEFAULTS.accentColor, ignoreGlobalThemeSwap: SETTINGS_DEFAULTS.ignoreGlobalThemeSwap, enableCustomContextMenu: SETTINGS_DEFAULTS.enableCustomContextMenu });
   }
 
   function handleMatchBackground() {
@@ -145,158 +190,206 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
       <div className="sg-settings-content">
 
         {/* ══ 2. BACKGROUND ══ */}
-        <section className="settings-section" style={{ paddingTop: 14 }}>
-          <div className="settings-section-label">Background</div>
+        <section className="sg-panel-section">
+          <button
+            className="sg-section-header"
+            onClick={() => toggleSection('background')}
+            aria-expanded={isSectionOpen('background')}
+          >
+            <span className="settings-section-label">Background</span>
+            <span className="sg-section-chevron">{isSectionOpen('background') ? '∨' : '›'}</span>
+          </button>
+
+          <div className={`sg-section-collapse${isSectionOpen('background') ? ' sg-section-collapse--expanded' : ''}`}>
+            <div className="sg-section-collapse-inner sg-section-collapse-inner--gap sg-section-collapse-inner--gap-bg">
+              <BackgroundEditor />
+            </div>
+          </div>
         </section>
-        <BackgroundEditor />
 
         {/* ══ 3. WIDGETS ══ */}
         <hr className="sg-settings-divider" />
-        <section className="settings-section">
-          <div className="settings-section-label">Widgets</div>
-
-          {/* Lock / Unlock */}
-          <SettingsRow label={isEditMode ? 'Layout unlocked' : 'Layout locked'}>
-            <button
-              className={`sg-lock-btn${isEditMode ? ' active' : ''}`}
-              onClick={() => { toggleEditMode(); }}
-              title={isEditMode ? 'Lock layout' : 'Unlock layout'}
-            >
-              {isEditMode ? '🔒 Lock' : '🔓 Unlock'}
-            </button>
-          </SettingsRow>
-
-          {/* Add Widget */}
-          <div className="sg-widget-add-section">
-            <button
-              className={`sg-widget-add-toggle${addMenuOpen ? ' active' : ''}`}
-              onClick={() => setAddMenuOpen(o => !o)}
-            >
-              ＋ Add Widget
-            </button>
-            {addMenuOpen && (
-              <div className="sg-widget-add-list">
-                {WIDGET_MENU_TYPES
-                  .filter(type => !WIDGET_REGISTRY[type].devOnly || developerOptionsEnabled)
-                  .map(type => {
-                    const { label, icon } = WIDGET_REGISTRY[type];
-                    return (
-                      <button key={type} className="sg-widget-add-item" onClick={() => handleAddWidget(type)}>
-                        <span className="sg-widget-add-icon">{icon}</span>
-                        {label}
-                      </button>
-                    );
-                  })}
-              </div>
-            )}
-          </div>
-
-          <SwatchPicker
-            value={globalColor}
-            onChange={(color, presetId) => { setGlobalColor(color); setGlobalPresetId(presetId); }}
-            variant="large"
-          />
-          <button className="sg-match-bg-btn" onClick={handleMatchBackground}>
-            ⬡ Match Background
+        <section className="sg-panel-section">
+          <button
+            className="sg-section-header"
+            onClick={() => toggleSection('widgets')}
+            aria-expanded={isSectionOpen('widgets')}
+          >
+            <span className="settings-section-label">Widgets</span>
+            <span className="sg-section-chevron">{isSectionOpen('widgets') ? '∨' : '›'}</span>
           </button>
-          <SettingsSlider
-            label="Transparency"
-            value={transparencyPct}
-            onChange={v => setGlobalOpacity((100 - v) / 100)}
-          />
-          <SettingsSlider
-            label="Shadow Intensity"
-            value={widgetShadowOpacity}
-            onChange={setWidgetShadowOpacity}
-          />
-          <SettingsSlider
-            label="Gradient Intensity"
-            value={globalGradientIntensity}
-            onChange={setGlobalGradientIntensity}
-          />
-          <SettingsSlider
-            label="Dimming"
-            value={Math.round(globalDim)}
-            onChange={v => setGlobalDim(v)}
-          />
+
+          <div className={`sg-section-collapse${isSectionOpen('widgets') ? ' sg-section-collapse--expanded' : ''}`}>
+            <div className="sg-section-collapse-inner sg-section-collapse-inner--gap">
+              {/* Lock / Unlock */}
+              <SettingsRow label={isEditMode ? 'Layout unlocked' : 'Layout locked'}>
+                <button
+                  className={`sg-lock-btn${isEditMode ? ' active' : ''}`}
+                  onClick={() => { toggleEditMode(); }}
+                  title={isEditMode ? 'Lock layout' : 'Unlock layout'}
+                >
+                  {isEditMode ? '🔒 Lock' : '🔓 Unlock'}
+                </button>
+              </SettingsRow>
+
+              {/* Add Widget */}
+              <div className="sg-widget-add-section">
+                <button
+                  className={`sg-widget-add-toggle${addMenuOpen ? ' active' : ''}`}
+                  onClick={() => setAddMenuOpen(o => !o)}
+                >
+                  ＋ Add Widget
+                </button>
+                {addMenuOpen && (
+                  <div className="sg-widget-add-list">
+                    {WIDGET_MENU_TYPES
+                      .filter(type => !WIDGET_REGISTRY[type].devOnly || developerOptionsEnabled)
+                      .map(type => {
+                        const { label, icon } = WIDGET_REGISTRY[type];
+                        return (
+                          <button key={type} className="sg-widget-add-item" onClick={() => handleAddWidget(type)}>
+                            <span className="sg-widget-add-icon">{icon}</span>
+                            {label}
+                          </button>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+
+              <SwatchPicker
+                value={globalColor}
+                onChange={(color, presetId) => { setGlobalColor(color); setGlobalPresetId(presetId); }}
+                variant="large"
+              />
+              <button className="sg-match-bg-btn" onClick={handleMatchBackground}>
+                ⬡ Match Background
+              </button>
+              <SettingsSlider
+                label="Transparency"
+                value={transparencyPct}
+                onChange={v => setGlobalOpacity((100 - v) / 100)}
+              />
+              <SettingsSlider
+                label="Shadow Intensity"
+                value={widgetShadowOpacity}
+                onChange={setWidgetShadowOpacity}
+              />
+              <SettingsSlider
+                label="Gradient Intensity"
+                value={globalGradientIntensity}
+                onChange={setGlobalGradientIntensity}
+              />
+              <SettingsSlider
+                label="Dimming"
+                value={Math.round(globalDim)}
+                onChange={v => setGlobalDim(v)}
+              />
+              <SettingsRow label="Widget Context Menus">
+                <SettingsSwitch
+                  checked={enableCustomContextMenu}
+                  onChange={v => updateSettings({ enableCustomContextMenu: v })}
+                />
+              </SettingsRow>
+            </div>
+          </div>
         </section>
 
         {/* ══ 4. SETTINGS ══ */}
         <hr className="sg-settings-divider" />
-        <section className="settings-section">
+        <section className="sg-panel-section">
           <div className="settings-section-label">Settings</div>
-          <SettingsRow label="Button Position">
-            <DirectionPicker
-              cells={SETTINGS_BTN_CELLS}
-              value={settingsButtonPosition}
-              onChange={v => updateSettings({ settingsButtonPosition: v })}
-              cols={3}
-              rows={2}
-            />
-          </SettingsRow>
-          <SettingsRow label="Language">
-            <SegmentedControl<Language>
-              options={LANGUAGE_OPTIONS}
-              value={language}
-              onChange={v => updateSettings({ language: v })}
-            />
-          </SettingsRow>
-          <SettingsRow label="Light/Dark Mode">
-            <ThemeToggle />
-          </SettingsRow>
-          <SettingsRow label="Apply Light/Dark Mode to Background & Widgets">
-            <SettingsSwitch
-              checked={!ignoreGlobalThemeSwap}
-              onChange={v => updateSettings({ ignoreGlobalThemeSwap: !v })}
-            />
-          </SettingsRow>
-          <SettingsRow label="Accent Color">
-            <button
-              ref={accentSwatchRef}
-              className="sg-accent-swatch"
-              style={{ background: accentColor }}
-              onClick={() => setPickerOpen(o => !o)}
-              title="Pick accent color"
-            />
-          </SettingsRow>
+          <div className="sg-section-body">
+            <SettingsRow label="Button Position">
+              <DirectionPicker
+                cells={SETTINGS_BTN_CELLS}
+                value={settingsButtonPosition}
+                onChange={v => updateSettings({ settingsButtonPosition: v })}
+                cols={3}
+                rows={2}
+              />
+            </SettingsRow>
+            <SettingsRow label="Language">
+              <SegmentedControl<Language>
+                options={LANGUAGE_OPTIONS}
+                value={language}
+                onChange={v => updateSettings({ language: v })}
+              />
+            </SettingsRow>
+            <SettingsRow label="Light/Dark Mode">
+              <ThemeToggle />
+            </SettingsRow>
+            <SettingsRow label="Apply Light/Dark Mode to Background & Widgets">
+              <SettingsSwitch
+                checked={!ignoreGlobalThemeSwap}
+                onChange={v => updateSettings({ ignoreGlobalThemeSwap: !v })}
+              />
+            </SettingsRow>
+            <SettingsRow label="Accent Color">
+              <button
+                ref={accentSwatchRef}
+                className="sg-accent-swatch"
+                style={{ background: accentColor }}
+                onClick={() => setPickerOpen(o => !o)}
+                title="Pick accent color"
+              />
+            </SettingsRow>
+          </div>
         </section>
-
-        <div className="sg-appearance-footer">
-          <ActionButton variant="danger" cooldownTime={1} onClick={doResetAppearance}>
-            Reset Appearance
-          </ActionButton>
-        </div>
 
         {/* ══ 5. DATA MANAGEMENT ══ */}
         <hr className="sg-settings-divider" />
-        <section className="settings-section">
+        <section className="sg-panel-section">
           <div className="settings-section-label">Data Management</div>
+          <div className="sg-section-body">
+            <div className="sg-data-mgmt-row">
+              <button className="sg-action-btn" onClick={() => fileInputRef.current?.click()} disabled={importing}>
+                {importing ? 'Restoring…' : 'Import'}
+              </button>
+              <button className="sg-action-btn" onClick={handleExportClick} disabled={exporting}>
+                {exporting ? 'Exporting…' : 'Export'}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json,application/json"
+                style={{ display: 'none' }}
+                onChange={handleImportFileChange}
+              />
+            </div>
+            {importError && <p className="sg-backup-error">{importError}</p>}
+
+            <ActionButton variant="danger" cooldownTime={1} onClick={doResetAppearance}>
+              Reset Appearance
+            </ActionButton>
+            <ActionButton variant="danger" cooldownTime={3} onClick={() => setResetConfirmOpen(true)}>
+              Factory Reset
+            </ActionButton>
+          </div>
         </section>
-        <BackupRestore compact />
 
         {/* ══ 6. DEVELOPER OPTIONS ══ */}
         <hr className="sg-settings-divider" />
-        <section className="settings-section" style={{ paddingBottom: 14 }}>
+        <section className="sg-panel-section">
           <div className="settings-section-label">Developer Options</div>
-          <SettingsRow label="Enable Dev Mode">
-            <SettingsSwitch
-              checked={developerOptionsEnabled}
-              onChange={v => { if (v) setDevConfirmOpen(true); else updateSettings({ developerOptionsEnabled: false }); }}
-            />
-          </SettingsRow>
-          <SettingsRow label="Panel Position" style={{ opacity: developerOptionsEnabled ? 1 : 0.4 } as React.CSSProperties}>
-            <DirectionPicker
-              cells={DEV_PANEL_CELLS}
-              value={devPanelPosition}
-              onChange={v => updateSettings({ devPanelPosition: v })}
-              cols={2}
-              rows={2}
-              disabled={!developerOptionsEnabled}
-            />
-          </SettingsRow>
-          <ActionButton variant="danger" cooldownTime={developerOptionsEnabled ? 0 : 3} onClick={() => setResetConfirmOpen(true)}>
-            Factory Reset
-          </ActionButton>
+          <div className="sg-section-body">
+            <SettingsRow label="Enable Dev Mode">
+              <SettingsSwitch
+                checked={developerOptionsEnabled}
+                onChange={v => { if (v) setDevConfirmOpen(true); else updateSettings({ developerOptionsEnabled: false }); }}
+              />
+            </SettingsRow>
+            <SettingsRow label="Panel Position" style={{ opacity: developerOptionsEnabled ? 1 : 0.4 } as React.CSSProperties}>
+              <DirectionPicker
+                cells={DEV_PANEL_CELLS}
+                value={devPanelPosition}
+                onChange={v => updateSettings({ devPanelPosition: v })}
+                cols={2}
+                rows={2}
+                disabled={!developerOptionsEnabled}
+              />
+            </SettingsRow>
+          </div>
         </section>
 
       </div>
