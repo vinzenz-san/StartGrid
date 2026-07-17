@@ -55,38 +55,12 @@
   gap: 7px;
 }
 
-/* ── Pin button ──────────────────────────────────────────────────────────── */
-.sg-pin-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border-radius: 5px;
-  color: var(--text-muted);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.12s, color 0.12s;
-}
-.sg-pin-btn:hover { background: var(--surface-hover); color: var(--text); }
-.sg-pin-btn.active { color: var(--accent); }
-
 .sg-settings-title {
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.01em;
   color: var(--text);
 }
-
-.sg-settings-close {
-  font-size: 12px;
-  color: var(--text-muted);
-  padding: 4px 8px;
-  border-radius: 5px;
-  transition: background 0.12s, color 0.12s;
-}
-.sg-settings-close:hover { background: var(--surface-hover); color: var(--text); }
 
 /* ── Scrollable content ──────────────────────────────────────────────────── */
 .sg-settings-content {
@@ -104,13 +78,6 @@
 .sg-settings-content::-webkit-scrollbar-thumb  { background: var(--border-strong); border-radius: 2px; }
 .sg-settings-content::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-/* ── Section divider ─────────────────────────────────────────────────────── */
-.sg-settings-divider {
-  border: none;
-  border-top: 1.5px solid var(--border-strong);
-  margin: 4px 0;
-}
-
 /* ── Accent color swatch ─────────────────────────────────────────────────── */
 .sg-accent-swatch {
   width: 22px;
@@ -123,22 +90,6 @@
   padding: 0;
 }
 .sg-accent-swatch:hover { border-color: var(--text-muted); transform: scale(1.1); }
-
-/* ── Lock / Unlock button ────────────────────────────────────────────────── */
-.sg-lock-btn {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-muted);
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: transparent;
-  cursor: pointer;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
-  white-space: nowrap;
-}
-.sg-lock-btn:hover { background: var(--surface-hover); border-color: var(--text-muted); color: var(--text); }
-.sg-lock-btn.active { background: rgba(99, 102, 241, 0.12); color: var(--accent-hover); border-color: var(--accent); }
 
 /* ── Add Widget section ──────────────────────────────────────────────────── */
 .sg-widget-add-section {
@@ -190,110 +141,6 @@
 
 .sg-widget-add-icon { font-size: 15px; }
 
-/* ── Match Background button ─────────────────────────────────────────────── */
-.sg-match-bg-btn {
-  width: 100%;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-muted);
-  padding: 5px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: transparent;
-  cursor: pointer;
-  text-align: center;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
-}
-.sg-match-bg-btn:hover { background: var(--surface-hover); border-color: var(--text-muted); color: var(--text); }
-
-/* ── Top-level panel sections ────────────────────────────────────────────────
-   One rule drives spacing to every divider in the sidebar: 14px top+bottom
-   padding here + the divider's own 4px margin = 18px, always, on both sides
-   of every <hr>, for every section — collapsible or not, regardless of what
-   its last child is. A dedicated class (not the shared .settings-section,
-   which twelve other files reuse for unrelated nested groupings) so this
-   rule can't leak elsewhere, and future sections just need this one class
-   to fall into the same rhythm — no per-section padding/margin overrides. */
-.sg-panel-section {
-  padding: 14px 14px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-/* Row-to-row spacing (the old shared-gap job) lives in this separate inner
-   wrapper instead of the section's own padding, so a section's top/bottom
-   spacing to its divider never depends on how many rows it holds or how
-   tall its last row is — wrap a section's content in this whenever multiple
-   rows need breathing room between them. */
-.sg-section-body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* ── Collapsible sidebar sections ────────────────────────────────────────── */
-.sg-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.sg-section-chevron {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  flex-shrink: 0;
-  transition: color 0.12s;
-}
-.sg-section-header:hover .sg-section-chevron { color: var(--text); }
-
-/* Accordion collapse. The grid-template-rows 0fr→1fr trick was tried first
-   but proved unreliable here: this element is a flex item of
-   .sg-panel-section (display:flex), and animating a property whose target
-   value itself depends on intrinsic content sizing (1fr in an auto-height
-   grid) is inconsistently resolved across real page-load/transition timing
-   — it would intermittently settle at 0px even while "expanded". max-height
-   with a generous cap sidesteps that whole class of bug and is CSS-only. */
-.sg-section-collapse {
-  max-height: 0;
-  overflow: hidden;
-  flex-shrink: 0;
-  transition: max-height 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.sg-section-collapse--expanded {
-  max-height: 2000px; /* generous cap — real content clamps well under this */
-}
-.sg-section-collapse-inner--gap {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  /* padding-top is 0 at rest so the collapsed row's min-content height is
-     truly 0 — padding survives min-height:0 even when fully clipped, so an
-     unconditional padding-top here was the exact leftover height keeping the
-     "collapsed" row from ever reaching 0. Applied only once expanded. */
-  padding-top: 0;
-  transition: padding-top 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-}
-/* .sg-panel-section no longer contributes any gap of its own (see above), so
-   this padding-top carries the ENTIRE header-to-content distance by itself —
-   18px, matching the same standard as every divider in the panel. */
-.sg-section-collapse--expanded .sg-section-collapse-inner--gap {
-  padding-top: 18px;
-}
-/* Background's content opens straight into the Colors/Image/Unsplash tab
-   switcher, which reads as cramped at the shared 18px — a bit more room here
-   specifically (Widgets, starting with a plain settings row, is fine as-is). */
-.sg-section-collapse--expanded .sg-section-collapse-inner--gap-bg {
-  padding-top: 24px;
-}
-
 /* ── Data Management ─────────────────────────────────────────────────────── */
 .sg-data-mgmt-row {
   display: flex;
@@ -309,50 +156,3 @@
 .sg-backup-error       { font-size: 10px; color: #e05252; padding: 2px 0 4px; line-height: 1.4; }
 .sg-backup-error--warn { color: var(--text-muted); }
 .sg-backup-ok          { font-size: 10px; color: #52b152; padding: 2px 0 4px; }
-
-
-/* ── Developer Options confirmation dialog ───────────────────────────────── */
-.sg-dev-confirm-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: rgba(0, 0, 0, 0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(2px);
-}
-
-.sg-dev-confirm-dialog {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
-  width: 320px;
-  max-width: calc(100vw - 40px);
-  padding: 20px 20px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.sg-dev-confirm-title { font-size: 13px; font-weight: 600; color: var(--text); }
-
-.sg-dev-confirm-body  { font-size: 12px; line-height: 1.55; color: var(--text-muted); margin: 0; }
-
-.sg-dev-confirm-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
-
-.sg-dev-confirm-btn {
-  font-size: 12px;
-  font-weight: 500;
-  padding: 5px 14px;
-  border-radius: 5px;
-  border: 1px solid var(--border);
-  cursor: pointer;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
-}
-
-.sg-dev-confirm-btn--cancel          { background: transparent; color: var(--text-muted); }
-.sg-dev-confirm-btn--cancel:hover    { background: var(--surface-hover); color: var(--text); border-color: var(--text-muted); }
-.sg-dev-confirm-btn--confirm         { background: rgba(224, 82, 82, 0.12); color: #e05252; border-color: rgba(224, 82, 82, 0.4); }
-.sg-dev-confirm-btn--confirm:hover   { background: rgba(224, 82, 82, 0.22); border-color: rgba(224, 82, 82, 0.7); }
