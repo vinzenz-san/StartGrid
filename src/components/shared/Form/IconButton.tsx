@@ -7,12 +7,13 @@ interface Props {
   active?:    boolean;
   title?:     string;
   className?: string;
+  variant?:   'default' | 'ghost';
 }
 
-export default function IconButton({ icon, onClick, active = false, title, className = '' }: Props) {
+export default function IconButton({ icon, onClick, active = false, title, className = '', variant = 'default' }: Props) {
   return (
     <button
-      className={`sg-icon-btn${active ? ' active' : ''}${className ? ` ${className}` : ''}`}
+      className={`sg-icon-btn${variant === 'ghost' ? ' sg-icon-btn--ghost' : ''}${active ? ' active' : ''}${className ? ` ${className}` : ''}`}
       onClick={onClick}
       title={title}
       aria-label={title}

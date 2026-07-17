@@ -6,8 +6,11 @@ import { dragState } from '../../lib/dragState';
 import { isPositionFree } from '../../lib/gridUtils';
 import WidgetContainer from '../shared/WidgetContainer';
 import ThemeToggle from '../shared/ThemeToggle';
+import GearIcon from '../shared/icons/GearIcon';
 import SettingsPanel from './SettingsPanel';
 import DevPanel from '../DevPanel/DevPanel';
+import InspectorHistoryPanel from '../DevPanel/InspectorHistoryPanel';
+import { ElementInspectorProvider } from '../../contexts/ElementInspectorContext';
 import './Grid.css';
 
 const COLS    = 8;
@@ -20,7 +23,7 @@ interface DropTarget { col: number; row: number; w: number; h: number; valid: bo
 export default function Grid() {
   const { isEditMode, toggleEditMode } = useEditMode();
   const { widgets, updateWidget, loaded } = useWidgets();
-  const { developerOptionsEnabled, settingsButtonPosition, settingsPinned } = useSettings();
+  const { developerOptionsEnabled, settingsButtonPosition, settingsPinned, elementInspectorEnabled } = useSettings();
   const gridRef = useRef<HTMLDivElement>(null);
   const [dropTarget,        setDropTarget]        = useState<DropTarget | null>(null);
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
@@ -58,6 +61,7 @@ export default function Grid() {
   };
 
   return (
+    <ElementInspectorProvider>
     <div className={`sg-root${isEditMode ? ' sg-root--edit' : ''}`}>
 
       {/* ── Floating control cluster ── */}
@@ -71,10 +75,7 @@ export default function Grid() {
               onPointerDown={e => { e.stopPropagation(); e.preventDefault(); if (!settingsPinned) setSettingsPanelOpen(s => !s); }}
               title="Settings"
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-              </svg>
+              <GearIcon size={15} />
             </button>
 
             {/* Theme toggle — hidden until hover */}
@@ -125,6 +126,8 @@ export default function Grid() {
       </main>
 
       {developerOptionsEnabled && <DevPanel />}
+      {developerOptionsEnabled && elementInspectorEnabled && <InspectorHistoryPanel />}
     </div>
+    </ElementInspectorProvider>
   );
 }

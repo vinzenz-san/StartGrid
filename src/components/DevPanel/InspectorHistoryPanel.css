@@ -1,0 +1,89 @@
+.sg-insp-history {
+  position: fixed;
+  width: 240px;
+  max-height: 320px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px 8px;
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--text-muted);
+  z-index: 9999;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  user-select: none;
+}
+
+/* Anchored to the same vertical edge as DevPanel, offset horizontally
+   clear of its 264px width + 16px margin so the two always sit as a
+   clean side-by-side pair regardless of corner. */
+.sg-insp-history--top    { top:    16px; }
+.sg-insp-history--bottom { bottom: 16px; }
+.sg-insp-history--left   { left:   296px; }
+.sg-insp-history--right  { right:  296px; }
+
+.sg-insp-history-title {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 5px;
+  opacity: 0.6;
+}
+
+.sg-insp-history-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.sg-insp-history-btn {
+  flex: 1;
+  font-size: 10px;
+  font-family: monospace;
+  color: var(--text-muted);
+  padding: 3px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--surface-hover);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.sg-insp-history-btn:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent-hover);
+  border-color: var(--accent);
+}
+.sg-insp-history-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.sg-insp-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  max-height: 220px;
+}
+
+.sg-insp-history-item {
+  font-size: 10px;
+  color: var(--text);
+  word-break: break-all;
+  padding: 3px 5px;
+  background: var(--surface-hover);
+  border-radius: 4px;
+}
+
+.sg-insp-history-empty {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-style: italic;
+  opacity: 0.5;
+  line-height: 1.4;
+}

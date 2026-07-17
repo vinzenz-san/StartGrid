@@ -238,6 +238,8 @@
 
 .sg-form-switch--on .sg-form-switch-thumb { transform: translateX(14px); }
 
+.sg-form-switch--disabled { cursor: not-allowed; opacity: 0.55; }
+
 /* ── IconButton ──────────────────────────────────────────────────────────── */
 .sg-icon-btn {
   display: flex;
@@ -257,3 +259,8 @@
 }
 .sg-icon-btn:hover { background: var(--surface-hover); color: var(--text); }
 .sg-icon-btn.active { color: var(--accent); }
+
+/* Ghost variant — instant, non-destructive toggles (e.g. DetailedSettings gear). Flat at rest, same hover as default. */
+.sg-icon-btn--ghost { background: transparent; }
+.sg-icon-btn--ghost:hover { background: var(--surface-hover); color: var(--text); }
+.sg-icon-btn--ghost.active { color: var(--accent); }

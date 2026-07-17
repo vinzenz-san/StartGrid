@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useBackground } from '../../contexts/BackgroundContext';
 import { UnsplashConfig } from '../../types/background';
-import { SettingsSlider } from '../shared/Form';
+import { SettingsRow, SettingsSwitch } from '../shared/Form';
+import { DetailedSettings } from '../Layout/DetailedSettings';
 import './UnsplashSettings.css';
 
 const TOPIC_CHIPS = [
@@ -125,43 +126,38 @@ export default function UnsplashSettings() {
         )}
       </section>
 
-      {/* Rotation interval */}
-      <section className="settings-section">
-        <div className="settings-section-label">Change photo every</div>
-        <div className="sg-usp-interval-row">
-          {INTERVAL_OPTIONS.map(opt => (
-            <button
-              key={opt.value}
-              className={`sg-usp-interval-btn${interval === opt.value ? ' sg-usp-interval-btn--active' : ''}`}
-              onClick={() => update({ rotationInterval: opt.value })}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </section>
-
       {/* Dimming is rendered by BackgroundEditor for all modes */}
 
-      {/* Attribution toggle */}
-      <section className="settings-section">
-        <div className="sg-usp-attr-row">
-          <label className="sg-usp-attr-label">Show attribution</label>
-          <button
-            className={`sg-usp-toggle${showAttr ? ' sg-usp-toggle--on' : ''}`}
-            onClick={() => update({ showAttribution: !showAttr })}
-          >
-            {showAttr ? 'On' : 'Off'}
-          </button>
-        </div>
+      {/* Rotation interval + attribution — advanced */}
+      <DetailedSettings persistenceKey="bg-unsplash">
+        <section className="settings-section">
+          <div className="settings-section-label">Change photo every</div>
+          <div className="sg-usp-interval-row">
+            {INTERVAL_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                className={`sg-usp-interval-btn${interval === opt.value ? ' sg-usp-interval-btn--active' : ''}`}
+                onClick={() => update({ rotationInterval: opt.value })}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </section>
 
-        {/* Current attribution preview */}
-        {unsplash.attribution && (
-          <p className="sg-usp-attr-preview">
-            Current: <em>{unsplash.attribution.photographerName}</em> on Unsplash
-          </p>
-        )}
-      </section>
+        <section className="settings-section">
+          <SettingsRow label="Show attribution">
+            <SettingsSwitch checked={showAttr} onChange={v => update({ showAttribution: v })} />
+          </SettingsRow>
+
+          {/* Current attribution preview */}
+          {unsplash.attribution && (
+            <p className="sg-usp-attr-preview">
+              Current: <em>{unsplash.attribution.photographerName}</em> on Unsplash
+            </p>
+          )}
+        </section>
+      </DetailedSettings>
 
       {/* Fetch controls */}
       <section className="settings-section">

@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { ElementInspector } from './ElementInspector';
 import BackgroundEditor from '../Background/BackgroundEditor';
 import SwatchPicker, { THEME_SWATCHES } from '../shared/SwatchPicker';
 import { performFactoryReset, exportBackup, importBackup } from './BackupRestore';
@@ -6,6 +7,7 @@ import CustomColorPicker from '../shared/CustomColorPicker';
 import ConfirmDialog from '../shared/ConfirmDialog';
 import { SettingsRow, SettingsSwitch, SegmentedControl, SettingsSlider, ActionButton, DirectionPicker, IconButton } from '../shared/Form';
 import { PanelSection, PanelSectionList } from './PanelSection';
+import { DetailedSettings } from './DetailedSettings';
 import { useTheme, DEFAULTS as THEME_DEFAULTS } from '../../contexts/ThemeContext';
 import { useSettings, SETTINGS_DEFAULTS } from '../../contexts/SettingsContext';
 import { useBackground } from '../../contexts/BackgroundContext';
@@ -58,8 +60,9 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
   } = useTheme();
   const {
     colorScheme, accentColor, language, developerOptionsEnabled, devPanelPosition,
-    ignoreGlobalThemeSwap, enableCustomContextMenu, settingsPinned, updateSettings,
+    ignoreGlobalThemeSwap, enableCustomContextMenu, settingsPinned, elementInspectorEnabled, updateSettings,
   } = useSettings();
+  const panelRef = useRef<HTMLDivElement>(null);
   const { config, setConfig } = useBackground();
   const { isEditMode, toggleEditMode } = useEditMode();
   const { widgets, addWidget } = useWidgets();
@@ -141,7 +144,8 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
   }
 
   return (
-    <div className={`sg-settings-panel sg-settings-panel--${panelSide}${isOpen ? ' sg-settings-panel--open' : ''}`} onClick={e => e.stopPropagation()}>
+    <div ref={panelRef} className={`sg-settings-panel sg-settings-panel--${panelSide}${isOpen ? ' sg-settings-panel--open' : ''}`} onClick={e => e.stopPropagation()}>
+      <ElementInspector active={elementInspectorEnabled && developerOptionsEnabled} containerRef={panelRef} />
 
       {/* ── 1. HEADER ── */}
       <div className="sg-settings-header">
@@ -232,32 +236,37 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
             <ActionButton variant="ghost" onClick={handleMatchBackground}>
               ⬡ Match Background
             </ActionButton>
-            <SettingsSlider
-              label="Transparency"
-              value={transparencyPct}
-              onChange={v => setGlobalOpacity((100 - v) / 100)}
-            />
-            <SettingsSlider
-              label="Shadow Intensity"
-              value={widgetShadowOpacity}
-              onChange={setWidgetShadowOpacity}
-            />
-            <SettingsSlider
-              label="Gradient Intensity"
-              value={globalGradientIntensity}
-              onChange={setGlobalGradientIntensity}
-            />
-            <SettingsSlider
-              label="Dimming"
-              value={Math.round(globalDim)}
-              onChange={v => setGlobalDim(v)}
-            />
-            <SettingsRow label="Widget Context Menus">
-              <SettingsSwitch
-                checked={enableCustomContextMenu}
-                onChange={v => updateSettings({ enableCustomContextMenu: v })}
+            <DetailedSettings persistenceKey="widgets">
+              <SettingsSlider
+                label="Transparency"
+                value={transparencyPct}
+                onChange={v => setGlobalOpacity((100 - v) / 100)}
               />
-            </SettingsRow>
+              <SettingsSlider
+                label="Shadow Intensity"
+                value={widgetShadowOpacity}
+                onChange={setWidgetShadowOpacity}
+              />
+              <SettingsSlider
+                label="Gradient Intensity"
+                value={globalGradientIntensity}
+                onChange={setGlobalGradientIntensity}
+              />
+              <SettingsSlider
+                label="Dimming"
+                value={Math.round(globalDim)}
+                onChange={v => setGlobalDim(v)}
+              />
+              {/* TODO: [Context Menu Bug] disabling this currently blocks the native browser
+                  context menu entirely instead of just hiding the custom one — needs fix,
+                  not addressed here. */}
+              <SettingsRow label="Widget Context Menus">
+                <SettingsSwitch
+                  checked={enableCustomContextMenu}
+                  onChange={v => updateSettings({ enableCustomContextMenu: v })}
+                />
+              </SettingsRow>
+            </DetailedSettings>
           </PanelSection>
 
           {/* ══ 4. SETTINGS ══ */}
@@ -340,6 +349,13 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
                 onChange={v => updateSettings({ devPanelPosition: v })}
                 cols={2}
                 rows={2}
+                disabled={!developerOptionsEnabled}
+              />
+            </SettingsRow>
+            <SettingsRow label="Enable Element Inspector" style={{ opacity: developerOptionsEnabled ? 1 : 0.4 } as React.CSSProperties}>
+              <SettingsSwitch
+                checked={elementInspectorEnabled}
+                onChange={v => updateSettings({ elementInspectorEnabled: v })}
                 disabled={!developerOptionsEnabled}
               />
             </SettingsRow>
