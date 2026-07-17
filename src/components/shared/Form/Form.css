@@ -186,6 +186,28 @@
   opacity: 0.7;
 }
 
+/* Ghost variant — instant, non-destructive actions (toggles, one-shot
+   triggers). Flat/transparent at rest; optional accent-tinted .active state
+   for toggle buttons like Lock/Unlock. */
+.sg-action-btn--ghost {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.sg-action-btn--ghost:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+.sg-action-btn--ghost.active {
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--accent-hover);
+  border-color: var(--accent);
+}
+
+.sg-action-btn--auto { width: auto; }
+
 /* ── SettingsSwitch ──────────────────────────────────────────────────────── */
 .sg-form-switch {
   position: relative;
@@ -215,3 +237,23 @@
 }
 
 .sg-form-switch--on .sg-form-switch-thumb { transform: translateX(14px); }
+
+/* ── IconButton ──────────────────────────────────────────────────────────── */
+.sg-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 5px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.12s, color 0.12s;
+}
+.sg-icon-btn:hover { background: var(--surface-hover); color: var(--text); }
+.sg-icon-btn.active { color: var(--accent); }

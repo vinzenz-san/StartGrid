@@ -7,8 +7,12 @@ interface Props {
   children:      React.ReactNode;
   cooldownTime?: number;
   className?:    string;
-  variant?:      'default' | 'danger';
+  variant?:      'default' | 'danger' | 'ghost';
   disabled?:     boolean;
+  /** Toggle-style highlighted state — only meaningful for variant="ghost". */
+  active?:       boolean;
+  /** Full-width (default, matches Import/Export/Reset) or auto-width inline usage. */
+  fullWidth?:    boolean;
 }
 
 export default function ActionButton({
@@ -18,6 +22,8 @@ export default function ActionButton({
   className = '',
   variant = 'default',
   disabled = false,
+  active = false,
+  fullWidth = true,
 }: Props) {
   const { developerOptionsEnabled } = useSettings();
   const [pending,   setPending]   = useState(false);
@@ -48,6 +54,14 @@ export default function ActionButton({
   function handleClick() {
     if (disabled) return;
 
+    // Ghost buttons are instant, non-destructive actions (toggles, one-shot
+    // triggers like "Match Background") — they skip the arm/confirm/cooldown
+    // flow entirely and just fire.
+    if (variant === 'ghost') {
+      onClick();
+      return;
+    }
+
     if (!pending) {
       setPending(true);
       // Dev mode: arm instantly with no cooldown; normal mode: arm + start timer
@@ -61,17 +75,20 @@ export default function ActionButton({
 
   const cls = [
     'sg-action-btn',
-    variant === 'danger' ? 'sg-action-btn--danger'   : '',
-    pending              ? 'sg-action-btn--confirm'   : '',
-    cooldown             ? 'sg-action-btn--cooldown'  : '',
+    variant === 'danger' ? 'sg-action-btn--danger'  : '',
+    variant === 'ghost'  ? 'sg-action-btn--ghost'    : '',
+    active               ? 'active'                  : '',
+    !fullWidth           ? 'sg-action-btn--auto'     : '',
+    pending              ? 'sg-action-btn--confirm'  : '',
+    cooldown             ? 'sg-action-btn--cooldown' : '',
     className,
   ].filter(Boolean).join(' ');
 
   return (
     <button className={cls} onClick={handleClick} disabled={disabled}>
-      {pending && !cooldown
+      {variant !== 'ghost' && pending && !cooldown
         ? 'Confirm?'
-        : <>{children}{cooldown && <span className="sg-action-btn-countdown">({countdown}s)</span>}</>
+        : <>{children}{variant !== 'ghost' && cooldown && <span className="sg-action-btn-countdown">({countdown}s)</span>}</>
       }
     </button>
   );
