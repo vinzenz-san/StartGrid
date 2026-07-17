@@ -68,7 +68,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
   } = useTheme();
   const {
     colorScheme, accentColor, language, developerOptionsEnabled, devPanelPosition,
-    ignoreGlobalThemeSwap, enableCustomContextMenu, updateSettings,
+    ignoreGlobalThemeSwap, enableCustomContextMenu, settingsPinned, updateSettings,
   } = useSettings();
   const { config, setConfig } = useBackground();
   const { isEditMode, toggleEditMode } = useEditMode();
@@ -165,25 +165,37 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
 
       {/* ── 1. HEADER ── */}
       <div className="sg-settings-header">
-        <div className="sg-settings-brand">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path
-              d="M12 2L20.66 7V17L12 22L3.34 17V7L12 2Z"
-              fill="var(--accent)"
-              fillOpacity="0.2"
-              stroke="var(--accent)"
-              strokeWidth="1.5"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M12 7L16.33 9.5V14.5L12 17L7.67 14.5V9.5L12 7Z"
-              fill="var(--accent)"
-              fillOpacity="0.5"
-            />
-          </svg>
-          <span className="sg-settings-title">{APP_NAME}</span>
+        <div className="sg-settings-header-left">
+          <button
+            className={`sg-pin-btn${settingsPinned ? ' active' : ''}`}
+            onClick={() => updateSettings({ settingsPinned: !settingsPinned })}
+            title={settingsPinned ? 'Unpin panel' : 'Pin panel'}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 17v5" />
+              <path d="M9 3h6l-1 6 3 3v2H7v-2l3-3-1-6z" />
+            </svg>
+          </button>
+          <div className="sg-settings-brand">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M12 2L20.66 7V17L12 22L3.34 17V7L12 2Z"
+                fill="var(--accent)"
+                fillOpacity="0.2"
+                stroke="var(--accent)"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M12 7L16.33 9.5V14.5L12 17L7.67 14.5V9.5L12 7Z"
+                fill="var(--accent)"
+                fillOpacity="0.5"
+              />
+            </svg>
+            <span className="sg-settings-title">{APP_NAME}</span>
+          </div>
         </div>
-        <button className="sg-settings-close" onClick={onClose} title="Close">✕</button>
+        {!settingsPinned && <button className="sg-settings-close" onClick={onClose} title="Close">✕</button>}
       </div>
 
       {/* ── Scrollable content ── */}
@@ -319,7 +331,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
             <SettingsRow label="Light/Dark Mode">
               <ThemeToggle />
             </SettingsRow>
-            <SettingsRow label="Apply Light/Dark Mode to Background & Widgets">
+            <SettingsRow label="Apply to Widgets & Backgrounds">
               <SettingsSwitch
                 checked={!ignoreGlobalThemeSwap}
                 onChange={v => updateSettings({ ignoreGlobalThemeSwap: !v })}

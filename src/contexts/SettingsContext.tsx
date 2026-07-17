@@ -19,6 +19,7 @@ export interface AppSettings {
   ignoreGlobalThemeSwap:   boolean;
   ignoreLocalThemeSwap:    boolean;
   enableCustomContextMenu: boolean;
+  settingsPinned:          boolean;
 }
 
 export const SETTINGS_DEFAULTS = {
@@ -31,6 +32,7 @@ export const SETTINGS_DEFAULTS = {
   ignoreGlobalThemeSwap:   false,
   ignoreLocalThemeSwap:    false,
   enableCustomContextMenu: false,
+  settingsPinned:          false,
 } as const satisfies AppSettings;
 
 
@@ -57,6 +59,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     ignoreGlobalThemeSwap:   (settings ?? SETTINGS_DEFAULTS).ignoreGlobalThemeSwap   ?? SETTINGS_DEFAULTS.ignoreGlobalThemeSwap,
     ignoreLocalThemeSwap:    (settings ?? SETTINGS_DEFAULTS).ignoreLocalThemeSwap    ?? SETTINGS_DEFAULTS.ignoreLocalThemeSwap,
     enableCustomContextMenu: (settings ?? SETTINGS_DEFAULTS).enableCustomContextMenu ?? SETTINGS_DEFAULTS.enableCustomContextMenu,
+    settingsPinned:          (settings ?? SETTINGS_DEFAULTS).settingsPinned          ?? SETTINGS_DEFAULTS.settingsPinned,
   };
 
   // Inject --accent / --accent-hover CSS variables globally

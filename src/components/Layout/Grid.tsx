@@ -20,7 +20,7 @@ interface DropTarget { col: number; row: number; w: number; h: number; valid: bo
 export default function Grid() {
   const { isEditMode, toggleEditMode } = useEditMode();
   const { widgets, updateWidget, loaded } = useWidgets();
-  const { developerOptionsEnabled, settingsButtonPosition } = useSettings();
+  const { developerOptionsEnabled, settingsButtonPosition, settingsPinned } = useSettings();
   const gridRef = useRef<HTMLDivElement>(null);
   const [dropTarget,        setDropTarget]        = useState<DropTarget | null>(null);
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
@@ -68,7 +68,7 @@ export default function Grid() {
             {/* Settings gear — always visible anchor */}
             <button
               className={`sg-btn-control sg-btn-control--settings${settingsPanelOpen ? ' active' : ''}`}
-              onPointerDown={e => { e.stopPropagation(); e.preventDefault(); setSettingsPanelOpen(s => !s); }}
+              onPointerDown={e => { e.stopPropagation(); e.preventDefault(); if (!settingsPinned) setSettingsPanelOpen(s => !s); }}
               title="Settings"
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -99,11 +99,14 @@ export default function Grid() {
 
       <SettingsPanel
         onClose={() => setSettingsPanelOpen(false)}
-        isOpen={settingsPanelOpen}
+        isOpen={settingsPanelOpen || settingsPinned}
         settingsButtonPosition={settingsButtonPosition}
       />
 
-      <main className="sg-grid-wrapper" onClick={() => setSettingsPanelOpen(false)}>
+      <main
+        className={`sg-grid-wrapper${settingsPinned ? ` sg-grid-wrapper--pinned-${settingsButtonPosition.endsWith('left') ? 'left' : 'right'}` : ''}`}
+        onClick={() => { if (!settingsPinned) setSettingsPanelOpen(false); }}
+      >
         <div
           ref={gridRef}
           className="sg-grid"

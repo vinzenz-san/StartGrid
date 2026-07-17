@@ -43,11 +43,34 @@
   flex-shrink: 0;
 }
 
+.sg-settings-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .sg-settings-brand {
   display: flex;
   align-items: center;
   gap: 7px;
 }
+
+/* ── Pin button ──────────────────────────────────────────────────────────── */
+.sg-pin-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.12s, color 0.12s;
+}
+.sg-pin-btn:hover { background: var(--surface-hover); color: var(--text); }
+.sg-pin-btn.active { color: var(--accent); }
 
 .sg-settings-title {
   font-size: 14px;
