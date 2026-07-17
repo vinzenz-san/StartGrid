@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import { useEditMode } from '../../contexts/EditModeContext';
 import { useWidgets } from '../../contexts/WidgetContext';
 import { useSettings } from '../../contexts/SettingsContext';
+import { SettingsSwitch } from '../shared/Form';
 import './DevPanel.css';
 
 const isExtension = typeof chrome !== 'undefined' && !!chrome.storage;
@@ -110,7 +111,7 @@ function StoreSection({ title, data, limit }: { title: string; data: StoreData; 
 function DevPanelInner() {
   const { isEditMode }   = useEditMode();
   const { widgets, loaded } = useWidgets();
-  const { devPanelPosition, settingsButtonPosition } = useSettings();
+  const { devPanelPosition, settingsButtonPosition, elementInspectorEnabled, updateSettings } = useSettings();
 
   // Cluster is ~36px tall/wide at 14px from the edge.
   // When DevPanel shares the same corner, offset it clear of the cluster.
@@ -151,6 +152,13 @@ function DevPanelInner() {
         <span className={`dev-badge ${loaded ? 'ok' : 'warn'}`}>
           {loaded ? (widgets?.length ?? 0) : '…'}
         </span>
+      </div>
+      <div className="dev-row">
+        <span className="dev-label">Element Inspector</span>
+        <SettingsSwitch
+          checked={elementInspectorEnabled}
+          onChange={v => updateSettings({ elementInspectorEnabled: v })}
+        />
       </div>
 
       <div className="dev-divider" />

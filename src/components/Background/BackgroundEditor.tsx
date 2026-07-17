@@ -5,6 +5,7 @@ import { generateGradient } from '../../lib/colorUtils';
 import CustomColorPicker from '../shared/CustomColorPicker';
 import { SettingsSlider } from '../shared/Form';
 import UnsplashSettings from './UnsplashSettings';
+import { DetailedSettings } from '../Layout/DetailedSettings';
 import './BackgroundEditor.css';
 
 const SIZE_LIMIT_MB = 5;
@@ -129,11 +130,13 @@ export default function BackgroundEditor() {
                 }
               </div>
             </div>
-            <SettingsSlider
-              label="Gradient Intensity"
-              value={intensity}
-              onChange={v => setConfig({ ...config, gradientIntensity: v })}
-            />
+            <DetailedSettings persistenceKey="bg-colors">
+              <SettingsSlider
+                label="Gradient Intensity"
+                value={intensity}
+                onChange={v => setConfig({ ...config, gradientIntensity: v })}
+              />
+            </DetailedSettings>
           </section>
         </>
       )}
