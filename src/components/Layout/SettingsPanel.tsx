@@ -191,9 +191,14 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
         <PanelSectionList>
 
           {/* ══ 2. BACKGROUND ══ */}
+          <div
+            onMouseEnter={() => document.documentElement.classList.add('sg-blur-all-widgets')}
+            onMouseLeave={() => document.documentElement.classList.remove('sg-blur-all-widgets')}
+          >
           <PanelSection title="Background" collapsible persistenceKey="background" collapseGap="spacious">
             <BackgroundEditor />
           </PanelSection>
+          </div>
 
           {/* ══ 3. WIDGETS ══ */}
           <div

@@ -1,9 +1,10 @@
 import { useRef, useState, useEffect } from 'react';
 import { useBackground } from '../../contexts/BackgroundContext';
-import { PRESETS, BackgroundMode, UnsplashConfig } from '../../types/background';
+import { PRESETS, BackgroundMode, BackgroundPanel, UnsplashConfig } from '../../types/background';
 import { generateGradient } from '../../lib/colorUtils';
+import { BACKGROUND_PROVIDERS } from './providers';
 import CustomColorPicker from '../shared/CustomColorPicker';
-import { SettingsSlider } from '../shared/Form';
+import { SettingsSlider, Dropdown } from '../shared/Form';
 import UnsplashSettings from './UnsplashSettings';
 import { DetailedSettings } from '../Layout/DetailedSettings';
 import './BackgroundEditor.css';
@@ -11,16 +12,39 @@ import './BackgroundEditor.css';
 const SIZE_LIMIT_MB = 5;
 const RAINBOW_BG = 'linear-gradient(135deg, #6366f1 0%, #ec4899 40%, #f59e0b 70%, #10b981 100%)';
 
-type EditorTab = 'colors' | 'image' | 'unsplash';
+type EditorTab = BackgroundPanel;
+
+// Labels for the dropdown itself — a panel groups several provider modes
+// (e.g. "colors" spans preset/color/gradient), so it isn't any single
+// provider's own `label`.
+const PANEL_LABELS: Record<EditorTab, string> = {
+  colors: 'Colors',
+  image: 'Image',
+  unsplash: 'Unsplash',
+  bing: 'Bing Daily Wallpaper',
+};
+
+// Dynamically derived from the registry (in provider-registration order,
+// deduped) so a future provider just needs to declare its `panel` to show
+// up here — no hardcoded tab list to maintain.
+const PANEL_OPTIONS: { value: EditorTab; label: string }[] = (() => {
+  const seen = new Set<EditorTab>();
+  const options: { value: EditorTab; label: string }[] = [];
+  for (const def of Object.values(BACKGROUND_PROVIDERS)) {
+    if (!seen.has(def.panel)) {
+      seen.add(def.panel);
+      options.push({ value: def.panel, label: PANEL_LABELS[def.panel] });
+    }
+  }
+  return options;
+})();
 
 function modeToTab(mode: BackgroundMode): EditorTab {
-  if (mode === 'custom') return 'image';
-  if (mode === 'unsplash') return 'unsplash';
-  return 'colors';
+  return BACKGROUND_PROVIDERS[mode]?.panel ?? 'colors';
 }
 
 export default function BackgroundEditor() {
-  const { config, customImageUrl, setConfig, setCustomImage, clearCustomImage } = useBackground();
+  const { config, customImageUrl, setConfig, setCustomImage, clearCustomImage, bing } = useBackground();
   const fileRef        = useRef<HTMLInputElement>(null);
   const customSwatchRef = useRef<HTMLDivElement>(null);
   const letterboxBtnRef = useRef<HTMLButtonElement>(null);
@@ -40,6 +64,7 @@ export default function BackgroundEditor() {
     if (tab === 'colors')   setConfig({ ...config, mode: 'preset', value: PRESETS[0].id });
     if (tab === 'image')    setConfig({ mode: 'custom', value: '' });
     if (tab === 'unsplash') setConfig(lastUnsplashConfig.current);
+    if (tab === 'bing')     setConfig({ mode: 'bing', value: '' });
   };
 
   const processFile = (file: File) => {
@@ -87,19 +112,11 @@ export default function BackgroundEditor() {
     <div className="bg-editor" onClick={e => e.stopPropagation()}>
 
       {/* ── Mode switcher ── */}
-      <div className="bg-mode-tabs">
-        {(['colors', 'image', 'unsplash'] as EditorTab[]).map(tab => (
-          <button
-            key={tab}
-            className={`bg-mode-tab${activeTab === tab ? ' bg-mode-tab--active' : ''}`}
-            onClick={() => switchTab(tab)}
-          >
-            {tab === 'colors'   ? 'Colors'   : null}
-            {tab === 'image'    ? 'Image'     : null}
-            {tab === 'unsplash' ? 'Unsplash'  : null}
-          </button>
-        ))}
-      </div>
+      <Dropdown
+        options={PANEL_OPTIONS}
+        value={activeTab}
+        onChange={switchTab}
+      />
 
       {/* ── Colors tab ── */}
       {activeTab === 'colors' && (
@@ -209,6 +226,17 @@ export default function BackgroundEditor() {
 
       {/* ── Unsplash tab ── */}
       {activeTab === 'unsplash' && <UnsplashSettings />}
+
+      {/* ── Bing tab — fully automated, nothing to configure ── */}
+      {activeTab === 'bing' && (
+        <section className="settings-section bg-bing-section">
+          <div className="settings-section-label">Bing Daily Wallpaper</div>
+          <p className="bg-bing-note">
+            Enjoy today&rsquo;s curated Bing background — it refreshes automatically once a day.
+          </p>
+          {bing.error && <p className="bg-bing-error">{bing.error}</p>}
+        </section>
+      )}
 
       {/* ── Dimming — always visible ── */}
       <section className="settings-section settings-section--slider-only">

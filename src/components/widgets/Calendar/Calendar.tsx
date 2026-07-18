@@ -278,7 +278,7 @@ interface Props {
 
 export default function Calendar({ data, onUpdateData: _onUpdateData }: Props) {
   const { status, events, refresh } = useCalendar();
-  const { isConnected } = useGoogleAuth();
+  const { isConnected, connect, isConnecting } = useGoogleAuth();
   const maxDays    = data.maxDays    ?? 3;
   const showAllDay = data.showAllDay ?? true;
   const viewMode   = data.viewMode   ?? 'agenda';
@@ -305,7 +305,10 @@ export default function Calendar({ data, onUpdateData: _onUpdateData }: Props) {
         {isUnauthed ? (
           <div className="sg-cal-empty">
             <IconCalendar/>
-            <span className="sg-cal-empty-text">Connect your Google Account in ⚙ settings to see your calendar.</span>
+            <span className="sg-cal-empty-text">Connect your Google Account to see your calendar.</span>
+            <button className="sg-cal-connect-btn" onClick={connect} disabled={isConnecting}>
+              <IconConnect/> {isConnecting ? 'Connecting…' : 'Connect Google Account'}
+            </button>
           </div>
         ) : isLoading ? (
           <><SkeletonGroup/><SkeletonGroup/></>

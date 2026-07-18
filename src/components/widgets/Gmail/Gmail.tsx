@@ -158,7 +158,7 @@ interface Props {
 
 export default function Gmail({ data, onUpdateData: _onUpdateData }: Props) {
   const { status, emails, unreadCount, refresh } = useGmail();
-  const { isConnected } = useGoogleAuth();
+  const { isConnected, connect, isConnecting } = useGoogleAuth();
   const maxEmails    = data.maxEmails    ?? 5;
   const showSnippets = data.showSnippets ?? true;
 
@@ -187,7 +187,10 @@ export default function Gmail({ data, onUpdateData: _onUpdateData }: Props) {
         {isUnauthed ? (
           <div className="sg-gm-empty">
             <IconGmail />
-            <span className="sg-gm-empty-text">Connect your Google Account in ⚙ settings to see your inbox.</span>
+            <span className="sg-gm-empty-text">Connect your Google Account to see your inbox.</span>
+            <button className="sg-gm-connect-btn" onClick={connect} disabled={isConnecting}>
+              <IconConnect /> {isConnecting ? 'Connecting…' : 'Connect Google Account'}
+            </button>
           </div>
         ) : isLoading ? (
           Array.from({ length: maxEmails }).map((_, i) => <SkeletonRow key={i} />)

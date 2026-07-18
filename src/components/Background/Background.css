@@ -1,8 +1,16 @@
-.sg-background {
+/* Dual-layer cross-fade: two stacked layers, opacity-toggled by Background.tsx
+   to fade the incoming background in over the outgoing one (Tabliss-style
+   double buffer) rather than snapping between background-image values, which
+   CSS `transition: background` can't animate for url()-based sources. */
+.sg-bg-layer {
   position: fixed;
   inset: 0;
   z-index: -1;
-  transition: background 0.4s ease;
+  opacity: 0;
+  transition: opacity 0.6s ease-in-out;
+}
+.sg-bg-layer--active {
+  opacity: 1;
 }
 
 .sg-background-letterbox {

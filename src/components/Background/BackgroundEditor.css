@@ -98,6 +98,28 @@
   opacity: 0.75;
 }
 
+/* ── Bing tab — fully automated, just a centered notice for visual balance ── */
+.bg-bing-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px 12px;
+  gap: 6px;
+}
+
+.bg-bing-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  max-width: 200px;
+}
+
+.bg-bing-error {
+  font-size: 10.5px;
+  color: #f87171;
+}
+
 /* Scaling mode */
 .bg-scaling-row {
   display: flex;
@@ -125,32 +147,7 @@
 
 /* Dim slider uses shared .settings-slider-row from index.css */
 
-/* Mode switcher tabs */
-.bg-mode-tabs {
-  display: flex;
-  gap: 4px;
+/* Mode switcher — shared <Dropdown> primitive, just needs spacing to the panel below */
+.bg-editor > .sg-dropdown {
   margin-bottom: 12px;
-}
-
-.bg-mode-tab {
-  flex: 1;
-  padding: 6px 0;
-  font-size: 12px;
-  font-weight: 500;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--surface-hover);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
-}
-.bg-mode-tab--active {
-  background: color-mix(in srgb, var(--accent) 22%, transparent);
-  border-color: var(--accent);
-  color: var(--text);
-  font-weight: 600;
-}
-.bg-mode-tab:not(.bg-mode-tab--active):hover {
-  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
-  color: var(--text);
 }
