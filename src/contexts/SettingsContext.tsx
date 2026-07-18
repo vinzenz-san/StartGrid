@@ -14,8 +14,6 @@ export interface AppSettings {
   accentColor:             string;
   developerOptionsEnabled: boolean;
   settingsButtonPosition:  SettingsButtonPosition;
-  ignoreGlobalThemeSwap:   boolean;
-  ignoreLocalThemeSwap:    boolean;
   enableCustomContextMenu: boolean;
   settingsPinned:          boolean;
   elementInspectorEnabled: boolean;
@@ -26,9 +24,7 @@ export const SETTINGS_DEFAULTS = {
   colorScheme:             'system',
   accentColor:             '#6366f1',
   developerOptionsEnabled: false,
-  settingsButtonPosition:  'top-right',
-  ignoreGlobalThemeSwap:   false,
-  ignoreLocalThemeSwap:    false,
+  settingsButtonPosition:  'bottom',
   enableCustomContextMenu: false,
   settingsPinned:          false,
   elementInspectorEnabled: false,
@@ -54,8 +50,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       const v = (settings ?? SETTINGS_DEFAULTS).settingsButtonPosition ?? SETTINGS_DEFAULTS.settingsButtonPosition;
       return (v === 'left' || v === 'right') ? SETTINGS_DEFAULTS.settingsButtonPosition : v as SettingsButtonPosition;
     })(),
-    ignoreGlobalThemeSwap:   (settings ?? SETTINGS_DEFAULTS).ignoreGlobalThemeSwap   ?? SETTINGS_DEFAULTS.ignoreGlobalThemeSwap,
-    ignoreLocalThemeSwap:    (settings ?? SETTINGS_DEFAULTS).ignoreLocalThemeSwap    ?? SETTINGS_DEFAULTS.ignoreLocalThemeSwap,
     enableCustomContextMenu: (settings ?? SETTINGS_DEFAULTS).enableCustomContextMenu ?? SETTINGS_DEFAULTS.enableCustomContextMenu,
     settingsPinned:          (settings ?? SETTINGS_DEFAULTS).settingsPinned          ?? SETTINGS_DEFAULTS.settingsPinned,
     elementInspectorEnabled: (settings ?? SETTINGS_DEFAULTS).elementInspectorEnabled ?? SETTINGS_DEFAULTS.elementInspectorEnabled,

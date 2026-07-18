@@ -2,9 +2,16 @@ import { useEffect, useState } from 'react';
 import { useSettings } from '../../contexts/SettingsContext';
 import './ThemeToggle.css';
 
-export default function ThemeToggle() {
+interface Props {
+  /** Controlled mode: current state + change handler. Omit both to drive the global app theme instead. */
+  isDark?: boolean;
+  onToggle?: (nextIsDark: boolean) => void;
+}
+
+export default function ThemeToggle({ isDark: controlledIsDark, onToggle }: Props = {}) {
   const { colorScheme, updateSettings } = useSettings();
-  const isDark = colorScheme !== 'light';
+  const isControlled = onToggle !== undefined;
+  const isDark = isControlled ? (controlledIsDark ?? true) : colorScheme !== 'light';
 
   // Local visual state so the pill animates immediately on click,
   // independent of the 160ms delay before updateSettings fires.
@@ -12,6 +19,13 @@ export default function ThemeToggle() {
   useEffect(() => { setPillDark(isDark); }, [isDark]);
 
   const handleToggle = () => {
+    if (isControlled) {
+      // Scoped toggle (e.g. a single widget) — instant flip, no full-page overlay.
+      setPillDark(d => !d);
+      onToggle!(!isDark);
+      return;
+    }
+
     setPillDark(d => !d); // knob moves instantly
 
     // Always a dark overlay — no white involved in either direction.

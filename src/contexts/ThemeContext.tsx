@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import { useStorage } from '../hooks/useStorage';
 import { darkenHex, mixHex } from '../lib/colorUtils';
 import { THEME_SWATCHES } from '../components/shared/SwatchPicker';
@@ -39,15 +39,8 @@ const Ctx = createContext<ThemeCtx | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useStorage<ThemeConfig>(STORAGE_KEY, DEFAULTS);
-  const { colorScheme, ignoreGlobalThemeSwap } = useSettings();
-
-  // Freeze isDark at the moment ignoreGlobalThemeSwap activates.
-  // When the flag is off, effectiveIsDark stays in sync with colorScheme.
-  // When the flag turns on, the effect doesn't call setter → value is frozen.
-  const [effectiveIsDark, setEffectiveIsDark] = useState(colorScheme !== 'light');
-  useEffect(() => {
-    if (!ignoreGlobalThemeSwap) setEffectiveIsDark(colorScheme !== 'light');
-  }, [colorScheme, ignoreGlobalThemeSwap]);
+  const { colorScheme } = useSettings();
+  const effectiveIsDark = colorScheme !== 'light';
 
   const t = theme ?? DEFAULTS;
   // Backwards-compat: if stored data has the old boolean and no numeric intensity, seed from it

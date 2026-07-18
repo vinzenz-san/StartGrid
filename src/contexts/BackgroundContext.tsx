@@ -53,8 +53,8 @@ interface BackgroundCtx {
 const Ctx = createContext<BackgroundCtx | null>(null);
 
 export function BackgroundProvider({ children }: { children: ReactNode }) {
-  const { colorScheme, ignoreGlobalThemeSwap } = useSettings();
-  const isDark = ignoreGlobalThemeSwap ? true : colorScheme !== 'light';
+  const { colorScheme } = useSettings();
+  const isDark = colorScheme !== 'light';
 
   // Initialise synchronously from localStorage fast-path — avoids first-frame flash
   const [config, setConfigState]            = useState<BackgroundConfig>(() => readFastConfig() ?? DEFAULT_BG);

@@ -13,6 +13,7 @@ import { WIDGET_REGISTRY } from '../widgets/registry';
 import { SettingsSlider } from './Form';
 import { SettingsRow, SettingsSwitch } from './Form';
 import SwatchPicker from './SwatchPicker';
+import ThemeToggle from './ThemeToggle';
 import './WidgetContainer.css';
 
 const CELL = 120;
@@ -162,6 +163,11 @@ export default function WidgetContainer({ widget }: Props) {
   const localIntensity = widget.bgGradientIntensity
     ?? (widget.localGradientOverride === false ? 0 : globalGradientIntensity);
 
+  // 'auto' (unset) follows the live global colorScheme; an explicit choice always wins.
+  const widgetIsDark = widget.localColorScheme
+    ? widget.localColorScheme !== 'light'
+    : colorScheme !== 'light';
+
   // Local override: set CSS variables on the element so ::before / ::after pick them up.
   const localOverrideStyle: React.CSSProperties = overrideEnabled
     ? (() => {
@@ -175,9 +181,8 @@ export default function WidgetContainer({ widget }: Props) {
           // Named preset: compute intensity-blended gradient inline, overriding CSS attr selector
           const swatch = THEME_SWATCHES.find(s => s.id === widget.bgPresetId);
           if (swatch) {
-            const isDark = (widget.ignoreLocalThemeSwap ?? false) ? true : colorScheme !== 'light';
-            const endColor   = isDark ? swatch.darkEnd   : swatch.lightEnd;
-            const startColor = isDark ? swatch.darkStart : swatch.lightStart;
+            const endColor   = widgetIsDark ? swatch.darkEnd   : swatch.lightEnd;
+            const startColor = widgetIsDark ? swatch.darkStart : swatch.lightStart;
             const blendedStart = mixHex(endColor, startColor, t);
             base['--preset-bg'] = `linear-gradient(135deg, ${blendedStart} 0%, ${endColor} 100%)`;
           }
@@ -190,9 +195,8 @@ export default function WidgetContainer({ widget }: Props) {
           // so the local Gradient Intensity slider is always reactive
           const swatch = THEME_SWATCHES.find(s => s.id === globalPresetId);
           if (swatch) {
-            const isDark = (widget.ignoreLocalThemeSwap ?? false) ? true : colorScheme !== 'light';
-            const endColor   = isDark ? swatch.darkEnd   : swatch.lightEnd;
-            const startColor = isDark ? swatch.darkStart : swatch.lightStart;
+            const endColor   = widgetIsDark ? swatch.darkEnd   : swatch.lightEnd;
+            const startColor = widgetIsDark ? swatch.darkStart : swatch.lightStart;
             const blendedStart = mixHex(endColor, startColor, t);
             base['--widget-bg-preset-css'] = `linear-gradient(135deg, ${blendedStart} 0%, ${endColor} 100%)`;
           }
@@ -267,6 +271,15 @@ export default function WidgetContainer({ widget }: Props) {
         {overrideEnabled && (
           <>
             <div className="sg-widget-appearance-section">
+              <SettingsRow label="Local Theme">
+                <ThemeToggle
+                  isDark={widgetIsDark}
+                  onToggle={nextIsDark => updateWidget(widget.id, { localColorScheme: nextIsDark ? 'dark' : 'light' })}
+                />
+              </SettingsRow>
+            </div>
+
+            <div className="sg-widget-appearance-section">
               <span className="sg-widget-appearance-label">Presets</span>
               <SwatchPicker
                 value={widget.bgColor ?? globalColor}
@@ -279,15 +292,6 @@ export default function WidgetContainer({ widget }: Props) {
               >
                 ⬡ Match global widget color
               </button>
-            </div>
-
-            <div className="sg-widget-appearance-section">
-              <SettingsRow label="Ignore light/dark theme swap">
-                <SettingsSwitch
-                  checked={widget.ignoreLocalThemeSwap ?? false}
-                  onChange={v => updateWidget(widget.id, { ignoreLocalThemeSwap: v })}
-                />
-              </SettingsRow>
             </div>
 
             <div className="sg-widget-appearance-section">
@@ -336,7 +340,7 @@ export default function WidgetContainer({ widget }: Props) {
                   bgDim: undefined,
                   bgShadow: undefined,
                   bgGradientIntensity: undefined,
-                  ignoreLocalThemeSwap: undefined,
+                  localColorScheme: undefined,
                 })}
                 onPointerDown={e => e.stopPropagation()}
               >
@@ -358,8 +362,10 @@ export default function WidgetContainer({ widget }: Props) {
           'sg-widget',
           isEditMode   ? 'sg-widget--edit'            : '',
           settingsOpen ? 'sg-widget--settings-active' : '',
+          settingsOpen ? 'sg-widget--glow'             : '',
         ].filter(Boolean).join(' ')}
         data-preset={overrideEnabled && widget.bgPresetId ? widget.bgPresetId : undefined}
+        data-theme={overrideEnabled ? widget.localColorScheme : undefined}
         draggable={isEditMode && !resizePreview}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}

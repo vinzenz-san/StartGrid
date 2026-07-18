@@ -52,12 +52,12 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
   } = useTheme();
   const {
     colorScheme, accentColor, language, developerOptionsEnabled,
-    ignoreGlobalThemeSwap, enableCustomContextMenu, settingsPinned, elementInspectorEnabled, updateSettings,
+    enableCustomContextMenu, settingsPinned, elementInspectorEnabled, updateSettings,
   } = useSettings();
   const panelRef = useRef<HTMLDivElement>(null);
   const { config, setConfig } = useBackground();
   const { isEditMode, toggleEditMode } = useEditMode();
-  const { widgets, addWidget } = useWidgets();
+  const { widgets, addWidget, updateWidget } = useWidgets();
   const [devConfirmOpen,   setDevConfirmOpen]   = useState(false);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const [pickerOpen,       setPickerOpen]       = useState(false);
@@ -107,7 +107,15 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
     setGlobalGradientIntensity(THEME_DEFAULTS.globalGradientIntensity);
     setWidgetShadowOpacity(THEME_DEFAULTS.widgetShadowOpacity);
     setGlobalPresetId(THEME_DEFAULTS.globalPresetId);
-    updateSettings({ colorScheme: SETTINGS_DEFAULTS.colorScheme, accentColor: SETTINGS_DEFAULTS.accentColor, ignoreGlobalThemeSwap: SETTINGS_DEFAULTS.ignoreGlobalThemeSwap, enableCustomContextMenu: SETTINGS_DEFAULTS.enableCustomContextMenu });
+    updateSettings({ colorScheme: SETTINGS_DEFAULTS.colorScheme, accentColor: SETTINGS_DEFAULTS.accentColor, enableCustomContextMenu: SETTINGS_DEFAULTS.enableCustomContextMenu });
+  }
+
+  function doRevertLocalStyles() {
+    widgets.forEach(w => {
+      if (w.localColorScheme !== undefined || w.localOverrideEnabled) {
+        updateWidget(w.id, { localColorScheme: undefined, localOverrideEnabled: false });
+      }
+    });
   }
 
   function handleMatchBackground() {
@@ -188,6 +196,10 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
           </PanelSection>
 
           {/* ══ 3. WIDGETS ══ */}
+          <div
+            onMouseEnter={() => document.documentElement.classList.add('sg-glow-all-widgets')}
+            onMouseLeave={() => document.documentElement.classList.remove('sg-glow-all-widgets')}
+          >
           <PanelSection title="Widgets" collapsible persistenceKey="widgets">
             {/* Lock / Unlock */}
             <SettingsRow label={isEditMode ? 'Layout unlocked' : 'Layout locked'}>
@@ -261,6 +273,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
               </SettingsRow>
             </DetailedSettings>
           </PanelSection>
+          </div>
 
           {/* ══ 4. SETTINGS ══ */}
           <PanelSection title="Settings" collapsible persistenceKey="settings" defaultOpen>
@@ -280,14 +293,8 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
                 onChange={v => updateSettings({ language: v })}
               />
             </SettingsRow>
-            <SettingsRow label="Light/Dark Mode">
+            <SettingsRow label="Global Theme">
               <ThemeToggle />
-            </SettingsRow>
-            <SettingsRow label="Apply to Widgets & Backgrounds">
-              <SettingsSwitch
-                checked={!ignoreGlobalThemeSwap}
-                onChange={v => updateSettings({ ignoreGlobalThemeSwap: !v })}
-              />
             </SettingsRow>
             <SettingsRow label="Accent Color">
               <button
@@ -319,6 +326,9 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
             </div>
             {importError && <p className="sg-backup-error">{importError}</p>}
 
+            <ActionButton variant="danger" cooldownTime={1} onClick={doRevertLocalStyles}>
+              Revert Local Styles
+            </ActionButton>
             <ActionButton variant="danger" cooldownTime={1} onClick={doResetAppearance}>
               Reset Appearance
             </ActionButton>

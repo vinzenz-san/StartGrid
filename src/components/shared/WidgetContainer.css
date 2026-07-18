@@ -7,9 +7,21 @@
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, calc(0.06 * var(--widget-bg-opacity, 1)));
   box-shadow: 0 4px 20px rgba(0, 0, 0, calc(var(--widget-shadow-opacity, 75) / 100 * var(--widget-bg-opacity, 1) * 0.40)),
-              0 1px 6px  rgba(0, 0, 0, calc(var(--widget-shadow-opacity, 75) / 100 * var(--widget-bg-opacity, 1) * 0.24));
+              0 1px 6px  rgba(0, 0, 0, calc(var(--widget-shadow-opacity, 75) / 100 * var(--widget-bg-opacity, 1) * 0.24)),
+              var(--glow-shadow, 0 0 0 transparent);
   transition: box-shadow 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
   min-height: 0;
+}
+
+/* ── Accent glow highlight ────────────────────────
+   An extra box-shadow layer, off by default (--glow-shadow is transparent), toggled on by
+   adding .sg-widget--glow. Layered onto the existing box-shadow (rather than replacing it)
+   so the normal drop shadow keeps working underneath, and it rides the same `box-shadow`
+   transition already declared above for a smooth fade in every scheme/data-theme variant. */
+.sg-widget--glow {
+  --glow-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 65%, transparent),
+    0 0 22px 2px color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
 /* Background layer — opacity-controlled so Global Opacity works for both formula and preset CSS.
@@ -80,6 +92,18 @@
 .sg-widget--edit .sg-widget-gear        { display: flex; top: 3px; right: 34px; opacity: 1; } /* always visible in edit mode, left of delete button */
 .sg-widget-gear:hover  { background: var(--surface-hover); color: var(--text); }
 .sg-widget-gear.active { background: rgba(99,102,241,0.2); color: var(--accent-hover); opacity: 1; }
+
+/* Light mode: the passive (widget-hover-revealed, not yet gear-hovered) chip must stay soft —
+   the near-black rgba(15,17,23,0.7) base chip clashes with light mode's aesthetic. Opaque-enough
+   white so the blurred widget background can't bleed through and darken it, plus a lighter gray
+   than --text-muted (which still read as too harsh against it). The sharp dark
+   .sg-widget-gear:hover / .active states above are intentionally excluded so direct interaction
+   still gets full contrast. */
+html[data-scheme="light"] .sg-widget:not([data-theme="dark"]) .sg-widget-gear:not(:hover):not(.active),
+.sg-widget[data-theme="light"] .sg-widget-gear:not(:hover):not(.active) {
+  background: rgba(255, 255, 255, 0.82);
+  color: #94a3b8;
+}
 
 /* ── Controls bar ────────────────────────────────── */
 .sg-widget-controls {

@@ -74,21 +74,54 @@
 .sg-widget[data-preset="ocean"]    { --preset-bg: linear-gradient(135deg, #0a2d6e 0%, #1a3fa0 100%); }
 .sg-widget[data-preset="ember"]    { --preset-bg: linear-gradient(135deg, #7c2d12 0%, #9a3412 100%); }
 
-html[data-scheme="light"] .sg-widget {
+/* A widget with an explicit local theme (data-theme) always wins over the page-wide
+   html[data-scheme] — :not([data-theme="dark"]) keeps the page-light rule from leaking
+   onto a widget that's explicitly forced dark while the rest of the app is light. */
+html[data-scheme="light"] .sg-widget:not([data-theme="dark"]),
+.sg-widget[data-theme="light"] {
   color: var(--text);
-  backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(calc(12px * var(--widget-bg-opacity, 1))) saturate(calc(1 + 0.4 * var(--widget-bg-opacity, 1)));
   border: 1px solid rgba(255, 255, 255, calc(0.60 * var(--widget-bg-opacity, 1)));
   box-shadow: 0 2px 12px rgba(0, 0, 0, calc(0.08 * var(--widget-bg-opacity, 1))),
-              0 1px 3px  rgba(0, 0, 0, calc(0.05 * var(--widget-bg-opacity, 1)));
+              0 1px 3px  rgba(0, 0, 0, calc(0.05 * var(--widget-bg-opacity, 1))),
+              var(--glow-shadow, 0 0 0 transparent);
 }
 
-html[data-scheme="light"] .sg-widget::before {
+html[data-scheme="light"] .sg-widget:not([data-theme="dark"])::before,
+.sg-widget[data-theme="light"]::before {
   /* Same opacity-controlled approach as dark mode — no inverse glass formula */
   background: var(--preset-bg, var(--widget-bg-preset-css, linear-gradient(135deg,
     var(--widget-bg-color, #e2e8f0),
     var(--widget-bg-color-end, #e2e8f0)
   )));
   opacity: var(--widget-bg-opacity, 1);
+}
+
+/* Explicit dark counterpart — matches the light rule's specificity exactly (attr + class
+   vs. class + :not(attr)), so switching back to "Auto" while the global scheme is dark
+   (or forcing data-theme="dark" locally) reliably reasserts the dark border/shadow instead
+   of silently falling through to a lower-specificity default that a prior light match can
+   still outrank during the same style recalculation. */
+html[data-scheme="dark"] .sg-widget:not([data-theme="light"]),
+.sg-widget[data-theme="dark"] {
+  color: var(--text);
+  backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, calc(0.06 * var(--widget-bg-opacity, 1)));
+  box-shadow: 0 4px 20px rgba(0, 0, 0, calc(var(--widget-shadow-opacity, 75) / 100 * var(--widget-bg-opacity, 1) * 0.40)),
+              0 1px 6px  rgba(0, 0, 0, calc(var(--widget-shadow-opacity, 75) / 100 * var(--widget-bg-opacity, 1) * 0.24)),
+              var(--glow-shadow, 0 0 0 transparent);
+}
+
+/* Local text-color scope: a widget with an explicit theme redeclares --text/--text-muted
+   for its own subtree, so its typography stops inheriting the page-wide html[data-scheme]
+   value and instead follows the widget's own data-theme, whichever way it points. */
+.sg-widget[data-theme="light"] {
+  --text:       #0f172a;
+  --text-muted: #475569;
+}
+.sg-widget[data-theme="dark"] {
+  --text:       #e2e8f0;
+  --text-muted: #64748b;
 }
 
 /* ════════════════════════════════════════════════════ */
