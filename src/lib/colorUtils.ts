@@ -52,3 +52,14 @@ export function lightenHex(hex: string, factor = 0.2): string {
 export function generateGradient(hex: string): string {
   return `linear-gradient(135deg, ${darkenHex(hex, 0.5)} 0%, ${hex} 50%, ${darkenHex(hex, 0.35)} 100%)`;
 }
+
+export function hexToRgb(hex: string): [number, number, number] {
+  const h = hex.replace('#', '').padEnd(6, '0');
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+
+/** Standard broadcast luminance (0–255): Y = 0.299R + 0.587G + 0.114B */
+export function luminance(hex: string): number {
+  const [r, g, b] = hexToRgb(hex);
+  return 0.299 * r + 0.587 * g + 0.114 * b;
+}

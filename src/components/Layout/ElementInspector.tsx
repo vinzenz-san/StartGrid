@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useElementInspectorHistory } from '../../contexts/ElementInspectorContext';
 import './ElementInspector.css';
@@ -7,7 +7,6 @@ const TOOLTIP_OFFSET = 14;
 
 interface Props {
   active: boolean;
-  containerRef: RefObject<HTMLDivElement>;
 }
 
 function describeElement(el: HTMLElement): string {
@@ -18,11 +17,11 @@ function describeElement(el: HTMLElement): string {
 }
 
 /**
- * Dev-only hover inspector scoped to the settings sidebar. Mutates the hovered
+ * Dev-only hover inspector, active across the entire page. Mutates the hovered
  * element's outline directly via the DOM (not React state) to avoid re-render
  * spam on every mousemove — only the small floating tooltip re-renders.
  */
-export function ElementInspector({ active, containerRef }: Props) {
+export function ElementInspector({ active }: Props) {
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [label, setLabel] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -43,8 +42,6 @@ export function ElementInspector({ active, containerRef }: Props) {
 
   useEffect(() => {
     if (!active) return;
-    const container = containerRef.current;
-    if (!container) return;
 
     const clearOutline = () => {
       if (hoveredRef.current) {
@@ -83,20 +80,22 @@ export function ElementInspector({ active, containerRef }: Props) {
       });
     };
 
-    container.addEventListener('mousemove', handleMove);
-    container.addEventListener('mouseleave', handleLeave);
+    document.addEventListener('pointerover', handleMove);
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('mouseleave', handleLeave);
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      container.removeEventListener('mousemove', handleMove);
-      container.removeEventListener('mouseleave', handleLeave);
+      document.removeEventListener('pointerover', handleMove);
+      document.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('mouseleave', handleLeave);
       document.removeEventListener('keydown', handleKeyDown);
       clearOutline();
       setLabel(null);
       setCopied(false);
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
     };
-  }, [active, containerRef]);
+  }, [active]);
 
   if (!active || !label) return null;
 

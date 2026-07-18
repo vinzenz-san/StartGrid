@@ -17,21 +17,19 @@
   user-select: none;
 }
 
-/* ── Position modifiers ── */
-.dev-panel--bottom-left  { bottom: 16px; left:  16px; }
-.dev-panel--bottom-right { bottom: 16px; right: 16px; }
-.dev-panel--top-left     { top:    16px; left:  16px; }
-.dev-panel--top-right    { top:    16px; right: 16px; }
+/* ── Header (drag handle) ── */
+.dev-panel-header {
+  cursor: move;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 5px;
+  margin-bottom: 2px;
+}
 
-/* ── Header ── */
 .dev-panel-title {
   font-size: 9px;
   letter-spacing: 0.12em;
   color: var(--text-muted);
   text-transform: uppercase;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 5px;
-  margin-bottom: 2px;
   opacity: 0.6;
 }
 

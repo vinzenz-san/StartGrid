@@ -8,9 +8,10 @@ import WidgetContainer from '../shared/WidgetContainer';
 import ThemeToggle from '../shared/ThemeToggle';
 import GearIcon from '../shared/icons/GearIcon';
 import SettingsPanel from './SettingsPanel';
-import DevPanel from '../DevPanel/DevPanel';
+import DevPanel, { type DevPanelPos } from '../DevPanel/DevPanel';
 import InspectorHistoryPanel from '../DevPanel/InspectorHistoryPanel';
 import { ElementInspectorProvider } from '../../contexts/ElementInspectorContext';
+import { useBackgroundContrast } from '../../hooks/useBackgroundContrast';
 import './Grid.css';
 
 const COLS    = 8;
@@ -25,8 +26,11 @@ export default function Grid() {
   const { widgets, updateWidget, loaded } = useWidgets();
   const { developerOptionsEnabled, settingsButtonPosition, settingsPinned, elementInspectorEnabled } = useSettings();
   const gridRef = useRef<HTMLDivElement>(null);
+  const gearBtnRef = useRef<HTMLButtonElement>(null);
   const [dropTarget,        setDropTarget]        = useState<DropTarget | null>(null);
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
+  const [devPanelPos,       setDevPanelPos]       = useState<DevPanelPos | null>(null);
+  const gearDarkVariant = useBackgroundContrast(gearBtnRef);
 
   const cellFromPoint = (clientX: number, clientY: number) => {
     const rect = gridRef.current!.getBoundingClientRect();
@@ -66,12 +70,17 @@ export default function Grid() {
 
       {/* ── Floating control cluster ── */}
       {(() => {
-        const isRight = !settingsButtonPosition.endsWith('left');
+        const side = settingsButtonPosition.endsWith('left')
+          ? 'left'
+          : settingsButtonPosition.endsWith('right')
+            ? 'right'
+            : 'center';
         return (
-          <div className={`sg-controls sg-controls--${settingsButtonPosition}${isRight ? ' sg-controls--side-right' : ' sg-controls--side-left'}`}>
+          <div className={`sg-controls sg-controls--${settingsButtonPosition} sg-controls--side-${side}`}>
             {/* Settings gear — always visible anchor */}
             <button
-              className={`sg-btn-control sg-btn-control--settings${settingsPanelOpen ? ' active' : ''}`}
+              ref={gearBtnRef}
+              className={`sg-btn-control sg-btn-control--settings${settingsPanelOpen ? ' active' : ''}${gearDarkVariant ? ' sg-btn-control--dark-variant' : ''}`}
               onPointerDown={e => { e.stopPropagation(); e.preventDefault(); if (!settingsPinned) setSettingsPanelOpen(s => !s); }}
               title="Settings"
             >
@@ -79,21 +88,26 @@ export default function Grid() {
             </button>
 
             {/* Theme toggle — hidden until hover */}
-            <div className="sg-controls__reveal">
+            <div className="sg-controls__reveal sg-controls__reveal--theme">
               <ThemeToggle />
             </div>
 
-            {/* Lock/unlock — hidden until hover */}
-            <button
-              className={`sg-btn-control sg-controls__reveal${isEditMode ? ' active' : ''}`}
-              onPointerDown={() => { setSettingsPanelOpen(false); toggleEditMode(); }}
-              title={isEditMode ? 'Lock layout (Ctrl+E)' : 'Unlock layout (Ctrl+E)'}
-            >
-              {isEditMode
-                ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
-              }
-            </button>
+            {/* Lock/unlock — hidden until hover. Wrapped like the theme toggle
+                (rather than putting the reveal classes on the button itself)
+                so the center-alignment variant can give both flanks an
+                identical width without resizing the button's own hit-box. */}
+            <div className="sg-controls__reveal sg-controls__reveal--lock">
+              <button
+                className={`sg-btn-control${isEditMode ? ' active' : ''}`}
+                onPointerDown={() => { setSettingsPanelOpen(false); toggleEditMode(); }}
+                title={isEditMode ? 'Lock layout (Ctrl+E)' : 'Unlock layout (Ctrl+E)'}
+              >
+                {isEditMode
+                  ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+                }
+              </button>
+            </div>
           </div>
         );
       })()}
@@ -125,8 +139,10 @@ export default function Grid() {
         </div>
       </main>
 
-      {developerOptionsEnabled && <DevPanel />}
-      {developerOptionsEnabled && elementInspectorEnabled && <InspectorHistoryPanel />}
+      {developerOptionsEnabled && <DevPanel position={devPanelPos} onPositionChange={setDevPanelPos} />}
+      {developerOptionsEnabled && elementInspectorEnabled && devPanelPos && (
+        <InspectorHistoryPanel devPanelPos={devPanelPos} />
+      )}
     </div>
     </ElementInspectorProvider>
   );
