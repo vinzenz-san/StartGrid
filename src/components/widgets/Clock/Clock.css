@@ -26,7 +26,6 @@
   color: var(--clock-color, var(--text-muted));
   font-weight: 400;
   letter-spacing: 0.01em;
-  opacity: 0.65;
 }
 
 /* ── Size modifiers ──────────────────────────────── */

@@ -21,11 +21,13 @@
   opacity: 1;
 }
 
-/* ── Settings focus: Background tab ─────────────── */
-/* Fade & blur widgets so the wallpaper is visible */
-.sg-focus-bg .sg-widget {
-  opacity: 0.2;
-  filter: blur(2px);
+/* ── Background-section hover: blur every widget ──
+   Toggled on document.documentElement by SettingsPanel while the cursor is over the
+   Background section — same pattern as the Widgets-section glow below, shifting
+   visual focus onto the background preview. */
+html.sg-blur-all-widgets .sg-widget {
+  filter: blur(6px);
+  opacity: 0.5;
 }
 
 /* ── Widgets-section hover: glow every widget ─────

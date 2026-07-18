@@ -15,6 +15,7 @@ export function computePresetCss(presetId: string, intensity: number, isDark: bo
 export const presetProvider: BackgroundProviderDef<PresetConfig> = {
   mode: 'preset',
   label: 'Presets',
+  panel: 'colors',
   resolveCss(config, ctx) {
     const intensity = config.gradientIntensity ?? 100;
     return computePresetCss(config.value, intensity, ctx.isDark);

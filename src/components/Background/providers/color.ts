@@ -14,11 +14,13 @@ function resolveColorCss(config: ColorConfig): string {
 export const colorProvider: BackgroundProviderDef<ColorConfig> = {
   mode: 'color',
   label: 'Custom Color',
+  panel: 'colors',
   resolveCss: resolveColorCss,
 };
 
 export const gradientProvider: BackgroundProviderDef<ColorConfig> = {
   mode: 'gradient',
   label: 'Gradient',
+  panel: 'colors',
   resolveCss: resolveColorCss,
 };

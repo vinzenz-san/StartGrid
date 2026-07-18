@@ -43,11 +43,17 @@ export interface UnsplashConfig extends BackgroundShared {
   unsplashPhotoUrl?: string;
 }
 
+export interface BingConfig extends BackgroundShared {
+  mode: 'bing';
+  value: string; // unused; kept for storage shape uniformity with other modes
+}
+
 export type BackgroundConfig =
   | PresetConfig
   | ColorConfig
   | CustomImageConfig
-  | UnsplashConfig;
+  | UnsplashConfig
+  | BingConfig;
 
 export type BackgroundMode = BackgroundConfig['mode'];
 
@@ -58,10 +64,17 @@ export const DEFAULT_BG: PresetConfig = {
   gradientIntensity: 100,
 };
 
+// ─── Editor grouping ───────────────────────────────────────────────────────
+// Which settings-panel sub-view a provider's controls render under. Several
+// modes can share one panel (preset/color/gradient all live under "colors").
+export type BackgroundPanel = 'colors' | 'image' | 'unsplash' | 'bing';
+
 // ─── Provider registry interface ───────────────────────────────────────────
 export interface BackgroundProviderDef<C extends BackgroundConfig = BackgroundConfig> {
   mode: C['mode'];
   label: string;
+  /** Editor sub-panel this provider's mode is edited under (drives the Background dropdown). */
+  panel: BackgroundPanel;
   /** Resolves the CSS `background` value from config + runtime data */
   resolveCss: (config: C, ctx: BackgroundRenderCtx) => string;
 }
@@ -71,6 +84,8 @@ export interface BackgroundRenderCtx {
   customImageUrl: string | null;
   /** Current cached Unsplash image URL (populated by UnsplashProvider) */
   unsplashImageUrl?: string | null;
+  /** Current cached Bing Daily Wallpaper image URL */
+  bingImageUrl?: string | null;
 }
 
 // ─── Preset definitions (unchanged) ────────────────────────────────────────

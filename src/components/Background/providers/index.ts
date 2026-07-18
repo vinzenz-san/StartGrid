@@ -3,6 +3,7 @@ import { presetProvider } from './preset';
 import { colorProvider, gradientProvider } from './color';
 import { customProvider } from './custom';
 import { unsplashProvider } from './unsplash';
+import { bingProvider } from './bing';
 
 // Cast needed because each provider is typed to its specific config subtype,
 // but the registry holds the union — resolveCss is called only when mode matches.
@@ -12,6 +13,7 @@ const BACKGROUND_PROVIDERS: Record<BackgroundMode, BackgroundProviderDef> = {
   gradient: gradientProvider as BackgroundProviderDef,
   custom:   customProvider   as BackgroundProviderDef,
   unsplash: unsplashProvider as BackgroundProviderDef,
+  bing:     bingProvider     as BackgroundProviderDef,
 };
 
 export function resolveBackgroundCss(config: BackgroundConfig, ctx: BackgroundRenderCtx): string {

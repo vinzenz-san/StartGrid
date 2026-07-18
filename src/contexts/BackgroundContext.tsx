@@ -5,6 +5,7 @@ import { BackgroundConfig, DEFAULT_BG } from '../types/background';
 import { resolveBackgroundCss } from '../components/Background/providers';
 import { useSettings } from './SettingsContext';
 import { useUnsplash, UnsplashAttribution } from '../hooks/useUnsplash';
+import { useBing } from '../hooks/useBing';
 
 const SYNC_KEY          = 'sg:background';
 const LOCAL_KEY         = 'sg:background:image';
@@ -12,6 +13,7 @@ const LOCAL_KEY         = 'sg:background:image';
 // eliminating the white flash caused by async storage.sync / storage.local hydration.
 const FAST_CONFIG_KEY   = 'sg:bg:fastConfig';
 const FAST_URL_KEY      = 'sg:unsplash:fastUrl';
+const FAST_BING_URL_KEY = 'sg:bing:fastUrl';
 
 function readFastConfig(): BackgroundConfig | null {
   try {
@@ -33,6 +35,16 @@ function writeFastUrl(url: string | null): void {
   } catch {}
 }
 
+function readFastBingUrl(): string | null {
+  try { return localStorage.getItem(FAST_BING_URL_KEY); } catch { return null; }
+}
+function writeFastBingUrl(url: string | null): void {
+  try {
+    if (url) localStorage.setItem(FAST_BING_URL_KEY, url);
+    else localStorage.removeItem(FAST_BING_URL_KEY);
+  } catch {}
+}
+
 interface BackgroundCtx {
   config: BackgroundConfig;
   customImageUrl: string | null;
@@ -44,6 +56,13 @@ interface BackgroundCtx {
   unsplash: {
     imageUrl: string | null;
     attribution: UnsplashAttribution | null;
+    isFetching: boolean;
+    error: string | null;
+    fetchNow: () => void;
+  };
+  bing: {
+    imageUrl: string | null;
+    title: string | undefined;
     isFetching: boolean;
     error: string | null;
     fetchNow: () => void;
@@ -60,6 +79,7 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
   const [config, setConfigState]            = useState<BackgroundConfig>(() => readFastConfig() ?? DEFAULT_BG);
   const [customImageUrl, setCustomImageUrl] = useState<string | null>(null);
   const [unsplashImageUrl, setUnsplashImageUrlRaw] = useState<string | null>(readFastUrl);
+  const [bingImageUrl, setBingImageUrlRaw]  = useState<string | null>(readFastBingUrl);
   const [loaded, setLoaded]                 = useState(false);
   const lastSaved                           = useRef('');
 
@@ -68,7 +88,13 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
     writeFastUrl(url);
   };
 
+  const setBingImageUrl = (url: string | null) => {
+    setBingImageUrlRaw(url);
+    writeFastBingUrl(url);
+  };
+
   const { attribution, isFetching, error, fetchNow } = useUnsplash(config, setUnsplashImageUrl);
+  const { title: bingTitle, isFetching: bingFetching, error: bingError, fetchNow: bingFetchNow } = useBing(config, setBingImageUrl);
 
   // Hydrate from real storage (sync + local) on mount
   useEffect(() => {
@@ -118,6 +144,7 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
     isDark,
     customImageUrl,
     unsplashImageUrl,
+    bingImageUrl,
   });
 
   return (
@@ -126,6 +153,7 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
       setConfig, setCustomImage, clearCustomImage,
       backgroundCss,
       unsplash: { imageUrl: unsplashImageUrl, attribution, isFetching, error, fetchNow },
+      bing: { imageUrl: bingImageUrl, title: bingTitle, isFetching: bingFetching, error: bingError, fetchNow: bingFetchNow },
     }}>
       {children}
     </Ctx.Provider>
