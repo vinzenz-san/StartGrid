@@ -17,13 +17,13 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: var(--border);
+  background: rgba(128, 128, 128, 0.40);
   transition: background 0.8s ease;
   pointer-events: none;
 }
 
 .sg-theme-toggle--dark .sg-theme-toggle__track {
-  background: var(--border);
+  background: rgba(128, 128, 128, 0.40);
 }
 
 /* Sliding knob */

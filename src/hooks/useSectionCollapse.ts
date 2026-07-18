@@ -13,8 +13,8 @@ const KEY_PREFIX = 'sg:ui:section:';
  * becomes a no-op (no storage reads/writes), but is still safe to call
  * unconditionally to satisfy the rules of hooks.
  */
-export function useSectionCollapse(persistenceKey: string | undefined): [boolean, () => void] {
-  const [isOpen, setIsOpen] = useState(false);
+export function useSectionCollapse(persistenceKey: string | undefined, defaultOpen = false): [boolean, () => void] {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const storageKey = persistenceKey ? `${KEY_PREFIX}${persistenceKey}` : null;
 
   useEffect(() => {

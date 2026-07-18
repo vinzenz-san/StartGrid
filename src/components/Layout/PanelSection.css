@@ -2,12 +2,12 @@
 .sg-settings-divider {
   border: none;
   border-top: 1.5px solid var(--border-strong);
-  margin: 4px 0;
+  margin: 8px 0;
 }
 
 /* ── Top-level panel sections ────────────────────────────────────────────────
    One rule drives spacing to every divider in the sidebar: 14px top+bottom
-   padding here + the divider's own 4px margin = 18px, always, on both sides
+   padding here + the divider's own 8px margin = 22px, always, on both sides
    of every <hr>, for every section — collapsible or not, regardless of what
    its last child is. A dedicated class (not the shared .settings-section,
    which twelve other files reuse for unrelated nested groupings) so this
@@ -15,12 +15,34 @@
    to fall into the same rhythm — no per-section padding/margin overrides.
    Owned by <PanelSection> — every section in the settings sidebar renders
    through that component, so this file is the single source of truth for
-   panel-section spacing. */
+   panel-section spacing. The 4px side margin insets its background card
+   from the sidebar's edges (the sidebar itself has no horizontal padding). */
 .sg-panel-section {
   padding: 14px 14px 14px;
+  margin: 0 8px;
   display: flex;
   flex-direction: column;
   gap: 0;
+  background: var(--surface-hover);
+  border-radius: 10px;
+}
+
+/* var(--surface-hover) (#f8fafc) reads almost identically to the sidebar's
+   white background in light mode — swap in a visibly darker slate tone here
+   so sections stay distinguishable. Dark mode's surface-hover already has
+   enough contrast against surface and is left as-is. */
+[data-scheme="light"] .sg-panel-section {
+  background: var(--border);
+}
+
+.sg-panel-section--collapsed-clickable {
+  cursor: pointer;
+}
+/* The header button has its own hover state already; avoid a double
+   highlight by not changing the section background on hover too — just
+   signal clickability via the cursor. */
+.sg-panel-section--collapsed-clickable .sg-section-header {
+  cursor: pointer;
 }
 
 /* Row-to-row spacing (the old shared-gap job) lives in this separate inner

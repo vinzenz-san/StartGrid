@@ -17,7 +17,7 @@ import { useWidgets } from '../../contexts/WidgetContext';
 import { WIDGET_REGISTRY, WIDGET_MENU_TYPES } from '../widgets/registry';
 import { findFreePosition } from '../../lib/gridUtils';
 import { DEFAULT_BG } from '../../types/background';
-import type { DevPanelPosition, Language, SettingsButtonPosition } from '../../contexts/SettingsContext';
+import type { Language, SettingsButtonPosition } from '../../contexts/SettingsContext';
 import type { WidgetType } from '../../types/widget';
 import './SettingsPanel.css';
 
@@ -38,14 +38,6 @@ const SETTINGS_BTN_CELLS = [
   { value: 'bottom-right'as SettingsButtonPosition, arrow: '↘', col: 3, row: 2 },
 ];
 
-// col/row placement in a 2×2 grid
-const DEV_PANEL_CELLS = [
-  { value: 'top-left'    as DevPanelPosition, arrow: '↖', col: 1, row: 1 },
-  { value: 'top-right'   as DevPanelPosition, arrow: '↗', col: 2, row: 1 },
-  { value: 'bottom-left' as DevPanelPosition, arrow: '↙', col: 1, row: 2 },
-  { value: 'bottom-right'as DevPanelPosition, arrow: '↘', col: 2, row: 2 },
-];
-
 interface Props {
   onClose: () => void;
   isOpen:  boolean;
@@ -59,7 +51,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
     setWidgetShadowOpacity, setGlobalPresetId,
   } = useTheme();
   const {
-    colorScheme, accentColor, language, developerOptionsEnabled, devPanelPosition,
+    colorScheme, accentColor, language, developerOptionsEnabled,
     ignoreGlobalThemeSwap, enableCustomContextMenu, settingsPinned, elementInspectorEnabled, updateSettings,
   } = useSettings();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -145,7 +137,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
 
   return (
     <div ref={panelRef} className={`sg-settings-panel sg-settings-panel--${panelSide}${isOpen ? ' sg-settings-panel--open' : ''}`} onClick={e => e.stopPropagation()}>
-      <ElementInspector active={elementInspectorEnabled && developerOptionsEnabled} containerRef={panelRef} />
+      <ElementInspector active={elementInspectorEnabled && developerOptionsEnabled} />
 
       {/* ── 1. HEADER ── */}
       <div className="sg-settings-header">
@@ -187,6 +179,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
 
       {/* ── Scrollable content ── */}
       <div className="sg-settings-content">
+        <hr className="sg-settings-divider" />
         <PanelSectionList>
 
           {/* ══ 2. BACKGROUND ══ */}
@@ -270,7 +263,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
           </PanelSection>
 
           {/* ══ 4. SETTINGS ══ */}
-          <PanelSection title="Settings">
+          <PanelSection title="Settings" collapsible persistenceKey="settings" defaultOpen>
             <SettingsRow label="Button Position">
               <DirectionPicker
                 cells={SETTINGS_BTN_CELLS}
@@ -308,7 +301,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
           </PanelSection>
 
           {/* ══ 5. DATA MANAGEMENT ══ */}
-          <PanelSection title="Data Management">
+          <PanelSection title="Data Management" collapsible persistenceKey="dataManagement" defaultOpen>
             <div className="sg-data-mgmt-row">
               <button className="sg-action-btn" onClick={() => fileInputRef.current?.click()} disabled={importing}>
                 {importing ? 'Restoring…' : 'Import'}
@@ -335,28 +328,11 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
           </PanelSection>
 
           {/* ══ 6. DEVELOPER OPTIONS ══ */}
-          <PanelSection title="Developer Options">
+          <PanelSection title="Developer Options" collapsible persistenceKey="developerOptions">
             <SettingsRow label="Enable Dev Mode">
               <SettingsSwitch
                 checked={developerOptionsEnabled}
                 onChange={v => { if (v) setDevConfirmOpen(true); else updateSettings({ developerOptionsEnabled: false }); }}
-              />
-            </SettingsRow>
-            <SettingsRow label="Panel Position" style={{ opacity: developerOptionsEnabled ? 1 : 0.4 } as React.CSSProperties}>
-              <DirectionPicker
-                cells={DEV_PANEL_CELLS}
-                value={devPanelPosition}
-                onChange={v => updateSettings({ devPanelPosition: v })}
-                cols={2}
-                rows={2}
-                disabled={!developerOptionsEnabled}
-              />
-            </SettingsRow>
-            <SettingsRow label="Enable Element Inspector" style={{ opacity: developerOptionsEnabled ? 1 : 0.4 } as React.CSSProperties}>
-              <SettingsSwitch
-                checked={elementInspectorEnabled}
-                onChange={v => updateSettings({ elementInspectorEnabled: v })}
-                disabled={!developerOptionsEnabled}
               />
             </SettingsRow>
           </PanelSection>

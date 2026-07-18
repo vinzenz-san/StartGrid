@@ -18,14 +18,6 @@
   user-select: none;
 }
 
-/* Anchored to the same vertical edge as DevPanel, offset horizontally
-   clear of its 264px width + 16px margin so the two always sit as a
-   clean side-by-side pair regardless of corner. */
-.sg-insp-history--top    { top:    16px; }
-.sg-insp-history--bottom { bottom: 16px; }
-.sg-insp-history--left   { left:   296px; }
-.sg-insp-history--right  { right:  296px; }
-
 .sg-insp-history-title {
   font-size: 9px;
   letter-spacing: 0.12em;

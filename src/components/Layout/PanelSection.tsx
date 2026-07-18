@@ -10,6 +10,8 @@ interface PanelSectionProps {
   persistenceKey?: string;
   /** 'spacious' = extra header-to-content padding (Background's tab switcher). Only meaningful when collapsible. */
   collapseGap?: 'normal' | 'spacious';
+  /** Initial open state before persisted storage resolves (and if nothing was ever persisted). Only meaningful when collapsible. */
+  defaultOpen?: boolean;
   children: ReactNode;
 }
 
@@ -18,6 +20,7 @@ export function PanelSection({
   collapsible = false,
   persistenceKey,
   collapseGap = 'normal',
+  defaultOpen = false,
   children,
 }: PanelSectionProps) {
   if (collapsible && !persistenceKey) {
@@ -26,12 +29,20 @@ export function PanelSection({
 
   // Hook is always called (rules of hooks) — it no-ops internally when the
   // section isn't collapsible (persistenceKey undefined).
-  const [isOpen, toggle] = useSectionCollapse(collapsible ? persistenceKey : undefined);
+  const [isOpen, toggle] = useSectionCollapse(collapsible ? persistenceKey : undefined, defaultOpen);
+
+  // While collapsed, clicking anywhere in the section expands it (not just
+  // the header/chevron) — the header's own click is stopped from bubbling
+  // here so the two handlers don't both fire and cancel each other out.
+  const collapsedClickable = collapsible && !isOpen;
 
   return (
-    <section className="sg-panel-section">
+    <section
+      className={`sg-panel-section${collapsedClickable ? ' sg-panel-section--collapsed-clickable' : ''}`}
+      onClick={collapsedClickable ? toggle : undefined}
+    >
       {collapsible ? (
-        <button className="sg-section-header" onClick={toggle} aria-expanded={isOpen}>
+        <button className="sg-section-header" onClick={e => { e.stopPropagation(); toggle(); }} aria-expanded={isOpen}>
           <span className="settings-section-label">{title}</span>
           <span className="sg-section-chevron">{isOpen ? '∨' : '›'}</span>
         </button>

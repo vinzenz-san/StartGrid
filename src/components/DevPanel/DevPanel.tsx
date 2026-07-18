@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useEditMode } from '../../contexts/EditModeContext';
 import { useWidgets } from '../../contexts/WidgetContext';
 import { useSettings } from '../../contexts/SettingsContext';
@@ -6,6 +6,25 @@ import { SettingsSwitch } from '../shared/Form';
 import './DevPanel.css';
 
 const isExtension = typeof chrome !== 'undefined' && !!chrome.storage;
+
+export interface DevPanelPos { x: number; y: number; }
+
+export const DEV_PANEL_WIDTH = 264;
+const DEV_PANEL_MARGIN = 16;
+const DEV_PANEL_POS_KEY = 'sg:devPanelPos';
+
+export function readSavedDevPanelPos(): DevPanelPos | null {
+  try {
+    const raw = localStorage.getItem(DEV_PANEL_POS_KEY);
+    return raw ? (JSON.parse(raw) as DevPanelPos) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeSavedDevPanelPos(pos: DevPanelPos) {
+  try { localStorage.setItem(DEV_PANEL_POS_KEY, JSON.stringify(pos)); } catch { /* ignore */ }
+}
 
 const SYNC_LIMIT  = 102_400;       // 100 KB — hard Firefox sync quota
 const LOCAL_LIMIT = 10 * 1024 * 1024; // 10 MB — soft display cap
@@ -108,17 +127,88 @@ function StoreSection({ title, data, limit }: { title: string; data: StoreData; 
 
 // ── Inner panel (holds all hooks) ──────────────────────────────────────────
 
-function DevPanelInner() {
+interface Props {
+  position: DevPanelPos | null;
+  onPositionChange: (pos: DevPanelPos) => void;
+}
+
+function DevPanelInner({ position, onPositionChange }: Props) {
   const { isEditMode }   = useEditMode();
   const { widgets, loaded } = useWidgets();
-  const { devPanelPosition, settingsButtonPosition, elementInspectorEnabled, updateSettings } = useSettings();
+  const { settingsButtonPosition, elementInspectorEnabled, updateSettings } = useSettings();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const dragRef  = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
+  const posRef   = useRef(position);
+  const hasDraggedRef = useRef(false);
+  const [dragging, setDragging] = useState(false);
+  useEffect(() => { posRef.current = position; }, [position]);
 
-  // Cluster is ~36px tall/wide at 14px from the edge.
-  // When DevPanel shares the same corner, offset it clear of the cluster.
-  const clusterOffset = devPanelPosition === settingsButtonPosition ? 58 : 16;
-  const devPanelStyle: CSSProperties = devPanelPosition.startsWith('top')
-    ? { top: clusterOffset }
-    : { bottom: clusterOffset };
+  const snapToSidebar = useCallback((height: number) => {
+    const sidebarOnLeft = settingsButtonPosition.endsWith('left');
+    const x = sidebarOnLeft ? window.innerWidth - DEV_PANEL_WIDTH - DEV_PANEL_MARGIN : DEV_PANEL_MARGIN;
+    const y = window.innerHeight - height - DEV_PANEL_MARGIN;
+    onPositionChange({ x, y });
+  }, [settingsButtonPosition, onPositionChange]);
+
+  // Force-reset on every mount: DevPanel only mounts when Dev Mode is freshly
+  // turned on, so it must always dynamically snap to the bottom corner opposite
+  // the sidebar — any stored drag position from a prior session is discarded.
+  useEffect(() => {
+    try { localStorage.removeItem(DEV_PANEL_POS_KEY); } catch { /* ignore */ }
+    hasDraggedRef.current = false;
+    snapToSidebar(panelRef.current?.getBoundingClientRect().height ?? 300);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Re-snap to the actual bottom edge whenever the panel's rendered height
+  // changes (e.g. once the async storage-stats data resolves) — but only
+  // until the user takes over with a manual drag.
+  useEffect(() => {
+    const el = panelRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      if (hasDraggedRef.current) return;
+      snapToSidebar(entry.contentRect.height);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [snapToSidebar]);
+
+  const handleHeaderMouseDown = useCallback((e: React.MouseEvent) => {
+    if (!posRef.current) return;
+    hasDraggedRef.current = true;
+    dragRef.current = { startX: e.clientX, startY: e.clientY, origX: posRef.current.x, origY: posRef.current.y };
+    setDragging(true);
+    e.preventDefault();
+  }, []);
+
+  useEffect(() => {
+    if (!dragging) return;
+
+    const handleMove = (e: MouseEvent) => {
+      if (!dragRef.current) return;
+      const dx = e.clientX - dragRef.current.startX;
+      const dy = e.clientY - dragRef.current.startY;
+      onPositionChange({ x: dragRef.current.origX + dx, y: dragRef.current.origY + dy });
+    };
+    const handleUp = () => {
+      setDragging(false);
+      dragRef.current = null;
+      if (posRef.current) writeSavedDevPanelPos(posRef.current);
+    };
+
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('mouseup', handleUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('mouseup', handleUp);
+    };
+  }, [dragging, onPositionChange]);
+
+  const devPanelStyle: CSSProperties = position
+    ? { left: position.x, top: position.y }
+    : { visibility: 'hidden' };
+
   const [stats,   setStats]   = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -132,8 +222,10 @@ function DevPanelInner() {
   useEffect(() => { refresh(); }, [refresh]);
 
   return (
-    <div className={`dev-panel dev-panel--${devPanelPosition}`} style={devPanelStyle}>
-      <div className="dev-panel-title">DEV</div>
+    <div ref={panelRef} className="dev-panel" style={devPanelStyle}>
+      <div className="dev-panel-header" onMouseDown={handleHeaderMouseDown}>
+        <span className="dev-panel-title">DEV</span>
+      </div>
 
       <div className="dev-row">
         <span className="dev-label">Storage</span>
@@ -187,6 +279,6 @@ function DevPanelInner() {
   );
 }
 
-export default function DevPanel() {
-  return <DevPanelInner />;
+export default function DevPanel({ position, onPositionChange }: Props) {
+  return <DevPanelInner position={position} onPositionChange={onPositionChange} />;
 }

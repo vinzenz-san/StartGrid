@@ -64,14 +64,57 @@
 
 /* Position variants */
 .sg-controls--top-left     { top: 14px; left: 14px; }
-.sg-controls--top          { top: 14px; left: 50%; transform: translateX(-50%); }
+.sg-controls--top          { top: 14px; left: 50%; transform: translateX(-50%); transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
 .sg-controls--top-right    { top: 14px; right: 14px; }
 .sg-controls--bottom-left  { bottom: 14px; left: 14px; }
-.sg-controls--bottom       { bottom: 14px; left: 50%; transform: translateX(-50%); }
+.sg-controls--bottom       { bottom: 14px; left: 50%; transform: translateX(-50%); transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
 .sg-controls--bottom-right { bottom: 14px; right: 14px; }
 
-/* Invert element order for right-side positions */
-.sg-controls--side-right { flex-direction: row-reverse; }
+/* ── Visual element order per alignment ──────────────────────────────────
+   DOM order is fixed (gear, theme toggle, lock) — `order` alone drives the
+   visual arrangement per side, applying identically to top and bottom
+   clusters since it keys off --side-*, not --top-*/--bottom-*.
+   Left:   gear -> theme -> lock
+   Right:  lock -> theme -> gear
+   Center: lock -> gear  -> theme (gear stays the middle/anchor element) */
+.sg-controls--side-left .sg-btn-control--settings    { order: 1; }
+.sg-controls--side-left .sg-controls__reveal--theme  { order: 2; }
+.sg-controls--side-left .sg-controls__reveal--lock   { order: 3; }
+
+.sg-controls--side-right .sg-controls__reveal--lock  { order: 1; }
+.sg-controls--side-right .sg-controls__reveal--theme { order: 2; }
+.sg-controls--side-right .sg-btn-control--settings   { order: 3; }
+
+.sg-controls--side-center .sg-controls__reveal--lock  { order: 1; }
+.sg-controls--side-center .sg-btn-control--settings    { order: 2; }
+.sg-controls--side-center .sg-controls__reveal--theme  { order: 3; }
+
+/* Back in normal flex flow (position: absolute previously broke the shared
+   ::before pill background, which needs both flanks inside the container's
+   own box to visually wrap them). Each flank grows to its own true content
+   width — no more forcing both to a shared 48px, which left ~20px of dead
+   space around the smaller 28px lock button. */
+.sg-controls--side-center .sg-controls__reveal {
+  max-width: 0;
+  overflow: hidden;
+  transition: max-width 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+}
+.sg-controls--side-center .sg-controls__reveal--lock  { max-width: 0; }
+.sg-controls--side-center:hover .sg-controls__reveal--lock  { max-width: 28px; }
+.sg-controls--side-center .sg-controls__reveal--theme { max-width: 0; }
+.sg-controls--side-center:hover .sg-controls__reveal--theme { max-width: 48px; }
+
+/* The two flanks now differ in width (28px lock vs 48px theme, a 20px gap),
+   so the flex row is no longer symmetric once expanded — its bounding-box
+   center (what left:50%/translateX(-50%) actually centers) drifts 10px
+   (half the 20px difference) away from the gear. This hover-only override
+   nudges the container back by that exact fixed amount so the gear itself
+   never visibly moves. Specificity (:hover adds a class) beats the base
+   .sg-controls--top/--bottom translateX(-50%) rule regardless of source
+   order, so this safely applies only while the cluster is expanded. */
+.sg-controls--side-center:hover {
+  transform: translateX(calc(-50% + 10px));
+}
 
 /* Icon-only control button — no border, no background */
 .sg-btn-control {
@@ -92,7 +135,11 @@
 }
 .sg-btn-control:hover        { transform: scale(1.15); }
 .sg-controls:hover .sg-btn-control { color: var(--accent); }
-.sg-btn-control.active       { color: var(--accent); }
+/* Excludes the settings gear — its "open" (active) state must fall back to
+   the dynamic background-contrast color when not actively hovered, not a
+   persistent accent tint. The lock button keeps this as its unlocked
+   indicator. */
+.sg-btn-control.active:not(.sg-btn-control--settings) { color: var(--accent); }
 
 /* Elements hidden until hover */
 .sg-controls__reveal {
@@ -109,18 +156,28 @@
   pointer-events: auto;
 }
 
-/* Light-mode: icons need a dark tint to show against bright backgrounds */
-[data-scheme="light"] .sg-btn-control {
+/* Light-mode: icons need a dark tint to show against bright backgrounds.
+   Excludes the settings gear — its color is fully owned by the dynamic
+   background-contrast system below, in both color schemes. */
+[data-scheme="light"] .sg-btn-control:not(.sg-btn-control--settings) {
   color: rgba(30, 30, 50, 0.45);
 }
 [data-scheme="light"] .sg-controls:hover .sg-btn-control {
   color: var(--accent);
 }
 
-/* Light-mode: settings gear gets a subtle dark border so it's visible when alone */
-[data-scheme="light"] .sg-btn-control--settings {
-  border: 1px solid rgba(30, 30, 50, 0.25);
-  border-radius: 50%;
+/* ── Settings gear: dynamic background-contrast color ──────────────────────
+   Toggled by useBackgroundContrast() based on live-sampled luminance under
+   the button's current anchor position — strictly white or black, no
+   in-between tones, per design constraint. .active is explicitly excluded
+   above so this still governs the gear's color while the settings panel is
+   open but not hovered; only the actual :hover→accent rule (highest
+   specificity, always wins) overrides it. */
+.sg-btn-control--settings {
+  color: #fff;
+}
+.sg-btn-control--settings.sg-btn-control--dark-variant {
+  color: #000;
 }
 
 /* ── Grid ────────────────────────────────────────── */
