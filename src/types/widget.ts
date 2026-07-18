@@ -91,7 +91,8 @@ interface WidgetBase {
   localGradientOverride?: boolean;
   bgGradientIntensity?: number;  // 0-100; replaces localGradientOverride
   bgShadow?: number;             // 0-100; local shadow intensity override
-  ignoreLocalThemeSwap?: boolean;
+  /** Explicit per-widget theme override. Unset (auto) follows the global colorScheme. */
+  localColorScheme?: 'light' | 'dark';
   showCustomTitle?: boolean;
   customTitle?: string;
 }

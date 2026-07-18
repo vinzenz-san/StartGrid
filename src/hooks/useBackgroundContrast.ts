@@ -186,8 +186,8 @@ function getAnalyticLuminance(
  */
 export function useBackgroundContrast(buttonRef: RefObject<HTMLElement | null>): boolean {
   const { config, customImageUrl, backgroundCss, unsplash } = useBackground();
-  const { colorScheme, ignoreGlobalThemeSwap, settingsButtonPosition } = useSettings();
-  const isDark = ignoreGlobalThemeSwap ? true : colorScheme !== 'light';
+  const { colorScheme, settingsButtonPosition } = useSettings();
+  const isDark = colorScheme !== 'light';
 
   const [isDarkVariant, setIsDarkVariant] = useState(false);
   const imgCacheRef = useRef<ImgCache | null>(null);

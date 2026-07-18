@@ -41,6 +41,16 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
+.sg-form-seg--disabled {
+  opacity: 0.45;
+}
+.sg-form-seg--disabled .sg-form-seg-btn {
+  cursor: not-allowed;
+}
+.sg-form-seg--disabled .sg-form-seg-btn:hover {
+  color: var(--text-muted);
+}
+
 /* ── SettingsSlider ──────────────────────────────────────────────────────── */
 .sg-settings-slider {
   display: flex;

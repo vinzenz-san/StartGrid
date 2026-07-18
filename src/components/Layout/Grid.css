@@ -28,12 +28,14 @@
   filter: blur(2px);
 }
 
-/* ── Settings focus: Widgets tab ─────────────────── */
-/* Orange glow border around every widget */
-.sg-focus-widgets .sg-widget {
-  box-shadow:
-    0 0 0 1px rgba(255, 87, 34, 0.35),
-    0 0 16px rgba(255, 87, 34, 0.3);
+/* ── Widgets-section hover: glow every widget ─────
+   Toggled on document.documentElement by SettingsPanel while the cursor is over the
+   Widgets section — reuses the same accent-colored .sg-widget--glow layer (see
+   WidgetContainer.css) rather than a separate hardcoded color. */
+html.sg-glow-all-widgets .sg-widget {
+  --glow-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 65%, transparent),
+    0 0 22px 2px color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
 /* ── Floating control cluster ────────────────────── */
