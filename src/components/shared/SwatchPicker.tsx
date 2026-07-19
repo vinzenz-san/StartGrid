@@ -3,6 +3,7 @@ import { getAdaptiveColor } from '../../lib/colorUtils';
 import { COLOR_PRESETS } from '../../lib/presets';
 import CustomColorPicker from './CustomColorPicker';
 import { SettingsRow } from './Form';
+import { useSettings } from '../../contexts/SettingsContext';
 import './SwatchPicker.css';
 
 interface Props {
@@ -22,6 +23,7 @@ export default function SwatchPicker({
   presetId, customColor, customColorScheme, isDark,
   onSelectPreset, onSelectCustom, variant = 'compact',
 }: Props) {
+  const { t } = useSettings();
   const customBtnRef = useRef<HTMLButtonElement>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -67,7 +69,7 @@ export default function SwatchPicker({
     <>
       {presetGrid}
 
-      <SettingsRow label="Custom Color">
+      <SettingsRow label={t('widgets.customColor')}>
         <button
           ref={customBtnRef}
           className={`bg-color-swatch${isCustomActive ? ' active' : ''}`}
