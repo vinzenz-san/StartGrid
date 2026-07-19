@@ -13,7 +13,7 @@
    section relative to the mode-switcher <Dropdown>, which sits directly in
    .bg-editor with no .settings-section wrapper. Zero it out in this context
    only, so nothing but PanelSection's own padding sets the left/right inset. */
-.bg-editor .settings-section:not(.bg-bing-section) {
+.bg-editor .settings-section {
   padding-left: 0;
   padding-right: 0;
 }
@@ -110,21 +110,11 @@
   opacity: 0.75;
 }
 
-/* ── Bing tab — fully automated, just a centered notice for visual balance ── */
-.bg-bing-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 20px 12px;
-  gap: 6px;
-}
-
+/* ── Placeholder tabs' "Coming soon" notice — left-aligned like every other tab ── */
 .bg-bing-note {
   font-size: 12px;
   color: var(--text-muted);
   line-height: 1.5;
-  max-width: 200px;
 }
 
 .bg-bing-error {

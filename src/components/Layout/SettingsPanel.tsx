@@ -8,6 +8,7 @@ import ConfirmDialog from '../shared/ConfirmDialog';
 import { SettingsRow, SettingsSwitch, SegmentedControl, SettingsSlider, ActionButton, DirectionPicker, IconButton } from '../shared/Form';
 import { PanelSection, PanelSectionList } from './PanelSection';
 import { DetailedSettings } from './DetailedSettings';
+import { SettingsPanelOpenContext } from '../../contexts/SettingsPanelOpenContext';
 import { useTheme, DEFAULTS as THEME_DEFAULTS } from '../../contexts/ThemeContext';
 import { useSettings, SETTINGS_DEFAULTS } from '../../contexts/SettingsContext';
 import { useBackground } from '../../contexts/BackgroundContext';
@@ -188,6 +189,11 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
       {/* ── Scrollable content ── */}
       <div className="sg-settings-content">
         <hr className="sg-settings-divider" />
+        {/* SettingsPanel never unmounts (only slides via CSS transform), so
+            <DetailedSettings> reads this to reset itself back to closed on
+            every reopen — see SettingsPanelOpenContext for why this doesn't
+            remount (and re-hydrate from storage) the PanelSections below. */}
+        <SettingsPanelOpenContext.Provider value={isOpen}>
         <PanelSectionList>
 
           {/* ══ 2. BACKGROUND ══ */}
@@ -246,7 +252,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
             <ActionButton variant="ghost" onClick={handleMatchBackground}>
               ⬡ Match Background
             </ActionButton>
-            <DetailedSettings persistenceKey="widgets">
+            <DetailedSettings>
               <SettingsSlider
                 label="Transparency"
                 value={transparencyPct}
@@ -350,6 +356,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
           </PanelSection>
 
         </PanelSectionList>
+        </SettingsPanelOpenContext.Provider>
       </div>
 
       {/* Portal-rendered accent color picker */}

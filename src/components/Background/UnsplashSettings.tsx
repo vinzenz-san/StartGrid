@@ -129,7 +129,7 @@ export default function UnsplashSettings() {
       {/* Luminosity is rendered by BackgroundEditor for all modes */}
 
       {/* Rotation interval + attribution — advanced */}
-      <DetailedSettings persistenceKey="bg-unsplash">
+      <DetailedSettings>
         <section className="settings-section">
           <div className="settings-section-label">Change photo every</div>
           <div className="sg-usp-interval-row">

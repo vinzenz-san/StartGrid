@@ -6,7 +6,7 @@ import { fetchBingImage } from '../components/Background/providers/bing';
 interface BingCache {
   url: string;
   title?: string;
-  fetchedDate: string; // YYYY-MM-DD, local — drives once-a-day refresh
+  fetchedDate: string; // YYYY-MM-DD — the Bing date this entry is for (today's or a custom pick)
 }
 
 const CACHE_KEY = 'sg:bing:cache';
@@ -15,43 +15,59 @@ function todayKey(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+// Resolves which Bing wallpaper date is actually being requested — today's,
+// unless the config explicitly opts into a custom date. Same pattern as
+// useAstronomy's resolveDateKey.
+function resolveDateKey(config: BackgroundConfig): string {
+  if (config.mode === 'bing' && config.dateMode === 'custom' && config.customDate) {
+    return config.customDate;
+  }
+  return todayKey();
+}
+
 export function useBing(
   config: BackgroundConfig,
   setImageUrl: (url: string | null) => void,
 ) {
   const isActive = config.mode === 'bing';
+  const dateKey  = resolveDateKey(config);
 
   const [title, setTitle]           = useState<string | undefined>(undefined);
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError]           = useState<string | null>(null);
 
-  // Always-current ref, same pattern as useUnsplash's fetchRef
+  // Always-current ref, same pattern as useAstronomy's fetchRef
   const fetchRef = useRef<() => Promise<void>>(async () => {});
 
   const fetchImage = useCallback(async () => {
+    const requestedDate = resolveDateKey(config);
     setIsFetching(true);
     setError(null);
     try {
-      const { url, title: t } = await fetchBingImage();
+      // 'today' mode passes no explicit date, so the mirror always resolves
+      // to its own latest entry rather than trusting the client clock.
+      const isCustom = config.mode === 'bing' && config.dateMode === 'custom';
+      const { url, title: t } = await fetchBingImage(isCustom ? requestedDate : undefined);
       setTitle(t);
       setImageUrl(url);
-      const cache: BingCache = { url, title: t, fetchedDate: todayKey() };
+      const cache: BingCache = { url, title: t, fetchedDate: requestedDate };
       storageLocal.set(CACHE_KEY, cache);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Fetch failed');
     } finally {
       setIsFetching(false);
     }
-  }, [setImageUrl]);
+  }, [config, setImageUrl]);
 
   useEffect(() => { fetchRef.current = fetchImage; }, [fetchImage]);
 
-  // Load cache when mode becomes active — reuse today's cached image, else refetch
+  // Load cache when mode becomes active, or when the chosen date changes —
+  // reuse the cached image for that date if present, else refetch.
   useEffect(() => {
     if (!isActive) { setImageUrl(null); return; }
     storageLocal.get(CACHE_KEY).then(cached => {
       const c = cached as BingCache | undefined;
-      if (c && c.fetchedDate === todayKey()) {
+      if (c && c.fetchedDate === dateKey) {
         setTitle(c.title);
         setImageUrl(c.url);
       } else {
@@ -59,7 +75,7 @@ export function useBing(
       }
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isActive]);
+  }, [isActive, dateKey]);
 
   return {
     title,
