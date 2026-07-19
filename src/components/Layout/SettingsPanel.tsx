@@ -6,7 +6,7 @@ import { COLOR_PRESETS } from '../../lib/presets';
 import { performFactoryReset, exportBackup, importBackup } from './BackupRestore';
 import CustomColorPicker from '../shared/CustomColorPicker';
 import ConfirmDialog from '../shared/ConfirmDialog';
-import { SettingsRow, SettingsSwitch, SegmentedControl, SettingsSlider, ActionButton, DirectionPicker, IconButton } from '../shared/Form';
+import { SettingsRow, SettingsSwitch, SettingsSlider, ActionButton, DirectionPicker, IconButton, Dropdown } from '../shared/Form';
 import { PanelSection, PanelSectionList } from './PanelSection';
 import { DetailedSettings } from './DetailedSettings';
 import { SettingsPanelOpenContext } from '../../contexts/SettingsPanelOpenContext';
@@ -16,7 +16,7 @@ import { useBackground } from '../../contexts/BackgroundContext';
 import { useEditMode } from '../../contexts/EditModeContext';
 import ThemeToggle from '../shared/ThemeToggle';
 import { useWidgets } from '../../contexts/WidgetContext';
-import { WIDGET_REGISTRY, WIDGET_MENU_TYPES } from '../widgets/registry';
+import { WIDGET_REGISTRY, WIDGET_MENU_TYPES, WIDGET_TYPE_LABEL_KEYS } from '../widgets/registry';
 import { findFreePosition } from '../../lib/gridUtils';
 import { DEFAULT_BG } from '../../types/background';
 import type { Language, SettingsButtonPosition } from '../../contexts/SettingsContext';
@@ -26,8 +26,8 @@ import './SettingsPanel.css';
 const APP_NAME = 'Startgrid';
 
 const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
-  { value: 'en', label: 'EN' },
-  { value: 'de', label: 'DE' },
+  { value: 'en', label: 'English' },
+  { value: 'de', label: 'Deutsch' },
 ];
 
 // col/row placement in a 3×2 grid (left col = left-side, center = centered, right col = right-side)
@@ -54,7 +54,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
   } = useTheme();
   const {
     colorScheme, accentColor, language, developerOptionsEnabled,
-    enableCustomContextMenu, settingsPinned, elementInspectorEnabled, updateSettings,
+    enableCustomContextMenu, settingsPinned, elementInspectorEnabled, updateSettings, t,
   } = useSettings();
   const panelRef = useRef<HTMLDivElement>(null);
   const { config, setConfig } = useBackground();
@@ -155,7 +155,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
             }
             active={settingsPinned}
             onClick={() => updateSettings({ settingsPinned: !settingsPinned })}
-            title={settingsPinned ? 'Unpin panel' : 'Pin panel'}
+            title={settingsPinned ? t('settings.unpinPanel') : t('settings.pinPanel')}
           />
           <div className="sg-settings-brand">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -177,7 +177,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
           </div>
         </div>
         {!settingsPinned && (
-          <IconButton icon="✕" onClick={onClose} title="Close" />
+          <IconButton icon="✕" onClick={onClose} title={t('settings.close')} />
         )}
       </div>
 
@@ -195,7 +195,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
             onMouseEnter={() => document.documentElement.classList.add('sg-blur-all-widgets')}
             onMouseLeave={() => document.documentElement.classList.remove('sg-blur-all-widgets')}
           >
-          <PanelSection title="Background" collapsible persistenceKey="background" collapseGap="spacious">
+          <PanelSection title={t('background.sectionTitle')} collapsible persistenceKey="background" collapseGap="spacious">
             <BackgroundEditor />
           </PanelSection>
           </div>
@@ -205,11 +205,11 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
             onMouseEnter={() => document.documentElement.classList.add('sg-glow-all-widgets')}
             onMouseLeave={() => document.documentElement.classList.remove('sg-glow-all-widgets')}
           >
-          <PanelSection title="Widgets" collapsible persistenceKey="widgets">
+          <PanelSection title={t('widgets.sectionTitle')} collapsible persistenceKey="widgets">
             {/* Lock / Unlock */}
-            <SettingsRow label={isEditMode ? 'Layout unlocked' : 'Layout locked'}>
+            <SettingsRow label={isEditMode ? t('widgets.layoutUnlocked') : t('widgets.layoutLocked')}>
               <ActionButton variant="ghost" active={isEditMode} fullWidth={false} onClick={toggleEditMode}>
-                {isEditMode ? '🔒 Lock' : '🔓 Unlock'}
+                {isEditMode ? t('widgets.lock') : t('widgets.unlock')}
               </ActionButton>
             </SettingsRow>
 
@@ -219,18 +219,18 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
                 className={`sg-widget-add-toggle${addMenuOpen ? ' active' : ''}`}
                 onClick={() => setAddMenuOpen(o => !o)}
               >
-                ＋ Add Widget
+                {t('widgets.addWidget')}
               </button>
               {addMenuOpen && (
                 <div className="sg-widget-add-list">
                   {WIDGET_MENU_TYPES
                     .filter(type => !WIDGET_REGISTRY[type].devOnly || developerOptionsEnabled)
                     .map(type => {
-                      const { label, icon } = WIDGET_REGISTRY[type];
+                      const { icon } = WIDGET_REGISTRY[type];
                       return (
                         <button key={type} className="sg-widget-add-item" onClick={() => handleAddWidget(type)}>
                           <span className="sg-widget-add-icon">{icon}</span>
-                          {label}
+                          {t(WIDGET_TYPE_LABEL_KEYS[type])}
                         </button>
                       );
                     })}
@@ -248,31 +248,31 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
               variant="large"
             />
             <ActionButton variant="ghost" onClick={handleMatchBackground}>
-              ⬡ Match Background
+              {t('widgets.matchBackground')}
             </ActionButton>
-            <p className="bg-sync-warning">Note: Global settings apply only to widgets without an active Local Style.</p>
+            <p className="bg-sync-warning">{t('widgets.globalStyleNote')}</p>
             <DetailedSettings>
               <SettingsSlider
-                label="Transparency"
+                label={t('widgets.transparency')}
                 value={transparencyPct}
                 onChange={v => setGlobalOpacity((100 - v) / 100)}
               />
               <SettingsSlider
-                label="Shadow Intensity"
+                label={t('widgets.shadowIntensity')}
                 value={widgetShadowOpacity}
                 onChange={setWidgetShadowOpacity}
               />
               <SettingsSlider
-                label="Gradient Intensity"
+                label={t('widgets.gradientIntensity')}
                 value={globalGradientIntensity}
                 onChange={setGlobalGradientIntensity}
               />
               <SettingsSlider
-                label="Dimming"
+                label={t('widgets.dimming')}
                 value={Math.round(globalDim)}
                 onChange={v => setGlobalDim(v)}
               />
-              <SettingsRow label="Widget Context Menus">
+              <SettingsRow label={t('widgets.contextMenus')}>
                 <SettingsSwitch
                   checked={enableCustomContextMenu}
                   onChange={v => updateSettings({ enableCustomContextMenu: v })}
@@ -283,27 +283,19 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
           </div>
 
           {/* ══ 4. SETTINGS ══ */}
-          <PanelSection title="Settings" collapsible persistenceKey="settings" defaultOpen>
-            <SettingsRow label="Button Position">
-              <DirectionPicker
-                cells={SETTINGS_BTN_CELLS}
-                value={settingsButtonPosition}
-                onChange={v => updateSettings({ settingsButtonPosition: v })}
-                cols={3}
-                rows={2}
-              />
-            </SettingsRow>
-            <SettingsRow label="Language">
-              <SegmentedControl<Language>
+          <PanelSection title={t('settings.sectionTitle')} collapsible persistenceKey="settings" defaultOpen>
+            <SettingsRow label={t('settings.language')}>
+              <Dropdown<Language>
                 options={LANGUAGE_OPTIONS}
                 value={language}
                 onChange={v => updateSettings({ language: v })}
+                className="sg-lang-dropdown"
               />
             </SettingsRow>
-            <SettingsRow label="Global Theme">
+            <SettingsRow label={t('settings.globalTheme')}>
               <ThemeToggle />
             </SettingsRow>
-            <SettingsRow label="Accent Color">
+            <SettingsRow label={t('settings.accentColor')}>
               <button
                 ref={accentSwatchRef}
                 className="bg-color-swatch"
@@ -312,16 +304,22 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
                 title="Pick accent color"
               />
             </SettingsRow>
-          </PanelSection>
+            <SettingsRow label={t('settings.buttonPosition')}>
+              <DirectionPicker
+                cells={SETTINGS_BTN_CELLS}
+                value={settingsButtonPosition}
+                onChange={v => updateSettings({ settingsButtonPosition: v })}
+                cols={3}
+                rows={2}
+              />
+            </SettingsRow>
 
-          {/* ══ 5. DATA MANAGEMENT ══ */}
-          <PanelSection title="Data Management" collapsible persistenceKey="dataManagement" defaultOpen>
             <div className="sg-data-mgmt-row">
               <button className="sg-action-btn" onClick={() => fileInputRef.current?.click()} disabled={importing}>
-                {importing ? 'Restoring…' : 'Import'}
+                {importing ? t('settings.importing') : t('settings.import')}
               </button>
               <button className="sg-action-btn" onClick={handleExportClick} disabled={exporting}>
-                {exporting ? 'Exporting…' : 'Export'}
+                {exporting ? t('settings.exporting') : t('settings.export')}
               </button>
               <input
                 ref={fileInputRef}
@@ -334,19 +332,19 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
             {importError && <p className="sg-backup-error">{importError}</p>}
 
             <ActionButton variant="danger" cooldownTime={1} onClick={doRevertLocalStyles}>
-              Reset all widget styles
+              {t('settings.resetWidgetStyles')}
             </ActionButton>
             <ActionButton variant="danger" cooldownTime={1} onClick={doResetAppearance}>
-              Reset Appearance
+              {t('settings.resetAppearance')}
             </ActionButton>
             <ActionButton variant="danger" cooldownTime={3} onClick={() => setResetConfirmOpen(true)}>
-              Factory Reset
+              {t('settings.factoryReset')}
             </ActionButton>
           </PanelSection>
 
-          {/* ══ 6. DEVELOPER OPTIONS ══ */}
-          <PanelSection title="Developer Options" collapsible persistenceKey="developerOptions">
-            <SettingsRow label="Enable Dev Mode">
+          {/* ══ 5. DEVELOPER OPTIONS ══ */}
+          <PanelSection title={t('dev.sectionTitle')} collapsible persistenceKey="developerOptions">
+            <SettingsRow label={t('dev.enableDevMode')}>
               <SettingsSwitch
                 checked={developerOptionsEnabled}
                 onChange={v => { if (v) setDevConfirmOpen(true); else updateSettings({ developerOptionsEnabled: false }); }}
@@ -373,18 +371,18 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
         open={resetConfirmOpen}
         onClose={() => setResetConfirmOpen(false)}
         onConfirm={async () => { setResetConfirmOpen(false); await performFactoryReset(developerOptionsEnabled); }}
-        title="Factory Reset"
-        body="Are you sure? All configuration will be permanently deleted and the page will reload."
-        confirmLabel="Delete Everything"
+        title={t('settings.factoryReset.title')}
+        body={t('settings.factoryReset.body')}
+        confirmLabel={t('settings.factoryReset.confirm')}
       />
 
       <ConfirmDialog
         open={devConfirmOpen}
         onClose={() => setDevConfirmOpen(false)}
         onConfirm={() => { updateSettings({ developerOptionsEnabled: true }); setDevConfirmOpen(false); }}
-        title="Enable Developer Options?"
-        body="Warning: Enabling developer options will remove safety cooldowns and reset protection nets across the application. Proceed with caution."
-        confirmLabel="Enable"
+        title={t('dev.confirm.title')}
+        body={t('dev.confirm.body')}
+        confirmLabel={t('dev.confirm.confirm')}
       />
     </div>
   );
