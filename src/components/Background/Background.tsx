@@ -115,7 +115,7 @@ const POSITION_CSS: Record<BackgroundPosition, string> = {
 };
 
 export default function Background() {
-  const { backgroundCss, config, unsplash, astronomy } = useBackground();
+  const { backgroundCss, config, unsplash, bing, astronomy } = useBackground();
   const { layers, active } = useCrossfadeBackground(backgroundCss);
 
   const isFit       = config.mode === 'custom' && (config.scalingMode ?? 'fit') === 'fit';
@@ -155,6 +155,11 @@ export default function Background() {
     (config.showApodTitle ?? false) &&
     !!astronomy.title;
 
+  const showBingTitle =
+    config.mode === 'bing' &&
+    (config.showTitle ?? false) &&
+    !!bing.title;
+
   return (
     <>
       {isFit && (
@@ -186,6 +191,11 @@ export default function Background() {
         <div className="sg-bg-attribution sg-apod-title-active">
           {astronomy.title}
           {astronomy.copyright && <>{' '}&copy; {astronomy.copyright}</>}
+        </div>
+      )}
+      {showBingTitle && (
+        <div className="sg-bg-attribution sg-apod-title-active">
+          {bing.title}
         </div>
       )}
     </>

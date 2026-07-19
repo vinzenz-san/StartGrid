@@ -60,6 +60,7 @@ export interface UnsplashConfig extends BackgroundShared {
 export interface BingConfig extends BackgroundShared {
   mode: 'bing';
   value: string; // unused; kept for storage shape uniformity with other modes
+  showTitle?: boolean; // default false — overlay Bing's daily wallpaper title
 }
 
 // ─── Placeholder Tabliss-parity providers (not yet implemented) ───────────

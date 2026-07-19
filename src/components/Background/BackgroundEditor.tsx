@@ -128,6 +128,7 @@ export default function BackgroundEditor() {
   };
 
   const astro       = config.mode === 'astronomy' ? config : null;
+  const bingCfg     = config.mode === 'bing' ? config : null;
   const isCustomActive = config.mode === 'color' || config.mode === 'gradient';
   const isPresetActive = (id: string) => config.mode === 'preset' && config.value === id;
   const intensity   = config.gradientIntensity ?? (config.customGradient === false ? 0 : 100);
@@ -181,7 +182,7 @@ export default function BackgroundEditor() {
                 }
               </div>
             </div>
-            <DetailedSettings persistenceKey="bg-colors">
+            <DetailedSettings>
               <SettingsSlider
                 label="Gradient Intensity"
                 value={intensity}
@@ -261,14 +262,109 @@ export default function BackgroundEditor() {
       {/* ── Unsplash tab ── */}
       {activeTab === 'unsplash' && <UnsplashSettings />}
 
-      {/* ── Bing tab — fully automated, nothing to configure ── */}
-      {activeTab === 'bing' && (
-        <section className="settings-section bg-bing-section">
+      {/* ── Bing tab — refreshes automatically, plus display controls ── */}
+      {activeTab === 'bing' && bingCfg && (
+        <section className="settings-section">
           <div className="settings-section-label">Bing Daily Wallpaper</div>
-          <p className="bg-bing-note">
-            Enjoy today&rsquo;s curated Bing background — it refreshes automatically once a day.
-          </p>
           {bing.error && <p className="bg-bing-error">{bing.error}</p>}
+
+          <SettingsRow label="Date">
+            <SegmentedControl
+              options={DATE_MODE_OPTIONS}
+              value={bingCfg.dateMode ?? 'today'}
+              onChange={v => setConfig({ ...bingCfg, dateMode: v })}
+            />
+          </SettingsRow>
+
+          {bingCfg.dateMode === 'custom' && (
+            <div className="bg-apod-date-row">
+              <span className="bg-apod-date-icon" aria-hidden="true">📅</span>
+              <input
+                type="date"
+                className="bg-apod-date-input"
+                value={bingCfg.customDate ?? todayIso()}
+                max={todayIso()}
+                onChange={e => setConfig({ ...bingCfg, customDate: e.target.value })}
+              />
+            </div>
+          )}
+
+          <SettingsRow label="Show title">
+            <SettingsSwitch
+              checked={bingCfg.showTitle ?? false}
+              onChange={v => setConfig({ ...bingCfg, showTitle: v })}
+            />
+          </SettingsRow>
+
+          <DetailedSettings>
+            <SettingsSlider
+              label="Blur"
+              value={bingCfg.blur ?? 0}
+              onChange={v => setConfig({ ...bingCfg, blur: v })}
+              min={0}
+              max={100}
+              step={1}
+              valueFormatter={noLabel}
+            />
+
+            <div className="bg-luminosity-slider-wrap">
+              <SettingsSlider
+                label="Luminosity"
+                value={bingCfg.luminosity ?? 100}
+                onChange={v => setConfig({ ...bingCfg, luminosity: v })}
+                min={0}
+                max={200}
+                step={5}
+                valueFormatter={noLabel}
+              />
+            </div>
+
+            <SettingsRow label="Scale background to fit">
+              <SettingsSwitch
+                checked={bingCfg.scaleToFit ?? true}
+                onChange={v => setConfig({ ...bingCfg, scaleToFit: v })}
+              />
+            </SettingsRow>
+
+            <div className="bg-position-row">
+              <span className="sg-form-label">Position</span>
+              <Dropdown
+                options={POSITION_OPTIONS}
+                value={bingCfg.position ?? 'center'}
+                onChange={v => setConfig({ ...bingCfg, position: v })}
+              />
+            </div>
+
+            <SettingsRow label="Automatically dim at night">
+              <SettingsSwitch
+                checked={bingCfg.autoDimNight ?? false}
+                onChange={v => setConfig({ ...bingCfg, autoDimNight: v })}
+              />
+            </SettingsRow>
+
+            {bingCfg.autoDimNight && (
+              <div className="bg-night-time-row">
+                <div className="bg-night-time-field">
+                  <span className="bg-night-time-label">Night starts at</span>
+                  <input
+                    type="time"
+                    className="bg-night-time-input"
+                    value={bingCfg.nightStart || '22:00'}
+                    onChange={e => setConfig({ ...bingCfg, nightStart: e.target.value || '22:00' })}
+                  />
+                </div>
+                <div className="bg-night-time-field">
+                  <span className="bg-night-time-label">Night ends at</span>
+                  <input
+                    type="time"
+                    className="bg-night-time-input"
+                    value={bingCfg.nightEnd || '05:00'}
+                    onChange={e => setConfig({ ...bingCfg, nightEnd: e.target.value || '05:00' })}
+                  />
+                </div>
+              </div>
+            )}
+          </DetailedSettings>
         </section>
       )}
 
@@ -306,7 +402,7 @@ export default function BackgroundEditor() {
             />
           </SettingsRow>
 
-          <DetailedSettings persistenceKey="bg-astronomy">
+          <DetailedSettings>
             <SettingsSlider
               label="Blur"
               value={astro.blur ?? 0}
@@ -380,7 +476,7 @@ export default function BackgroundEditor() {
 
       {/* ── Placeholder tabs (gradient / online / wikimedia) — not yet implemented ── */}
       {isPlaceholderTab && (
-        <section className="settings-section bg-bing-section">
+        <section className="settings-section">
           <div className="settings-section-label">{PANEL_LABELS[activeTab]}</div>
           <p className="bg-bing-note">Coming soon.</p>
         </section>

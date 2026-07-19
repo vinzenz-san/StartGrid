@@ -1,20 +1,28 @@
-import type { ReactNode } from 'react';
-import { useSectionCollapse } from '../../hooks/useSectionCollapse';
+import { useEffect, useState, type ReactNode } from 'react';
+import { useSettingsPanelOpen } from '../../contexts/SettingsPanelOpenContext';
 import './DetailedSettings.css';
 
 interface Props {
-  /** Unique key for browser.storage.local persistence — independent of any parent PanelSection's key. */
-  persistenceKey: string;
   children: ReactNode;
 }
 
 /**
  * Nested text-triggered collapsible for advanced/detailed sub-settings within
- * a <PanelSection>. Reuses useSectionCollapse for storage-backed persistence,
- * keyed independently so it never collides with the parent section's own key.
+ * a <PanelSection>. No storage persistence — unlike a top-level <PanelSection>,
+ * these shouldn't remember state across sidebar sessions. SettingsPanel never
+ * unmounts (only slides via CSS transform), so a plain useState(false) alone
+ * only resets on first mount; the sidebar-open flag from context resets it
+ * again on every subsequent reopen, without remounting (and re-hydrating
+ * from storage) the surrounding PanelSections.
  */
-export function DetailedSettings({ persistenceKey, children }: Props) {
-  const [isOpen, toggle] = useSectionCollapse(`adv:${persistenceKey}`);
+export function DetailedSettings({ children }: Props) {
+  const sidebarOpen = useSettingsPanelOpen();
+  const [isOpen, setIsOpen] = useState(false);
+  const toggle = () => setIsOpen(prev => !prev);
+
+  useEffect(() => {
+    if (sidebarOpen) setIsOpen(false);
+  }, [sidebarOpen]);
 
   return (
     <div className="sg-detailed-settings">

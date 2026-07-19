@@ -72,10 +72,16 @@
   scrollbar-color: var(--border-strong) transparent;
 }
 
-.sg-settings-content::-webkit-scrollbar        { width: 4px; }
-.sg-settings-content::-webkit-scrollbar-track  { background: transparent; }
-.sg-settings-content::-webkit-scrollbar-thumb  { background: var(--border-strong); border-radius: 2px; }
-.sg-settings-content::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+/* Firefox has never implemented ::-webkit-scrollbar* and can't parse these
+   selectors at all — @supports selector() skips them entirely so it never
+   emits a "rule ignored due to invalid selector" console warning. Firefox's
+   real scrollbar styling comes from scrollbar-width/scrollbar-color above. */
+@supports selector(::-webkit-scrollbar) {
+  .sg-settings-content::-webkit-scrollbar        { width: 4px; }
+  .sg-settings-content::-webkit-scrollbar-track  { background: transparent; }
+  .sg-settings-content::-webkit-scrollbar-thumb  { background: var(--border-strong); border-radius: 2px; }
+  .sg-settings-content::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+}
 
 /* ── Accent color swatch ─────────────────────────────────────────────────── */
 .sg-accent-swatch {

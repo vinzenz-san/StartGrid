@@ -77,7 +77,7 @@ html.sg-glow-all-widgets .sg-widget {
 /* ── Visual element order per alignment ──────────────────────────────────
    DOM order is fixed (gear, theme toggle, lock) — `order` alone drives the
    visual arrangement per side, applying identically to top and bottom
-   clusters since it keys off --side-*, not --top-*/--bottom-*.
+   clusters since it keys off --side-*, not --top-* / --bottom-*.
    Left:   gear -> theme -> lock
    Right:  lock -> theme -> gear
    Center: lock -> gear  -> theme (gear stays the middle/anchor element) */
