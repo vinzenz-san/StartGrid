@@ -13,9 +13,10 @@ interface Props<T extends string> {
   value: T;
   onChange: (value: T) => void;
   disabled?: boolean;
+  className?: string;
 }
 
-export default function Dropdown<T extends string>({ options, value, onChange, disabled = false }: Props<T>) {
+export default function Dropdown<T extends string>({ options, value, onChange, disabled = false, className }: Props<T>) {
   const [open, setOpen] = useState(false);
   const current = options.find(o => o.value === value);
 
@@ -52,7 +53,7 @@ export default function Dropdown<T extends string>({ options, value, onChange, d
   }, [open, refs.reference, refs.floating]);
 
   return (
-    <div className={`sg-dropdown${disabled ? ' sg-dropdown--disabled' : ''}`}>
+    <div className={`sg-dropdown${disabled ? ' sg-dropdown--disabled' : ''}${className ? ` ${className}` : ''}`}>
       <button
         ref={refs.setReference}
         type="button"
