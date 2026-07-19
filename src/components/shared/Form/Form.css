@@ -315,11 +315,7 @@
 .sg-dropdown-chevron--open { transform: rotate(180deg); }
 
 .sg-dropdown-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  z-index: 50;
+  z-index: 15000;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -328,8 +324,8 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  max-height: 220px;
-  overflow-y: auto;
+  max-height: 400px;
+  overflow-y: visible;
 }
 
 .sg-dropdown-item {

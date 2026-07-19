@@ -2,7 +2,7 @@
 .sg-settings-panel {
   position: fixed;
   top: 0;
-  width: 270px;
+  width: 340px;
   height: 100vh;
   background: var(--surface);
   z-index: 10000;
@@ -38,7 +38,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 16px 18px;
+  padding: 16px 20px 18px;
   flex-shrink: 0;
 }
 

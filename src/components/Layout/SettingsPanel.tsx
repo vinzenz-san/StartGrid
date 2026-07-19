@@ -267,9 +267,6 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
                 value={Math.round(globalDim)}
                 onChange={v => setGlobalDim(v)}
               />
-              {/* TODO: [Context Menu Bug] disabling this currently blocks the native browser
-                  context menu entirely instead of just hiding the custom one — needs fix,
-                  not addressed here. */}
               <SettingsRow label="Widget Context Menus">
                 <SettingsSwitch
                   checked={enableCustomContextMenu}

@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useFloating, flip, shift, offset, autoUpdate, size } from '@floating-ui/react';
 import './Form.css';
 
 interface Option<T extends string> {
@@ -15,26 +17,44 @@ interface Props<T extends string> {
 
 export default function Dropdown<T extends string>({ options, value, onChange, disabled = false }: Props<T>) {
   const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
   const current = options.find(o => o.value === value);
 
+  const { refs, floatingStyles } = useFloating({
+    placement: 'bottom-start',
+    middleware: [
+      offset(4),
+      flip(),
+      shift({ padding: 8 }),
+      size({
+        apply({ rects, elements }) {
+          Object.assign(elements.floating.style, { width: `${rects.reference.width}px` });
+        },
+      }),
+    ],
+    whileElementsMounted: autoUpdate,
+  });
+
+  // Close on outside pointer-down — same pattern as WidgetContainer / CustomColorPicker
   useEffect(() => {
     if (!open) return;
-    const onDocClick = (e: MouseEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    const handler = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (!refs.reference.current?.contains?.(t as Node) && !refs.floating.current?.contains(t))
+        setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
-    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('pointerdown', handler, { capture: true });
     document.addEventListener('keydown', onKey);
     return () => {
-      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('pointerdown', handler, { capture: true });
       document.removeEventListener('keydown', onKey);
     };
-  }, [open]);
+  }, [open, refs.reference, refs.floating]);
 
   return (
-    <div className={`sg-dropdown${disabled ? ' sg-dropdown--disabled' : ''}`} ref={rootRef}>
+    <div className={`sg-dropdown${disabled ? ' sg-dropdown--disabled' : ''}`}>
       <button
+        ref={refs.setReference}
         type="button"
         className={`sg-dropdown-trigger${open ? ' active' : ''}`}
         onClick={() => !disabled && setOpen(o => !o)}
@@ -43,8 +63,13 @@ export default function Dropdown<T extends string>({ options, value, onChange, d
         <span className="sg-dropdown-trigger-label">{current?.label ?? ''}</span>
         <span className={`sg-dropdown-chevron${open ? ' sg-dropdown-chevron--open' : ''}`} aria-hidden="true">▾</span>
       </button>
-      {open && (
-        <div className="sg-dropdown-menu" role="listbox">
+      {open && createPortal(
+        <div
+          ref={refs.setFloating}
+          style={floatingStyles}
+          className="sg-dropdown-menu"
+          role="listbox"
+        >
           {options.map(o => (
             <button
               key={o.value}
@@ -58,7 +83,8 @@ export default function Dropdown<T extends string>({ options, value, onChange, d
               {o.value === value && <span className="sg-dropdown-check">✓</span>}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

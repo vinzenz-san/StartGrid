@@ -197,8 +197,8 @@ html.sg-glow-all-widgets .sg-widget {
   transition: margin 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.sg-grid-wrapper--pinned-right { margin-right: 270px; }
-.sg-grid-wrapper--pinned-left  { margin-left: 270px; }
+.sg-grid-wrapper--pinned-right { margin-right: 340px; }
+.sg-grid-wrapper--pinned-left  { margin-left: 340px; }
 
 .sg-grid {
   display: grid;

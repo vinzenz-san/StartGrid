@@ -6,6 +6,9 @@
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
+  "background": {
+    "service_worker": "background.js"
+  },
   "permissions": [
     "storage",
     "bookmarks",
@@ -17,7 +20,10 @@
     "https://oauth2.googleapis.com/*",
     "https://gmail.googleapis.com/*",
     "https://www.googleapis.com/*",
-    "https://bing.npanuhin.me/*"
+    "https://bing.npanuhin.me/*",
+    "https://*.nasa.gov/*",
+    "https://*.unsplash.com/*",
+    "https://*.bing.com/*"
   ],
   "oauth2": {
     "client_id": "__REPLACE_WITH_CHROME_OAUTH_CLIENT_ID__",

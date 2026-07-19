@@ -13,3 +13,7 @@ dist/
 # Extension builds / zip files
 *.zip
 dist.zip
+
+# Environment variables (API keys) — never commit, .env.example is the template
+.env
+.env.local

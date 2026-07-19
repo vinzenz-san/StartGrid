@@ -12,12 +12,22 @@ export interface UnsplashAttribution {
 
 const CACHE_KEY = 'sg:unsplash:cache';
 
+// Statically injected at build time via rspack.config.ts's DefinePlugin
+// (same Rspack/no-Vite pattern as astronomy.ts's NASA key — APP_ prefix,
+// not VITE_, since this project is Rspack-based) — lets a repo maintainer
+// ship a working default via .env without every user having to paste their
+// own key into Settings first. A user-supplied apiKey in Settings always
+// takes priority over this env default.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ENV_UNSPLASH_KEY = (import.meta as any).env.APP_UNSPLASH_API_KEY || '';
+
 export function useUnsplash(
   config: BackgroundConfig,
   setImageUrl: (url: string | null) => void,
 ) {
   const isActive = config.mode === 'unsplash';
   const uc = isActive ? (config as UnsplashConfig) : undefined;
+  const apiKey = uc?.apiKey || ENV_UNSPLASH_KEY;
 
   const [attribution, setAttribution] = useState<UnsplashAttribution | null>(null);
   const [isFetching, setIsFetching]   = useState(false);
@@ -27,7 +37,7 @@ export function useUnsplash(
   const fetchRef = useRef<() => Promise<void>>(async () => {});
 
   const fetchImage = useCallback(async () => {
-    if (!uc?.apiKey) return;
+    if (!apiKey) return;
     setIsFetching(true);
     setError(null);
     try {
@@ -42,7 +52,7 @@ export function useUnsplash(
 
       const res = await fetch(
         `https://api.unsplash.com/photos/random?${params}`,
-        { headers: { Authorization: `Client-ID ${uc.apiKey}` } },
+        { headers: { Authorization: `Client-ID ${apiKey}` } },
       );
       if (!res.ok) throw new Error(
         res.status === 401 ? 'Invalid API key'      :
@@ -67,7 +77,7 @@ export function useUnsplash(
     } finally {
       setIsFetching(false);
     }
-  }, [uc?.apiKey, uc?.source, uc?.query, uc?.topics]);
+  }, [apiKey, uc?.source, uc?.query, uc?.topics]);
 
   // Keep ref current
   useEffect(() => { fetchRef.current = fetchImage; }, [fetchImage]);
@@ -80,7 +90,7 @@ export function useUnsplash(
         const c = cached as UnsplashAttribution;
         setAttribution(c);
         setImageUrl(c.imageUrl);
-      } else if (uc?.apiKey) {
+      } else if (apiKey) {
         fetchRef.current();
       }
     });
@@ -91,22 +101,22 @@ export function useUnsplash(
   const queryKey = JSON.stringify([uc?.source, uc?.query, uc?.topics]);
   const prevQueryKey = useRef(queryKey);
   useEffect(() => {
-    if (!isActive || !uc?.apiKey) return;
+    if (!isActive || !apiKey) return;
     if (prevQueryKey.current === queryKey) return;
     prevQueryKey.current = queryKey;
     fetchRef.current();
-  }, [isActive, uc?.apiKey, queryKey]);
+  }, [isActive, apiKey, queryKey]);
 
   // Rotation scheduler — reruns after each successful fetch (attribution dep)
   const fetchedAt = attribution?.fetchedAt ?? 0;
   useEffect(() => {
-    if (!isActive || !uc?.apiKey || !fetchedAt) return;
+    if (!isActive || !apiKey || !fetchedAt) return;
     const interval = (uc.rotationInterval ?? 900) * 1000;
     const delay    = Math.max(0, interval - (Date.now() - fetchedAt));
     const t = setTimeout(() => fetchRef.current(), delay);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isActive, uc?.apiKey, uc?.rotationInterval, fetchedAt]);
+  }, [isActive, apiKey, uc?.rotationInterval, fetchedAt]);
 
   return {
     attribution,

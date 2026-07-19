@@ -15,11 +15,14 @@
    to fall into the same rhythm — no per-section padding/margin overrides.
    Owned by <PanelSection> — every section in the settings sidebar renders
    through that component, so this file is the single source of truth for
-   panel-section spacing. The 4px side margin insets its background card
-   from the sidebar's edges (the sidebar itself has no horizontal padding). */
+   panel-section spacing. The side margin insets its background card
+   from the sidebar's edges (the sidebar itself has no horizontal padding).
+   Horizontal padding/margin are deliberately larger than the 14px vertical
+   rhythm above — Tabliss-style generous side breathing room — while the
+   vertical values stay untouched so the divider-spacing math above still holds. */
 .sg-panel-section {
-  padding: 14px 14px 14px;
-  margin: 0 8px;
+  padding: 14px 20px 14px;
+  margin: 0 12px;
   display: flex;
   flex-direction: column;
   gap: 0;

@@ -6,6 +6,7 @@ import { resolveBackgroundCss } from '../components/Background/providers';
 import { useSettings } from './SettingsContext';
 import { useUnsplash, UnsplashAttribution } from '../hooks/useUnsplash';
 import { useBing } from '../hooks/useBing';
+import { useAstronomy } from '../hooks/useAstronomy';
 
 const SYNC_KEY          = 'sg:background';
 const LOCAL_KEY         = 'sg:background:image';
@@ -14,6 +15,7 @@ const LOCAL_KEY         = 'sg:background:image';
 const FAST_CONFIG_KEY   = 'sg:bg:fastConfig';
 const FAST_URL_KEY      = 'sg:unsplash:fastUrl';
 const FAST_BING_URL_KEY = 'sg:bing:fastUrl';
+const FAST_APOD_URL_KEY = 'sg:apod:fastUrl';
 
 function readFastConfig(): BackgroundConfig | null {
   try {
@@ -45,6 +47,16 @@ function writeFastBingUrl(url: string | null): void {
   } catch {}
 }
 
+function readFastApodUrl(): string | null {
+  try { return localStorage.getItem(FAST_APOD_URL_KEY); } catch { return null; }
+}
+function writeFastApodUrl(url: string | null): void {
+  try {
+    if (url) localStorage.setItem(FAST_APOD_URL_KEY, url);
+    else localStorage.removeItem(FAST_APOD_URL_KEY);
+  } catch {}
+}
+
 interface BackgroundCtx {
   config: BackgroundConfig;
   customImageUrl: string | null;
@@ -67,6 +79,14 @@ interface BackgroundCtx {
     error: string | null;
     fetchNow: () => void;
   };
+  astronomy: {
+    imageUrl: string | null;
+    title: string | undefined;
+    copyright: string | undefined;
+    isFetching: boolean;
+    error: string | null;
+    fetchNow: () => void;
+  };
 }
 
 const Ctx = createContext<BackgroundCtx | null>(null);
@@ -80,6 +100,7 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
   const [customImageUrl, setCustomImageUrl] = useState<string | null>(null);
   const [unsplashImageUrl, setUnsplashImageUrlRaw] = useState<string | null>(readFastUrl);
   const [bingImageUrl, setBingImageUrlRaw]  = useState<string | null>(readFastBingUrl);
+  const [apodImageUrl, setApodImageUrlRaw]  = useState<string | null>(readFastApodUrl);
   const [loaded, setLoaded]                 = useState(false);
   const lastSaved                           = useRef('');
 
@@ -93,8 +114,14 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
     writeFastBingUrl(url);
   };
 
+  const setApodImageUrl = (url: string | null) => {
+    setApodImageUrlRaw(url);
+    writeFastApodUrl(url);
+  };
+
   const { attribution, isFetching, error, fetchNow } = useUnsplash(config, setUnsplashImageUrl);
   const { title: bingTitle, isFetching: bingFetching, error: bingError, fetchNow: bingFetchNow } = useBing(config, setBingImageUrl);
+  const { title: apodTitle, copyright: apodCopyright, isFetching: apodFetching, error: apodError, fetchNow: apodFetchNow } = useAstronomy(config, setApodImageUrl);
 
   // Hydrate from real storage (sync + local) on mount
   useEffect(() => {
@@ -145,6 +172,7 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
     customImageUrl,
     unsplashImageUrl,
     bingImageUrl,
+    apodImageUrl,
   });
 
   return (
@@ -154,6 +182,7 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
       backgroundCss,
       unsplash: { imageUrl: unsplashImageUrl, attribution, isFetching, error, fetchNow },
       bing: { imageUrl: bingImageUrl, title: bingTitle, isFetching: bingFetching, error: bingError, fetchNow: bingFetchNow },
+      astronomy: { imageUrl: apodImageUrl, title: apodTitle, copyright: apodCopyright, isFetching: apodFetching, error: apodError, fetchNow: apodFetchNow },
     }}>
       {children}
     </Ctx.Provider>

@@ -12,6 +12,9 @@
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
+  "background": {
+    "scripts": ["background.js"]
+  },
   "permissions": [
     "storage",
     "bookmarks",
@@ -23,6 +26,9 @@
     "https://oauth2.googleapis.com/*",
     "https://gmail.googleapis.com/*",
     "https://www.googleapis.com/*",
-    "https://bing.npanuhin.me/*"
+    "https://bing.npanuhin.me/*",
+    "https://*.nasa.gov/*",
+    "https://*.unsplash.com/*",
+    "https://*.bing.com/*"
   ]
 }

@@ -1,10 +1,10 @@
 import { useRef, useState, useEffect } from 'react';
 import { useBackground } from '../../contexts/BackgroundContext';
-import { PRESETS, BackgroundMode, BackgroundPanel, UnsplashConfig } from '../../types/background';
+import { PRESETS, BackgroundMode, BackgroundPanel, BackgroundPosition, UnsplashConfig } from '../../types/background';
 import { generateGradient } from '../../lib/colorUtils';
 import { BACKGROUND_PROVIDERS } from './providers';
 import CustomColorPicker from '../shared/CustomColorPicker';
-import { SettingsSlider, Dropdown } from '../shared/Form';
+import { SettingsSlider, SettingsRow, SettingsSwitch, SegmentedControl, Dropdown } from '../shared/Form';
 import UnsplashSettings from './UnsplashSettings';
 import { DetailedSettings } from '../Layout/DetailedSettings';
 import './BackgroundEditor.css';
@@ -12,21 +12,48 @@ import './BackgroundEditor.css';
 const SIZE_LIMIT_MB = 5;
 const RAINBOW_BG = 'linear-gradient(135deg, #6366f1 0%, #ec4899 40%, #f59e0b 70%, #10b981 100%)';
 
+const DATE_MODE_OPTIONS = [
+  { value: 'today' as const,  label: 'Today' },
+  { value: 'custom' as const, label: 'Custom Date' },
+];
+
+const POSITION_OPTIONS: { value: BackgroundPosition; label: string }[] = [
+  { value: 'center',       label: 'Center' },
+  { value: 'top',          label: 'Top' },
+  { value: 'bottom',       label: 'Bottom' },
+  { value: 'left',         label: 'Left' },
+  { value: 'right',        label: 'Right' },
+  { value: 'top-left',     label: 'Top Left' },
+  { value: 'top-right',    label: 'Top Right' },
+  { value: 'bottom-left',  label: 'Bottom Left' },
+  { value: 'bottom-right', label: 'Bottom Right' },
+];
+
+const noLabel = () => '';
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 type EditorTab = BackgroundPanel;
 
 // Labels for the dropdown itself — a panel groups several provider modes
 // (e.g. "colors" spans preset/color/gradient), so it isn't any single
 // provider's own `label`.
 const PANEL_LABELS: Record<EditorTab, string> = {
-  colors: 'Colors',
-  image: 'Image',
+  colors: 'Presets',
+  image: 'Upload Image',
   unsplash: 'Unsplash',
   bing: 'Bing Daily Wallpaper',
+  astronomy: 'Astronomy Picture of the Day',
+  gradient: 'Colour Gradient',
+  online: 'Online Image',
+  wikimedia: 'Wikimedia Image of the Day',
 };
 
-// Dynamically derived from the registry (in provider-registration order,
-// deduped) so a future provider just needs to declare its `panel` to show
-// up here — no hardcoded tab list to maintain.
+// Dynamically derived from the registry (deduped by panel), then sorted
+// alphabetically by label so a future provider just needs to declare its
+// `panel` to show up here in the right place — no hardcoded tab list to maintain.
 const PANEL_OPTIONS: { value: EditorTab; label: string }[] = (() => {
   const seen = new Set<EditorTab>();
   const options: { value: EditorTab; label: string }[] = [];
@@ -36,6 +63,7 @@ const PANEL_OPTIONS: { value: EditorTab; label: string }[] = (() => {
       options.push({ value: def.panel, label: PANEL_LABELS[def.panel] });
     }
   }
+  options.sort((a, b) => a.label.localeCompare(b.label));
   return options;
 })();
 
@@ -44,7 +72,7 @@ function modeToTab(mode: BackgroundMode): EditorTab {
 }
 
 export default function BackgroundEditor() {
-  const { config, customImageUrl, setConfig, setCustomImage, clearCustomImage, bing } = useBackground();
+  const { config, customImageUrl, setConfig, setCustomImage, clearCustomImage, bing, astronomy } = useBackground();
   const fileRef        = useRef<HTMLInputElement>(null);
   const customSwatchRef = useRef<HTMLDivElement>(null);
   const letterboxBtnRef = useRef<HTMLButtonElement>(null);
@@ -61,11 +89,17 @@ export default function BackgroundEditor() {
 
   const switchTab = (tab: EditorTab) => {
     if (tab === activeTab) return;
-    if (tab === 'colors')   setConfig({ ...config, mode: 'preset', value: PRESETS[0].id });
-    if (tab === 'image')    setConfig({ mode: 'custom', value: '' });
-    if (tab === 'unsplash') setConfig(lastUnsplashConfig.current);
-    if (tab === 'bing')     setConfig({ mode: 'bing', value: '' });
+    if (tab === 'colors')   { setConfig({ ...config, mode: 'preset', value: PRESETS[0].id }); return; }
+    if (tab === 'image')    { setConfig({ mode: 'custom', value: '' }); return; }
+    if (tab === 'unsplash') { setConfig(lastUnsplashConfig.current); return; }
+    if (tab === 'bing')     { setConfig({ mode: 'bing', value: '' }); return; }
+    // Placeholder tabs (astronomy / gradient / online / wikimedia) — resolve
+    // the mode from the registry rather than hardcoding one branch per future provider.
+    const provider = Object.values(BACKGROUND_PROVIDERS).find(def => def.panel === tab);
+    if (provider) setConfig({ mode: provider.mode, value: '' } as typeof config);
   };
+
+  const isPlaceholderTab = !['colors', 'image', 'unsplash', 'bing', 'astronomy'].includes(activeTab);
 
   const processFile = (file: File) => {
     if (file.size > SIZE_LIMIT_MB * 1024 * 1024) {
@@ -93,7 +127,7 @@ export default function BackgroundEditor() {
     if (file && file.type.startsWith('image/')) processFile(file);
   };
 
-  const dimPct      = Math.round((config.dimAmount ?? 0) * 100);
+  const astro       = config.mode === 'astronomy' ? config : null;
   const isCustomActive = config.mode === 'color' || config.mode === 'gradient';
   const isPresetActive = (id: string) => config.mode === 'preset' && config.value === id;
   const intensity   = config.gradientIntensity ?? (config.customGradient === false ? 0 : 100);
@@ -238,14 +272,119 @@ export default function BackgroundEditor() {
         </section>
       )}
 
-      {/* ── Dimming — always visible ── */}
-      <section className="settings-section settings-section--slider-only">
-        <SettingsSlider
-          label="Dimming"
-          value={dimPct}
-          onChange={v => setConfig({ ...config, dimAmount: v / 100 })}
-        />
-      </section>
+      {/* ── Astronomy tab — NASA Picture of the Day, refreshes automatically ── */}
+      {activeTab === 'astronomy' && astro && (
+        <section className="settings-section">
+          <div className="settings-section-label">Astronomy Picture of the Day</div>
+          {astronomy.error && <p className="bg-bing-error">{astronomy.error}</p>}
+
+          <SettingsRow label="Date">
+            <SegmentedControl
+              options={DATE_MODE_OPTIONS}
+              value={astro.dateMode ?? 'today'}
+              onChange={v => setConfig({ ...astro, dateMode: v })}
+            />
+          </SettingsRow>
+
+          {astro.dateMode === 'custom' && (
+            <div className="bg-apod-date-row">
+              <span className="bg-apod-date-icon" aria-hidden="true">📅</span>
+              <input
+                type="date"
+                className="bg-apod-date-input"
+                value={astro.customDate ?? todayIso()}
+                max={todayIso()}
+                onChange={e => setConfig({ ...astro, customDate: e.target.value })}
+              />
+            </div>
+          )}
+
+          <SettingsRow label="Show title">
+            <SettingsSwitch
+              checked={astro.showApodTitle ?? false}
+              onChange={v => setConfig({ ...astro, showApodTitle: v })}
+            />
+          </SettingsRow>
+
+          <DetailedSettings persistenceKey="bg-astronomy">
+            <SettingsSlider
+              label="Blur"
+              value={astro.blur ?? 0}
+              onChange={v => setConfig({ ...astro, blur: v })}
+              min={0}
+              max={100}
+              step={1}
+              valueFormatter={noLabel}
+            />
+
+            <div className="bg-luminosity-slider-wrap">
+              <SettingsSlider
+                label="Luminosity"
+                value={astro.luminosity ?? 100}
+                onChange={v => setConfig({ ...astro, luminosity: v })}
+                min={0}
+                max={200}
+                step={5}
+                valueFormatter={noLabel}
+              />
+            </div>
+
+            <SettingsRow label="Scale background to fit">
+              <SettingsSwitch
+                checked={astro.scaleToFit ?? true}
+                onChange={v => setConfig({ ...astro, scaleToFit: v })}
+              />
+            </SettingsRow>
+
+            <div className="bg-position-row">
+              <span className="sg-form-label">Position</span>
+              <Dropdown
+                options={POSITION_OPTIONS}
+                value={astro.position ?? 'center'}
+                onChange={v => setConfig({ ...astro, position: v })}
+              />
+            </div>
+
+            <SettingsRow label="Automatically dim at night">
+              <SettingsSwitch
+                checked={astro.autoDimNight ?? false}
+                onChange={v => setConfig({ ...astro, autoDimNight: v })}
+              />
+            </SettingsRow>
+
+            {astro.autoDimNight && (
+              <div className="bg-night-time-row">
+                <div className="bg-night-time-field">
+                  <span className="bg-night-time-label">Night starts at</span>
+                  <input
+                    type="time"
+                    className="bg-night-time-input"
+                    value={astro.nightStart || '22:00'}
+                    onChange={e => setConfig({ ...astro, nightStart: e.target.value || '22:00' })}
+                  />
+                </div>
+                <div className="bg-night-time-field">
+                  <span className="bg-night-time-label">Night ends at</span>
+                  <input
+                    type="time"
+                    className="bg-night-time-input"
+                    value={astro.nightEnd || '05:00'}
+                    onChange={e => setConfig({ ...astro, nightEnd: e.target.value || '05:00' })}
+                  />
+                </div>
+              </div>
+            )}
+          </DetailedSettings>
+        </section>
+      )}
+
+      {/* ── Placeholder tabs (gradient / online / wikimedia) — not yet implemented ── */}
+      {isPlaceholderTab && (
+        <section className="settings-section bg-bing-section">
+          <div className="settings-section-label">{PANEL_LABELS[activeTab]}</div>
+          <p className="bg-bing-note">Coming soon.</p>
+        </section>
+      )}
 
       {/* Color pickers (portal-rendered) */}
       <CustomColorPicker
