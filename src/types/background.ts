@@ -84,6 +84,7 @@ export interface OnlineImageConfig extends BackgroundShared {
 export interface WikimediaConfig extends BackgroundShared {
   mode: 'wikimedia';
   value: string; // unused placeholder; kept for storage shape uniformity
+  showTitle?: boolean; // default false — overlay Wikimedia's Picture of the Day title/artist
 }
 
 export type BackgroundConfig =
@@ -129,4 +130,6 @@ export interface BackgroundRenderCtx {
   bingImageUrl?: string | null;
   /** Current cached NASA Astronomy Picture of the Day image URL */
   apodImageUrl?: string | null;
+  /** Current cached Wikimedia Picture of the Day image URL */
+  wikimediaImageUrl?: string | null;
 }

@@ -13,28 +13,6 @@ import './BackgroundEditor.css';
 
 const SIZE_LIMIT_MB = 5;
 
-const DATE_MODE_OPTIONS = [
-  { value: 'today' as const,  label: 'Today' },
-  { value: 'custom' as const, label: 'Custom Date' },
-];
-
-const GRADIENT_TYPE_OPTIONS = [
-  { value: 'linear' as const, label: 'Linear' },
-  { value: 'radial' as const, label: 'Radial' },
-];
-
-const POSITION_OPTIONS: { value: BackgroundPosition; label: string }[] = [
-  { value: 'center',       label: 'Center' },
-  { value: 'top',          label: 'Top' },
-  { value: 'bottom',       label: 'Bottom' },
-  { value: 'left',         label: 'Left' },
-  { value: 'right',        label: 'Right' },
-  { value: 'top-left',     label: 'Top Left' },
-  { value: 'top-right',    label: 'Top Right' },
-  { value: 'bottom-left',  label: 'Bottom Left' },
-  { value: 'bottom-right', label: 'Bottom Right' },
-];
-
 const noLabel = () => '';
 
 function todayIso(): string {
@@ -43,44 +21,68 @@ function todayIso(): string {
 
 type EditorTab = BackgroundPanel;
 
-// Labels for the dropdown itself — a panel groups several provider modes
-// (e.g. "colors" spans preset/color/gradient), so it isn't any single
-// provider's own `label`.
-const PANEL_LABELS: Record<EditorTab, string> = {
-  colors: 'Solid Color',
-  image: 'Upload Image',
-  unsplash: 'Unsplash',
-  bing: 'Bing Daily Wallpaper',
-  astronomy: 'Astronomy Picture of the Day',
-  gradient: 'Color Gradient',
-  online: 'Online Image',
-  wikimedia: 'Wikimedia Image of the Day',
-};
-
-// Dynamically derived from the registry (deduped by panel), then sorted
-// alphabetically by label so a future provider just needs to declare its
-// `panel` to show up here in the right place — no hardcoded tab list to maintain.
-const PANEL_OPTIONS: { value: EditorTab; label: string }[] = (() => {
-  const seen = new Set<EditorTab>();
-  const options: { value: EditorTab; label: string }[] = [];
-  for (const def of Object.values(BACKGROUND_PROVIDERS)) {
-    if (!seen.has(def.panel)) {
-      seen.add(def.panel);
-      options.push({ value: def.panel, label: PANEL_LABELS[def.panel] });
-    }
-  }
-  options.sort((a, b) => a.label.localeCompare(b.label));
-  return options;
-})();
-
 function modeToTab(mode: BackgroundMode): EditorTab {
   return BACKGROUND_PROVIDERS[mode]?.panel ?? 'colors';
 }
 
 export default function BackgroundEditor() {
-  const { config, customImageUrl, setConfig, setCustomImage, clearCustomImage, bing, astronomy } = useBackground();
-  const { colorScheme } = useSettings();
+  const { config, customImageUrl, setConfig, setCustomImage, clearCustomImage, bing, astronomy, wikimedia } = useBackground();
+  const { colorScheme, t } = useSettings();
   const isDark = colorScheme !== 'light';
+
+  const DATE_MODE_OPTIONS = [
+    { value: 'today' as const,  label: t('background.dateMode.today') },
+    { value: 'custom' as const, label: t('background.dateMode.custom') },
+  ];
+
+  const GRADIENT_TYPE_OPTIONS = [
+    { value: 'linear' as const, label: t('background.gradientType.linear') },
+    { value: 'radial' as const, label: t('background.gradientType.radial') },
+  ];
+
+  const POSITION_OPTIONS: { value: BackgroundPosition; label: string }[] = [
+    { value: 'center',       label: t('background.pos.center') },
+    { value: 'top',          label: t('background.pos.top') },
+    { value: 'bottom',       label: t('background.pos.bottom') },
+    { value: 'left',         label: t('background.pos.left') },
+    { value: 'right',        label: t('background.pos.right') },
+    { value: 'top-left',     label: t('background.pos.topLeft') },
+    { value: 'top-right',    label: t('background.pos.topRight') },
+    { value: 'bottom-left',  label: t('background.pos.bottomLeft') },
+    { value: 'bottom-right', label: t('background.pos.bottomRight') },
+  ];
+
+  // Labels for the dropdown itself — a panel groups several provider modes
+  // (e.g. "colors" spans preset/color/gradient), so it isn't any single
+  // provider's own `label`.
+  const PANEL_LABELS: Record<EditorTab, string> = {
+    colors: t('background.panel.colors'),
+    image: t('background.panel.image'),
+    unsplash: t('background.panel.unsplash'),
+    bing: t('background.panel.bing'),
+    astronomy: t('background.panel.astronomy'),
+    gradient: t('background.panel.gradient'),
+    online: t('background.panel.online'),
+    wikimedia: t('background.panel.wikimedia'),
+  };
+
+  // Dynamically derived from the registry (deduped by panel), then sorted
+  // alphabetically by the current locale's label so a future provider just
+  // needs to declare its `panel` to show up here in the right place — no
+  // hardcoded tab list to maintain. Recomputed per render so the sort order
+  // (and labels) track the active language.
+  const PANEL_OPTIONS: { value: EditorTab; label: string }[] = (() => {
+    const seen = new Set<EditorTab>();
+    const options: { value: EditorTab; label: string }[] = [];
+    for (const def of Object.values(BACKGROUND_PROVIDERS)) {
+      if (!seen.has(def.panel)) {
+        seen.add(def.panel);
+        options.push({ value: def.panel, label: PANEL_LABELS[def.panel] });
+      }
+    }
+    options.sort((a, b) => a.label.localeCompare(b.label));
+    return options;
+  })();
   const fileRef        = useRef<HTMLInputElement>(null);
   const customSwatchRef = useRef<HTMLButtonElement>(null);
   const letterboxBtnRef = useRef<HTMLButtonElement>(null);
@@ -106,17 +108,17 @@ export default function BackgroundEditor() {
     if (tab === 'bing')     { setConfig({ mode: 'bing', value: '' }); return; }
     if (tab === 'gradient') { setConfig({ mode: 'colourGradient', value: '' }); return; }
     if (tab === 'online')   { setConfig({ mode: 'online', value: '' }); return; }
-    // Placeholder tabs (astronomy / wikimedia) — resolve
-    // the mode from the registry rather than hardcoding one branch per future provider.
+    // 'astronomy' / 'wikimedia' — resolve the mode from the registry rather
+    // than hardcoding one branch per provider.
     const provider = Object.values(BACKGROUND_PROVIDERS).find(def => def.panel === tab);
     if (provider) setConfig({ mode: provider.mode, value: '' } as typeof config);
   };
 
-  const isPlaceholderTab = !['colors', 'image', 'unsplash', 'bing', 'astronomy', 'gradient', 'online'].includes(activeTab);
+  const isPlaceholderTab = !['colors', 'image', 'unsplash', 'bing', 'astronomy', 'gradient', 'online', 'wikimedia'].includes(activeTab);
 
   const processFile = (file: File) => {
     if (file.size > SIZE_LIMIT_MB * 1024 * 1024) {
-      alert(`Image must be under ${SIZE_LIMIT_MB} MB (got ${(file.size / 1024 / 1024).toFixed(1)} MB).`);
+      alert(t('background.imageSizeLimitAlert', { limit: SIZE_LIMIT_MB, size: (file.size / 1024 / 1024).toFixed(1) }));
       return;
     }
     const reader = new FileReader();
@@ -142,6 +144,7 @@ export default function BackgroundEditor() {
 
   const astro       = config.mode === 'astronomy' ? config : null;
   const bingCfg     = config.mode === 'bing' ? config : null;
+  const wikiCfg     = config.mode === 'wikimedia' ? config : null;
   const grad        = config.mode === 'colourGradient' ? config : null;
   const customCfg   = config.mode === 'custom' ? config : null;
   const onlineCfg   = config.mode === 'online' ? config : null;
@@ -170,7 +173,7 @@ export default function BackgroundEditor() {
       {activeTab === 'colors' && (
         <>
           <section className="settings-section">
-            <div className="settings-section-label">Solid Color</div>
+            <div className="settings-section-label">{t('background.panel.colors')}</div>
             <div className="preset-grid">
               {COLOR_PRESETS.map(preset => (
                 <button
@@ -185,7 +188,7 @@ export default function BackgroundEditor() {
               ))}
             </div>
 
-            <SettingsRow label="Custom Color">
+            <SettingsRow label={t('background.customColor')}>
               <button
                 ref={customSwatchRef}
                 className={`bg-color-swatch${isCustomActive ? ' active' : ''}`}
@@ -200,16 +203,16 @@ export default function BackgroundEditor() {
       {/* ── Image tab ── */}
       {activeTab === 'image' && (
         <section className="settings-section" style={{ paddingBottom: 12 }}>
-          <div className="settings-section-label">Custom Image / GIF</div>
+          <div className="settings-section-label">{t('background.section.customImage')}</div>
           {customImageUrl ? (
             <div className="bg-custom-preview">
               <img src={customImageUrl} className="bg-custom-thumb" alt="custom background" />
               <div className="bg-custom-actions">
                 <button className="bg-btn" onClick={() => setConfig({ ...config, mode: 'custom', value: '' })}>
-                  Use this
+                  {t('background.useThis')}
                 </button>
                 <button className="bg-btn bg-btn--danger" onClick={clearCustomImage}>
-                  Remove
+                  {t('background.remove')}
                 </button>
               </div>
             </div>
@@ -221,8 +224,8 @@ export default function BackgroundEditor() {
               onDragLeave={() => setDragOver(false)}
               onDrop={handleDrop}
             >
-              ＋ Upload image or GIF
-              <span className="bg-upload-hint">drag & drop or click · max {SIZE_LIMIT_MB} MB · jpg · png · gif · webp</span>
+              {t('background.uploadImageGif')}
+              <span className="bg-upload-hint">{t('background.uploadHint', { limit: SIZE_LIMIT_MB })}</span>
             </div>
           )}
           <input
@@ -232,11 +235,11 @@ export default function BackgroundEditor() {
             style={{ display: 'none' }}
             onChange={handleFile}
           />
-          <p className="bg-sync-warning">Media does not sync between devices due to browser storage limits.</p>
+          <p className="bg-sync-warning">{t('background.mediaNoSyncWarning')}</p>
           {customImageUrl && customCfg && (
             <>
               {(customCfg.scaleToFit ?? true) && (
-                <SettingsRow label="Background Color">
+                <SettingsRow label={t('background.backgroundColor')}>
                   <button
                     ref={letterboxBtnRef}
                     className="bg-color-swatch"
@@ -248,7 +251,7 @@ export default function BackgroundEditor() {
 
               <DetailedSettings>
                 <SettingsSlider
-                  label="Blur"
+                  label={t('background.blur')}
                   value={customCfg.blur ?? 0}
                   onChange={v => setConfig({ ...customCfg, blur: v })}
                   min={0}
@@ -259,7 +262,7 @@ export default function BackgroundEditor() {
 
                 <div className="bg-luminosity-slider-wrap">
                   <SettingsSlider
-                    label="Luminosity"
+                    label={t('background.luminosity')}
                     value={customCfg.luminosity ?? 100}
                     onChange={v => setConfig({ ...customCfg, luminosity: v })}
                     min={0}
@@ -269,7 +272,7 @@ export default function BackgroundEditor() {
                   />
                 </div>
 
-                <SettingsRow label="Scale background to fit">
+                <SettingsRow label={t('background.scaleToFit')}>
                   <SettingsSwitch
                     checked={customCfg.scaleToFit ?? true}
                     onChange={v => setConfig({ ...customCfg, scaleToFit: v })}
@@ -277,7 +280,7 @@ export default function BackgroundEditor() {
                 </SettingsRow>
 
                 <div className="bg-position-row">
-                  <span className="sg-form-label">Position</span>
+                  <span className="sg-form-label">{t('background.position')}</span>
                   <Dropdown
                     options={POSITION_OPTIONS}
                     value={customCfg.position ?? 'center'}
@@ -285,7 +288,7 @@ export default function BackgroundEditor() {
                   />
                 </div>
 
-                <SettingsRow label="Automatically dim at night">
+                <SettingsRow label={t('background.autoDimNight')}>
                   <SettingsSwitch
                     checked={customCfg.autoDimNight ?? false}
                     onChange={v => setConfig({ ...customCfg, autoDimNight: v })}
@@ -295,7 +298,7 @@ export default function BackgroundEditor() {
                 {customCfg.autoDimNight && (
                   <div className="bg-night-time-row">
                     <div className="bg-night-time-field">
-                      <span className="bg-night-time-label">Night starts at</span>
+                      <span className="bg-night-time-label">{t('background.nightStartsAt')}</span>
                       <input
                         type="time"
                         className="bg-night-time-input"
@@ -304,7 +307,7 @@ export default function BackgroundEditor() {
                       />
                     </div>
                     <div className="bg-night-time-field">
-                      <span className="bg-night-time-label">Night ends at</span>
+                      <span className="bg-night-time-label">{t('background.nightEndsAt')}</span>
                       <input
                         type="time"
                         className="bg-night-time-input"
@@ -326,10 +329,10 @@ export default function BackgroundEditor() {
       {/* ── Bing tab — refreshes automatically, plus display controls ── */}
       {activeTab === 'bing' && bingCfg && (
         <section className="settings-section">
-          <div className="settings-section-label">Bing Daily Wallpaper</div>
+          <div className="settings-section-label">{t('background.panel.bing')}</div>
           {bing.error && <p className="bg-bing-error">{bing.error}</p>}
 
-          <SettingsRow label="Date">
+          <SettingsRow label={t('background.date')}>
             <SegmentedControl
               options={DATE_MODE_OPTIONS}
               value={bingCfg.dateMode ?? 'today'}
@@ -350,7 +353,7 @@ export default function BackgroundEditor() {
             </div>
           )}
 
-          <SettingsRow label="Show title">
+          <SettingsRow label={t('background.showTitle')}>
             <SettingsSwitch
               checked={bingCfg.showTitle ?? false}
               onChange={v => setConfig({ ...bingCfg, showTitle: v })}
@@ -359,7 +362,7 @@ export default function BackgroundEditor() {
 
           <DetailedSettings>
             <SettingsSlider
-              label="Blur"
+              label={t('background.blur')}
               value={bingCfg.blur ?? 0}
               onChange={v => setConfig({ ...bingCfg, blur: v })}
               min={0}
@@ -370,7 +373,7 @@ export default function BackgroundEditor() {
 
             <div className="bg-luminosity-slider-wrap">
               <SettingsSlider
-                label="Luminosity"
+                label={t('background.luminosity')}
                 value={bingCfg.luminosity ?? 100}
                 onChange={v => setConfig({ ...bingCfg, luminosity: v })}
                 min={0}
@@ -380,7 +383,7 @@ export default function BackgroundEditor() {
               />
             </div>
 
-            <SettingsRow label="Scale background to fit">
+            <SettingsRow label={t('background.scaleToFit')}>
               <SettingsSwitch
                 checked={bingCfg.scaleToFit ?? true}
                 onChange={v => setConfig({ ...bingCfg, scaleToFit: v })}
@@ -388,7 +391,7 @@ export default function BackgroundEditor() {
             </SettingsRow>
 
             <div className="bg-position-row">
-              <span className="sg-form-label">Position</span>
+              <span className="sg-form-label">{t('background.position')}</span>
               <Dropdown
                 options={POSITION_OPTIONS}
                 value={bingCfg.position ?? 'center'}
@@ -396,7 +399,7 @@ export default function BackgroundEditor() {
               />
             </div>
 
-            <SettingsRow label="Automatically dim at night">
+            <SettingsRow label={t('background.autoDimNight')}>
               <SettingsSwitch
                 checked={bingCfg.autoDimNight ?? false}
                 onChange={v => setConfig({ ...bingCfg, autoDimNight: v })}
@@ -406,7 +409,7 @@ export default function BackgroundEditor() {
             {bingCfg.autoDimNight && (
               <div className="bg-night-time-row">
                 <div className="bg-night-time-field">
-                  <span className="bg-night-time-label">Night starts at</span>
+                  <span className="bg-night-time-label">{t('background.nightStartsAt')}</span>
                   <input
                     type="time"
                     className="bg-night-time-input"
@@ -415,7 +418,7 @@ export default function BackgroundEditor() {
                   />
                 </div>
                 <div className="bg-night-time-field">
-                  <span className="bg-night-time-label">Night ends at</span>
+                  <span className="bg-night-time-label">{t('background.nightEndsAt')}</span>
                   <input
                     type="time"
                     className="bg-night-time-input"
@@ -432,10 +435,10 @@ export default function BackgroundEditor() {
       {/* ── Astronomy tab — NASA Picture of the Day, refreshes automatically ── */}
       {activeTab === 'astronomy' && astro && (
         <section className="settings-section">
-          <div className="settings-section-label">Astronomy Picture of the Day</div>
+          <div className="settings-section-label">{t('background.panel.astronomy')}</div>
           {astronomy.error && <p className="bg-bing-error">{astronomy.error}</p>}
 
-          <SettingsRow label="Date">
+          <SettingsRow label={t('background.date')}>
             <SegmentedControl
               options={DATE_MODE_OPTIONS}
               value={astro.dateMode ?? 'today'}
@@ -456,7 +459,7 @@ export default function BackgroundEditor() {
             </div>
           )}
 
-          <SettingsRow label="Show title">
+          <SettingsRow label={t('background.showTitle')}>
             <SettingsSwitch
               checked={astro.showApodTitle ?? false}
               onChange={v => setConfig({ ...astro, showApodTitle: v })}
@@ -465,7 +468,7 @@ export default function BackgroundEditor() {
 
           <DetailedSettings>
             <SettingsSlider
-              label="Blur"
+              label={t('background.blur')}
               value={astro.blur ?? 0}
               onChange={v => setConfig({ ...astro, blur: v })}
               min={0}
@@ -476,7 +479,7 @@ export default function BackgroundEditor() {
 
             <div className="bg-luminosity-slider-wrap">
               <SettingsSlider
-                label="Luminosity"
+                label={t('background.luminosity')}
                 value={astro.luminosity ?? 100}
                 onChange={v => setConfig({ ...astro, luminosity: v })}
                 min={0}
@@ -486,7 +489,7 @@ export default function BackgroundEditor() {
               />
             </div>
 
-            <SettingsRow label="Scale background to fit">
+            <SettingsRow label={t('background.scaleToFit')}>
               <SettingsSwitch
                 checked={astro.scaleToFit ?? true}
                 onChange={v => setConfig({ ...astro, scaleToFit: v })}
@@ -494,7 +497,7 @@ export default function BackgroundEditor() {
             </SettingsRow>
 
             <div className="bg-position-row">
-              <span className="sg-form-label">Position</span>
+              <span className="sg-form-label">{t('background.position')}</span>
               <Dropdown
                 options={POSITION_OPTIONS}
                 value={astro.position ?? 'center'}
@@ -502,7 +505,7 @@ export default function BackgroundEditor() {
               />
             </div>
 
-            <SettingsRow label="Automatically dim at night">
+            <SettingsRow label={t('background.autoDimNight')}>
               <SettingsSwitch
                 checked={astro.autoDimNight ?? false}
                 onChange={v => setConfig({ ...astro, autoDimNight: v })}
@@ -512,7 +515,7 @@ export default function BackgroundEditor() {
             {astro.autoDimNight && (
               <div className="bg-night-time-row">
                 <div className="bg-night-time-field">
-                  <span className="bg-night-time-label">Night starts at</span>
+                  <span className="bg-night-time-label">{t('background.nightStartsAt')}</span>
                   <input
                     type="time"
                     className="bg-night-time-input"
@@ -521,7 +524,7 @@ export default function BackgroundEditor() {
                   />
                 </div>
                 <div className="bg-night-time-field">
-                  <span className="bg-night-time-label">Night ends at</span>
+                  <span className="bg-night-time-label">{t('background.nightEndsAt')}</span>
                   <input
                     type="time"
                     className="bg-night-time-input"
@@ -538,9 +541,9 @@ export default function BackgroundEditor() {
       {/* ── Color Gradient tab ── */}
       {activeTab === 'gradient' && grad && (
         <section className="settings-section">
-          <div className="settings-section-label">Color Gradient</div>
+          <div className="settings-section-label">{t('background.panel.gradient')}</div>
 
-          <SettingsRow label="Type">
+          <SettingsRow label={t('background.gradientTypeLabel')}>
             <SegmentedControl
               options={GRADIENT_TYPE_OPTIONS}
               value={grad.gradientType ?? 'linear'}
@@ -548,7 +551,7 @@ export default function BackgroundEditor() {
             />
           </SettingsRow>
 
-          <SettingsRow label="From Color">
+          <SettingsRow label={t('background.fromColor')}>
             <button
               ref={gradFromBtnRef}
               className="bg-color-swatch"
@@ -557,7 +560,7 @@ export default function BackgroundEditor() {
             />
           </SettingsRow>
 
-          <SettingsRow label="To Color">
+          <SettingsRow label={t('background.toColor')}>
             <button
               ref={gradToBtnRef}
               className="bg-color-swatch"
@@ -568,7 +571,7 @@ export default function BackgroundEditor() {
 
           {(grad.gradientType ?? 'linear') === 'linear' && (
             <SettingsSlider
-              label="Angle"
+              label={t('background.angle')}
               value={grad.angle ?? 135}
               onChange={v => setConfig({ ...grad, angle: v })}
               min={0}
@@ -583,12 +586,12 @@ export default function BackgroundEditor() {
       {/* ── Online Image tab — mirrors the Custom Image panel's layout exactly ── */}
       {activeTab === 'online' && onlineCfg && (
         <section className="settings-section">
-          <div className="settings-section-label">Online Image</div>
+          <div className="settings-section-label">{t('background.panel.online')}</div>
 
           <input
             className="bg-url-input"
             type="url"
-            placeholder="https://example.com/image.jpg"
+            placeholder={t('background.onlineUrlPlaceholder')}
             value={onlineCfg.value}
             onChange={e => setConfig({ ...onlineCfg, value: e.target.value.trim() })}
             spellCheck={false}
@@ -597,7 +600,7 @@ export default function BackgroundEditor() {
           {onlineCfg.value && (
             <>
               {(onlineCfg.scaleToFit ?? true) && (
-                <SettingsRow label="Background Color">
+                <SettingsRow label={t('background.backgroundColor')}>
                   <button
                     ref={letterboxBtnRef}
                     className="bg-color-swatch"
@@ -609,7 +612,7 @@ export default function BackgroundEditor() {
 
               <DetailedSettings>
                 <SettingsSlider
-                  label="Blur"
+                  label={t('background.blur')}
                   value={onlineCfg.blur ?? 0}
                   onChange={v => setConfig({ ...onlineCfg, blur: v })}
                   min={0}
@@ -620,7 +623,7 @@ export default function BackgroundEditor() {
 
                 <div className="bg-luminosity-slider-wrap">
                   <SettingsSlider
-                    label="Luminosity"
+                    label={t('background.luminosity')}
                     value={onlineCfg.luminosity ?? 100}
                     onChange={v => setConfig({ ...onlineCfg, luminosity: v })}
                     min={0}
@@ -630,7 +633,7 @@ export default function BackgroundEditor() {
                   />
                 </div>
 
-                <SettingsRow label="Scale background to fit">
+                <SettingsRow label={t('background.scaleToFit')}>
                   <SettingsSwitch
                     checked={onlineCfg.scaleToFit ?? true}
                     onChange={v => setConfig({ ...onlineCfg, scaleToFit: v })}
@@ -638,7 +641,7 @@ export default function BackgroundEditor() {
                 </SettingsRow>
 
                 <div className="bg-position-row">
-                  <span className="sg-form-label">Position</span>
+                  <span className="sg-form-label">{t('background.position')}</span>
                   <Dropdown
                     options={POSITION_OPTIONS}
                     value={onlineCfg.position ?? 'center'}
@@ -646,7 +649,7 @@ export default function BackgroundEditor() {
                   />
                 </div>
 
-                <SettingsRow label="Automatically dim at night">
+                <SettingsRow label={t('background.autoDimNight')}>
                   <SettingsSwitch
                     checked={onlineCfg.autoDimNight ?? false}
                     onChange={v => setConfig({ ...onlineCfg, autoDimNight: v })}
@@ -656,7 +659,7 @@ export default function BackgroundEditor() {
                 {onlineCfg.autoDimNight && (
                   <div className="bg-night-time-row">
                     <div className="bg-night-time-field">
-                      <span className="bg-night-time-label">Night starts at</span>
+                      <span className="bg-night-time-label">{t('background.nightStartsAt')}</span>
                       <input
                         type="time"
                         className="bg-night-time-input"
@@ -665,7 +668,7 @@ export default function BackgroundEditor() {
                       />
                     </div>
                     <div className="bg-night-time-field">
-                      <span className="bg-night-time-label">Night ends at</span>
+                      <span className="bg-night-time-label">{t('background.nightEndsAt')}</span>
                       <input
                         type="time"
                         className="bg-night-time-input"
@@ -681,11 +684,117 @@ export default function BackgroundEditor() {
         </section>
       )}
 
-      {/* ── Placeholder tabs (wikimedia) — not yet implemented ── */}
+      {/* ── Wikimedia tab — Picture of the Day, refreshes automatically ── */}
+      {activeTab === 'wikimedia' && wikiCfg && (
+        <section className="settings-section">
+          <div className="settings-section-label">{t('background.panel.wikimedia')}</div>
+          {wikimedia.error && <p className="bg-bing-error">{wikimedia.error}</p>}
+
+          <SettingsRow label={t('background.date')}>
+            <SegmentedControl
+              options={DATE_MODE_OPTIONS}
+              value={wikiCfg.dateMode ?? 'today'}
+              onChange={v => setConfig({ ...wikiCfg, dateMode: v })}
+            />
+          </SettingsRow>
+
+          {wikiCfg.dateMode === 'custom' && (
+            <div className="bg-apod-date-row">
+              <span className="bg-apod-date-icon" aria-hidden="true">📅</span>
+              <input
+                type="date"
+                className="bg-apod-date-input"
+                value={wikiCfg.customDate ?? todayIso()}
+                max={todayIso()}
+                onChange={e => setConfig({ ...wikiCfg, customDate: e.target.value })}
+              />
+            </div>
+          )}
+
+          <SettingsRow label={t('background.showTitle')}>
+            <SettingsSwitch
+              checked={wikiCfg.showTitle ?? false}
+              onChange={v => setConfig({ ...wikiCfg, showTitle: v })}
+            />
+          </SettingsRow>
+
+          <DetailedSettings>
+            <SettingsSlider
+              label={t('background.blur')}
+              value={wikiCfg.blur ?? 0}
+              onChange={v => setConfig({ ...wikiCfg, blur: v })}
+              min={0}
+              max={100}
+              step={1}
+              valueFormatter={noLabel}
+            />
+
+            <div className="bg-luminosity-slider-wrap">
+              <SettingsSlider
+                label={t('background.luminosity')}
+                value={wikiCfg.luminosity ?? 100}
+                onChange={v => setConfig({ ...wikiCfg, luminosity: v })}
+                min={0}
+                max={200}
+                step={5}
+                valueFormatter={noLabel}
+              />
+            </div>
+
+            <SettingsRow label={t('background.scaleToFit')}>
+              <SettingsSwitch
+                checked={wikiCfg.scaleToFit ?? true}
+                onChange={v => setConfig({ ...wikiCfg, scaleToFit: v })}
+              />
+            </SettingsRow>
+
+            <div className="bg-position-row">
+              <span className="sg-form-label">{t('background.position')}</span>
+              <Dropdown
+                options={POSITION_OPTIONS}
+                value={wikiCfg.position ?? 'center'}
+                onChange={v => setConfig({ ...wikiCfg, position: v })}
+              />
+            </div>
+
+            <SettingsRow label={t('background.autoDimNight')}>
+              <SettingsSwitch
+                checked={wikiCfg.autoDimNight ?? false}
+                onChange={v => setConfig({ ...wikiCfg, autoDimNight: v })}
+              />
+            </SettingsRow>
+
+            {wikiCfg.autoDimNight && (
+              <div className="bg-night-time-row">
+                <div className="bg-night-time-field">
+                  <span className="bg-night-time-label">{t('background.nightStartsAt')}</span>
+                  <input
+                    type="time"
+                    className="bg-night-time-input"
+                    value={wikiCfg.nightStart || '22:00'}
+                    onChange={e => setConfig({ ...wikiCfg, nightStart: e.target.value || '22:00' })}
+                  />
+                </div>
+                <div className="bg-night-time-field">
+                  <span className="bg-night-time-label">{t('background.nightEndsAt')}</span>
+                  <input
+                    type="time"
+                    className="bg-night-time-input"
+                    value={wikiCfg.nightEnd || '05:00'}
+                    onChange={e => setConfig({ ...wikiCfg, nightEnd: e.target.value || '05:00' })}
+                  />
+                </div>
+              </div>
+            )}
+          </DetailedSettings>
+        </section>
+      )}
+
+      {/* ── Placeholder tabs (none currently) ── */}
       {isPlaceholderTab && (
         <section className="settings-section">
           <div className="settings-section-label">{PANEL_LABELS[activeTab]}</div>
-          <p className="bg-bing-note">Coming soon.</p>
+          <p className="bg-bing-note">{t('background.comingSoon')}</p>
         </section>
       )}
 
