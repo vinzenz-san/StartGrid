@@ -9,7 +9,7 @@ import { darkenHex, mixHex, getAdaptiveColor } from '../../lib/colorUtils';
 import { COLOR_PRESETS } from '../../lib/presets';
 import { dragState } from '../../lib/dragState';
 import type { Widget } from '../../types/widget';
-import { WIDGET_REGISTRY } from '../widgets/registry';
+import { WIDGET_REGISTRY, WIDGET_TYPE_LABEL_KEYS } from '../widgets/registry';
 import { SettingsSlider } from './Form';
 import { SettingsRow, SettingsSwitch } from './Form';
 import SwatchPicker from './SwatchPicker';
@@ -25,7 +25,7 @@ export default function WidgetContainer({ widget }: Props) {
   const { isEditMode } = useEditMode();
   const { removeWidget, updateWidget } = useWidgets();
   const { globalColor, globalColorScheme, globalOpacity, globalDim, globalGradientIntensity, globalPresetId, widgetShadowOpacity } = useTheme();
-  const { colorScheme, enableCustomContextMenu } = useSettings();
+  const { colorScheme, enableCustomContextMenu, t } = useSettings();
   const elRef = useRef<HTMLDivElement>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [resizePreview, setResizePreview] = useState<{ w: number; h: number } | null>(null);
@@ -70,7 +70,7 @@ export default function WidgetContainer({ widget }: Props) {
 
   const showCustomTitle = widget.showCustomTitle ?? entry.defaultShowCustomTitle ?? false;
   const showHeader      = entry.titleBehavior === 'optional' && showCustomTitle;
-  const titlePlaceholder = entry.resolveDynamicTitle?.(widget.data) ?? entry.defaultTitle ?? entry.label;
+  const titlePlaceholder = entry.resolveDynamicTitle?.(widget.data) ?? entry.defaultTitle ?? t(WIDGET_TYPE_LABEL_KEYS[widget.type]);
   const resolvedTitle    = widget.customTitle || titlePlaceholder;
 
   // ── Floating panel positioning ────────────────────────────────────────────
@@ -219,14 +219,14 @@ export default function WidgetContainer({ widget }: Props) {
       onPointerDown={e => e.stopPropagation()}
     >
       <div className="sg-widget-float-header">
-        <span className="sg-widget-float-title">Widget Settings</span>
-        <button className="sg-widget-float-close" onClick={() => setSettingsOpen(false)} title="Close">✕</button>
+        <span className="sg-widget-float-title">{t('widgets.floatTitle')}</span>
+        <button className="sg-widget-float-close" onClick={() => setSettingsOpen(false)} title={t('settings.close')}>✕</button>
       </div>
 
       {/* Title settings — only for 'optional' behavior */}
       {entry.titleBehavior === 'optional' && (
         <div className="sg-widget-title-section">
-          <SettingsRow label="Show title">
+          <SettingsRow label={t('widgets.showTitle')}>
             <SettingsSwitch
               checked={showCustomTitle}
               onChange={v => updateWidget(widget.id, { showCustomTitle: v })}
@@ -256,7 +256,7 @@ export default function WidgetContainer({ widget }: Props) {
       <div className="sg-widget-float-divider" />
       <div className="sg-widget-appearance">
         <div className="sg-widget-appearance-row">
-          <span className="sg-widget-appearance-label">Local Style</span>
+          <span className="sg-widget-appearance-label">{t('widgets.localStyle')}</span>
           <button
             role="switch"
             aria-checked={overrideEnabled}
@@ -271,7 +271,7 @@ export default function WidgetContainer({ widget }: Props) {
         {overrideEnabled && (
           <>
             <div className="sg-widget-appearance-section">
-              <SettingsRow label="Local Theme">
+              <SettingsRow label={t('widgets.localTheme')}>
                 <ThemeToggle
                   isDark={widgetIsDark}
                   onToggle={nextIsDark => updateWidget(widget.id, { localColorScheme: nextIsDark ? 'dark' : 'light' })}
@@ -280,7 +280,7 @@ export default function WidgetContainer({ widget }: Props) {
             </div>
 
             <div className="sg-widget-appearance-section">
-              <span className="sg-widget-appearance-label">Presets</span>
+              <span className="sg-widget-appearance-label">{t('widgets.presets')}</span>
               <SwatchPicker
                 isDark={widgetIsDark}
                 presetId={widget.bgPresetId}
@@ -298,13 +298,13 @@ export default function WidgetContainer({ widget }: Props) {
                 })}
                 onPointerDown={e => e.stopPropagation()}
               >
-                ⬡ Match global widget color
+                {t('widgets.matchGlobalColor')}
               </button>
             </div>
 
             <div className="sg-widget-appearance-section">
               <SettingsSlider
-                label="Transparency"
+                label={t('widgets.transparency')}
                 value={localTransparencyPct}
                 onChange={v => updateWidget(widget.id, { bgOpacity: (100 - v) / 100 })}
                 onPointerDown={e => e.stopPropagation()}
@@ -313,7 +313,7 @@ export default function WidgetContainer({ widget }: Props) {
 
             <div className="sg-widget-appearance-section">
               <SettingsSlider
-                label="Shadow Intensity"
+                label={t('widgets.shadowIntensity')}
                 value={localShadowPct}
                 onChange={v => updateWidget(widget.id, { bgShadow: v })}
                 onPointerDown={e => e.stopPropagation()}
@@ -322,7 +322,7 @@ export default function WidgetContainer({ widget }: Props) {
 
             <div className="sg-widget-appearance-section">
               <SettingsSlider
-                label="Gradient Intensity"
+                label={t('widgets.gradientIntensity')}
                 value={localIntensity}
                 onChange={v => updateWidget(widget.id, { bgGradientIntensity: v })}
                 onPointerDown={e => e.stopPropagation()}
@@ -331,7 +331,7 @@ export default function WidgetContainer({ widget }: Props) {
 
             <div className="sg-widget-appearance-section">
               <SettingsSlider
-                label="Dimming"
+                label={t('widgets.dimming')}
                 value={localDimPct}
                 onChange={v => updateWidget(widget.id, { bgDim: v })}
                 onPointerDown={e => e.stopPropagation()}
@@ -353,7 +353,7 @@ export default function WidgetContainer({ widget }: Props) {
                 })}
                 onPointerDown={e => e.stopPropagation()}
               >
-                ↺ Reset to Global
+                {t('widgets.resetToGlobal')}
               </button>
             </div>
           </>
@@ -391,7 +391,7 @@ export default function WidgetContainer({ widget }: Props) {
             onPointerDown={e => e.stopPropagation()}
             onDragStart={e => e.stopPropagation()}
             onClick={e => { e.stopPropagation(); setSettingsOpen(s => !s); }}
-            title="Widget Settings"
+            title={t('widgets.floatTitle')}
           >⚙</button>
         )}
 
