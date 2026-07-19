@@ -27,12 +27,25 @@
   background: none;
   cursor: pointer;
 }
+.bg-color-swatch.active { border-color: var(--accent); }
 
-.bg-color-hint {
+/* Online Image URL field — same input look as UnsplashSettings.css's
+   .sg-usp-input, kept as its own rule since this one lives directly in
+   BackgroundEditor.tsx rather than a dedicated settings file. */
+.bg-url-input {
+  width: 100%;
+  box-sizing: border-box;
   font-size: 12px;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
+  padding: 5px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--surface-hover);
+  color: var(--text);
+  font-family: monospace;
+  margin-bottom: 4px;
 }
+.bg-url-input::placeholder { color: var(--text-muted); font-family: inherit; }
+.bg-url-input:focus { outline: none; border-color: var(--accent); }
 
 /* Custom image */
 .bg-upload-btn {
@@ -120,31 +133,6 @@
 .bg-bing-error {
   font-size: 10.5px;
   color: #f87171;
-}
-
-/* Scaling mode */
-.bg-scaling-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 6px;
-}
-
-.bg-scaling-label {
-  font-size: 11px;
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-
-.bg-scaling-select {
-  flex: 1;
-  font-size: 12px;
-  padding: 4px 6px;
-  border-radius: 5px;
-  border: 1px solid var(--border);
-  background: var(--surface-hover);
-  color: var(--text);
-  cursor: pointer;
 }
 
 /* Luminosity slider uses shared .settings-slider-row from index.css */

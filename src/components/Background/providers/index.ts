@@ -5,7 +5,7 @@ import { customProvider } from './custom';
 import { unsplashProvider } from './unsplash';
 import { bingProvider } from './bing';
 import { astronomyProvider } from './astronomy';
-import { colourGradientProvider } from './gradient';
+import { colorGradientProvider } from './gradient';
 import { onlineImageProvider } from './online';
 import { wikimediaProvider } from './wikimedia';
 
@@ -19,7 +19,7 @@ const BACKGROUND_PROVIDERS: Record<BackgroundMode, BackgroundProviderDef> = {
   unsplash:       unsplashProvider       as BackgroundProviderDef,
   bing:           bingProvider           as BackgroundProviderDef,
   astronomy:      astronomyProvider      as BackgroundProviderDef,
-  colourGradient: colourGradientProvider as BackgroundProviderDef,
+  colourGradient: colorGradientProvider as BackgroundProviderDef,
   online:         onlineImageProvider    as BackgroundProviderDef,
   wikimedia:      wikimediaProvider      as BackgroundProviderDef,
 };

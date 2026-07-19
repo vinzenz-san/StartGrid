@@ -63,3 +63,70 @@ export function luminance(hex: string): number {
   const [r, g, b] = hexToRgb(hex);
   return 0.299 * r + 0.587 * g + 0.114 * b;
 }
+
+export function hex2hsl(hex: string): [number, number, number] {
+  const [rr, gg, bb] = hexToRgb(hex);
+  const r = rr / 255, g = gg / 255, b = bb / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, l * 100];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h: number;
+  if (max === r)      h = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+  else if (max === g) h = ((b - r) / d + 2) * 60;
+  else                h = ((r - g) / d + 4) * 60;
+  return [h, s * 100, l * 100];
+}
+
+export function hsl2hex(h: number, s: number, l: number): string {
+  const hh = ((h % 360) + 360) % 360;
+  const ss = Math.max(0, Math.min(100, s)) / 100;
+  const ll = Math.max(0, Math.min(100, l)) / 100;
+  const c = (1 - Math.abs(2 * ll - 1)) * ss;
+  const x = c * (1 - Math.abs((hh / 60) % 2 - 1));
+  const m = ll - c / 2;
+  let r = 0, g = 0, b = 0;
+  if      (hh < 60)  { r = c; g = x; b = 0; }
+  else if (hh < 120) { r = x; g = c; b = 0; }
+  else if (hh < 180) { r = 0; g = c; b = x; }
+  else if (hh < 240) { r = 0; g = x; b = c; }
+  else if (hh < 300) { r = x; g = 0; b = c; }
+  else                { r = c; g = 0; b = x; }
+  const toHex = (v: number) => Math.round((v + m) * 255).toString(16).padStart(2, '0');
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+/** A color plus which theme was active when the user actually picked it. */
+export interface AdaptiveColorSource {
+  color: string;
+  pickedInDark: boolean;
+}
+
+// Shift amounts for deriving a light-mode counterpart from a dark-mode
+// anchor (and their inverse, for deriving dark from light) — raise
+// Lightness / lower Saturation going dark→light, clamped so a near-black or
+// near-white input can't collapse to pure black/white or fully gray out.
+const ADAPTIVE_L_SHIFT = 32;
+const ADAPTIVE_S_SHIFT = 18;
+const ADAPTIVE_L_MIN = 8;
+const ADAPTIVE_L_MAX = 90;
+const ADAPTIVE_S_MIN = 15;
+
+/**
+ * Derives the color's counterpart for `isDarkMode` from a single stored
+ * anchor color + which theme it was picked under. Exact (no HSL round-trip)
+ * when `isDarkMode` matches `source.pickedInDark`; otherwise algorithmically
+ * derived — dark→light raises Lightness / lowers Saturation for contrast on
+ * a light background, light→dark is the inverse.
+ */
+export function getAdaptiveColor(source: AdaptiveColorSource, isDarkMode: boolean): string {
+  if (isDarkMode === source.pickedInDark) return source.color;
+  const [h, s, l] = hex2hsl(source.color);
+  if (source.pickedInDark) {
+    // dark → light
+    return hsl2hex(h, Math.max(ADAPTIVE_S_MIN, s - ADAPTIVE_S_SHIFT), Math.min(ADAPTIVE_L_MAX, l + ADAPTIVE_L_SHIFT));
+  }
+  // light → dark
+  return hsl2hex(h, Math.min(100, s + ADAPTIVE_S_SHIFT), Math.max(ADAPTIVE_L_MIN, l - ADAPTIVE_L_SHIFT));
+}

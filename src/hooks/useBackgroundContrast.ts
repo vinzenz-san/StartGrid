@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { useBackground } from '../contexts/BackgroundContext';
 import { useSettings } from '../contexts/SettingsContext';
-import { PRESETS, type BackgroundConfig, type BackgroundPosition } from '../types/background';
-import { luminance, mixHex, darkenHex } from '../lib/colorUtils';
+import { type BackgroundPosition } from '../types/background';
+import { luminance } from '../lib/colorUtils';
 
 const DEBUG_CONTRAST = false; // flip off once the APOD white-icon issue is confirmed fixed
 
@@ -245,52 +245,12 @@ function sampleImage(cache: ImgCache, px: number, py: number, letterboxHex: stri
 }
 
 // ── Analytic path (preset / color / gradient / flat hex) ────────────────
-// All three non-image modes resolve to either a flat hex or a fixed 2-stop
-// 135deg linear-gradient (see providers/preset.ts + color.ts) — cheap to
-// reproduce directly from config, no canvas involved.
-
-function gradientPositionT(cx: number, cy: number): number {
-  // Approximates where (cx, cy) falls along a 135deg gradient axis
-  // (top-left → bottom-right). Good enough for a contrast decision; exact
-  // CSS gradient-line geometry for non-square boxes isn't needed here.
-  const t = (cx / window.innerWidth + cy / window.innerHeight) / 2;
-  return Math.max(0, Math.min(1, t));
-}
-
-function getAnalyticLuminance(
-  config: BackgroundConfig,
-  isDark: boolean,
-  cx: number,
-  cy: number,
-  backgroundCss: string,
-): number {
-  let stops: [string, string] | null = null;
-
-  if (config.mode === 'preset') {
-    const preset = PRESETS.find(p => p.id === config.value);
-    if (preset) {
-      const intensity = config.gradientIntensity ?? 100;
-      const t = Math.max(0, Math.min(100, intensity)) / 100;
-      const [start, end] = isDark ? [preset.darkStart, preset.darkEnd] : [preset.lightStart, preset.lightEnd];
-      const blendedStart = t === 0 ? end : mixHex(end, start, t);
-      stops = [blendedStart, end];
-    }
-  } else if (config.customColor) {
-    const intensity = config.gradientIntensity ?? (config.customGradient === false ? 0 : 100);
-    const t = intensity / 100;
-    const blendedEnd = mixHex(config.customColor, darkenHex(config.customColor), t);
-    stops = [config.customColor, blendedEnd];
-  } else if (/^#[0-9a-fA-F]{6}$/.test(config.value)) {
-    return luminance(config.value);
-  }
-
-  if (stops) {
-    const t2 = gradientPositionT(cx, cy);
-    return luminance(mixHex(stops[0], stops[1], t2));
-  }
-
-  // Fallback for any shape not specifically modeled above — average any
-  // hex colors found in the already-resolved CSS string.
+// preset.ts and color.ts now both resolve to either a flat hex or a
+// pre-baked gradient CSS string, with no live intensity/position math left
+// to reproduce here — just average whatever hex stops are in the resolved
+// CSS, which for a flat single-hex background is exactly that hex's own
+// luminance.
+function getAnalyticLuminance(backgroundCss: string): number {
   const hexes = backgroundCss.match(/#[0-9a-fA-F]{6}/g);
   if (hexes && hexes.length) {
     return hexes.reduce((sum, h) => sum + luminance(h), 0) / hexes.length;
@@ -309,8 +269,7 @@ function getAnalyticLuminance(
  */
 export function useBackgroundContrast(buttonRef: RefObject<HTMLElement | null>): boolean {
   const { config, customImageUrl, backgroundCss, unsplash, bing, astronomy } = useBackground();
-  const { colorScheme, settingsButtonPosition } = useSettings();
-  const isDark = colorScheme !== 'light';
+  const { settingsButtonPosition } = useSettings();
 
   const [isDarkVariant, setIsDarkVariant] = useState(false);
   const imgCacheRef = useRef<ImgCache | null>(null);
@@ -348,25 +307,21 @@ export function useBackgroundContrast(buttonRef: RefObject<HTMLElement | null>):
     // to FALLBACK_HEX (near-black) — permanently reading as "dark background"
     // regardless of how bright the actual photo is, leaving the white icon
     // variant stuck on even over a bright image.
-    if (config.mode === 'custom' || config.mode === 'unsplash' || config.mode === 'astronomy' || config.mode === 'bing') {
+    if (config.mode === 'custom' || config.mode === 'unsplash' || config.mode === 'astronomy' || config.mode === 'bing' || config.mode === 'online') {
       const url =
         config.mode === 'custom'    ? customImageUrl :
         config.mode === 'unsplash'  ? unsplash.imageUrl :
         config.mode === 'astronomy' ? astronomy.imageUrl :
-        bing.imageUrl;
+        config.mode === 'bing'      ? bing.imageUrl :
+        config.value; // 'online' — the user-supplied URL is itself the image source, no fetched-metadata hook needed
       if (!url) { applyRaw(luminance(FALLBACK_HEX)); return; }
 
-      // 'custom' has its own dedicated scalingMode/letterboxColor fields;
-      // every other image mode uses the shared scaleToFit control instead
-      // (see Background.tsx's layerStyle) and has no letterbox of its own.
-      const fit: 'cover' | 'contain' = config.mode === 'custom'
-        ? ((config.scalingMode ?? 'fit') === 'fit' ? 'contain' : 'cover')
-        : ((config.scaleToFit ?? true) ? 'contain' : 'cover');
+      // Every image-backed mode (including 'custom') now shares the same
+      // scaleToFit/position controls (see Background.tsx's layerStyle) — only
+      // 'custom' additionally has its own letterbox fill color.
+      const fit: 'cover' | 'contain' = (config.scaleToFit ?? true) ? 'contain' : 'cover';
       const letterboxHex = config.mode === 'custom' ? (config.letterboxColor ?? '#000000') : '#000000';
-      // 'custom' has no position control of its own (always centered);
-      // every other image mode uses the shared `position` control, which the
-      // sampling offset math must mirror or it can sample the wrong spot.
-      const position: BackgroundPosition = config.mode === 'custom' ? 'center' : (config.position ?? 'center');
+      const position: BackgroundPosition = config.position ?? 'center';
 
       // 'custom' images are already local data:/blob: URIs; every other mode
       // here is a real cross-origin URL that needs the background-script relay.
@@ -379,8 +334,8 @@ export function useBackgroundContrast(buttonRef: RefObject<HTMLElement | null>):
       return;
     }
 
-    applyRaw(getAnalyticLuminance(config, isDark, cx, cy, backgroundCss));
-  }, [buttonRef, config, customImageUrl, unsplash.imageUrl, bing.imageUrl, astronomy.imageUrl, isDark, backgroundCss]);
+    applyRaw(getAnalyticLuminance(backgroundCss));
+  }, [buttonRef, config, customImageUrl, unsplash.imageUrl, bing.imageUrl, astronomy.imageUrl, backgroundCss]);
 
   // Mount + background change + position change.
   useLayoutEffect(() => {

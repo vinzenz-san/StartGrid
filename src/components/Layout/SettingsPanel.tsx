@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react';
 import { ElementInspector } from './ElementInspector';
 import BackgroundEditor from '../Background/BackgroundEditor';
-import SwatchPicker, { THEME_SWATCHES } from '../shared/SwatchPicker';
+import SwatchPicker from '../shared/SwatchPicker';
+import { COLOR_PRESETS } from '../../lib/presets';
 import { performFactoryReset, exportBackup, importBackup } from './BackupRestore';
 import CustomColorPicker from '../shared/CustomColorPicker';
 import ConfirmDialog from '../shared/ConfirmDialog';
@@ -47,7 +48,7 @@ interface Props {
 
 export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition }: Props) {
   const {
-    globalColor, globalOpacity, globalDim, globalGradientIntensity, widgetShadowOpacity,
+    globalColor, globalColorScheme, globalOpacity, globalDim, globalGradientIntensity, widgetShadowOpacity, globalPresetId,
     setGlobalColor, setGlobalOpacity, setGlobalDim, setGlobalGradientIntensity,
     setWidgetShadowOpacity, setGlobalPresetId,
   } = useTheme();
@@ -102,7 +103,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
 
   function doResetAppearance() {
     setConfig(DEFAULT_BG);
-    setGlobalColor(THEME_DEFAULTS.globalColor);
+    setGlobalColor(THEME_DEFAULTS.globalColor, THEME_DEFAULTS.globalColorScheme);
     setGlobalOpacity(THEME_DEFAULTS.globalOpacity);
     setGlobalDim(THEME_DEFAULTS.globalDim);
     setGlobalGradientIntensity(THEME_DEFAULTS.globalGradientIntensity);
@@ -121,24 +122,18 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
 
   function handleMatchBackground() {
     switch (config.mode) {
-      case 'preset': {
-        const swatch = THEME_SWATCHES.find(s => s.id === config.value);
-        if (swatch) {
-          setGlobalColor(isDark ? swatch.darkEnd : swatch.lightEnd);
-          setGlobalPresetId(config.value);
-        }
+      case 'preset':
+        if (COLOR_PRESETS.some(p => p.id === config.value)) setGlobalPresetId(config.value);
+        break;
+      case 'color':
+      case 'gradient': {
+        const hex = config.customColor ?? config.value.match(/#[0-9a-f]{6}/i)?.[0] ?? THEME_DEFAULTS.globalColor;
+        setGlobalColor(hex, config.customColor ? (config.customColorScheme ?? 'dark') : 'dark');
+        setGlobalPresetId(undefined);
         break;
       }
-      case 'color':
-        setGlobalColor(config.value);
-        setGlobalPresetId(undefined);
-        break;
-      case 'gradient':
-        setGlobalColor(config.customColor ?? config.value.match(/#[0-9a-f]{6}/i)?.[0] ?? THEME_DEFAULTS.globalColor);
-        setGlobalPresetId(undefined);
-        break;
       case 'custom':
-        setGlobalColor(config.letterboxColor ?? '#000000');
+        setGlobalColor(config.letterboxColor ?? '#000000', 'dark');
         setGlobalPresetId(undefined);
         break;
     }
@@ -188,7 +183,6 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
 
       {/* ── Scrollable content ── */}
       <div className="sg-settings-content">
-        <hr className="sg-settings-divider" />
         {/* SettingsPanel never unmounts (only slides via CSS transform), so
             <DetailedSettings> reads this to reset itself back to closed on
             every reopen — see SettingsPanelOpenContext for why this doesn't
@@ -245,13 +239,18 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
             </div>
 
             <SwatchPicker
-              value={globalColor}
-              onChange={(color, presetId) => { setGlobalColor(color); setGlobalPresetId(presetId); }}
+              isDark={isDark}
+              presetId={globalPresetId}
+              customColor={globalColor}
+              customColorScheme={globalColorScheme}
+              onSelectPreset={id => setGlobalPresetId(id)}
+              onSelectCustom={(hex, scheme) => { setGlobalColor(hex, scheme); setGlobalPresetId(undefined); }}
               variant="large"
             />
             <ActionButton variant="ghost" onClick={handleMatchBackground}>
               ⬡ Match Background
             </ActionButton>
+            <p className="bg-sync-warning">Note: Global settings apply only to widgets without an active Local Style.</p>
             <DetailedSettings>
               <SettingsSlider
                 label="Transparency"
@@ -307,7 +306,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
             <SettingsRow label="Accent Color">
               <button
                 ref={accentSwatchRef}
-                className="sg-accent-swatch"
+                className="bg-color-swatch"
                 style={{ background: accentColor }}
                 onClick={() => setPickerOpen(o => !o)}
                 title="Pick accent color"
@@ -335,7 +334,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
             {importError && <p className="sg-backup-error">{importError}</p>}
 
             <ActionButton variant="danger" cooldownTime={1} onClick={doRevertLocalStyles}>
-              Revert Local Styles
+              Reset all widget styles
             </ActionButton>
             <ActionButton variant="danger" cooldownTime={1} onClick={doResetAppearance}>
               Reset Appearance

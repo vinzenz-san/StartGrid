@@ -1,7 +1,9 @@
 import { useRef, useState, useEffect } from 'react';
 import { useBackground } from '../../contexts/BackgroundContext';
-import { PRESETS, BackgroundMode, BackgroundPanel, BackgroundPosition, UnsplashConfig } from '../../types/background';
-import { generateGradient } from '../../lib/colorUtils';
+import { useSettings } from '../../contexts/SettingsContext';
+import { BackgroundMode, BackgroundPanel, BackgroundPosition, UnsplashConfig } from '../../types/background';
+import { COLOR_PRESETS } from '../../lib/presets';
+import { getAdaptiveColor } from '../../lib/colorUtils';
 import { BACKGROUND_PROVIDERS } from './providers';
 import CustomColorPicker from '../shared/CustomColorPicker';
 import { SettingsSlider, SettingsRow, SettingsSwitch, SegmentedControl, Dropdown } from '../shared/Form';
@@ -10,11 +12,15 @@ import { DetailedSettings } from '../Layout/DetailedSettings';
 import './BackgroundEditor.css';
 
 const SIZE_LIMIT_MB = 5;
-const RAINBOW_BG = 'linear-gradient(135deg, #6366f1 0%, #ec4899 40%, #f59e0b 70%, #10b981 100%)';
 
 const DATE_MODE_OPTIONS = [
   { value: 'today' as const,  label: 'Today' },
   { value: 'custom' as const, label: 'Custom Date' },
+];
+
+const GRADIENT_TYPE_OPTIONS = [
+  { value: 'linear' as const, label: 'Linear' },
+  { value: 'radial' as const, label: 'Radial' },
 ];
 
 const POSITION_OPTIONS: { value: BackgroundPosition; label: string }[] = [
@@ -41,12 +47,12 @@ type EditorTab = BackgroundPanel;
 // (e.g. "colors" spans preset/color/gradient), so it isn't any single
 // provider's own `label`.
 const PANEL_LABELS: Record<EditorTab, string> = {
-  colors: 'Presets',
+  colors: 'Solid Color',
   image: 'Upload Image',
   unsplash: 'Unsplash',
   bing: 'Bing Daily Wallpaper',
   astronomy: 'Astronomy Picture of the Day',
-  gradient: 'Colour Gradient',
+  gradient: 'Color Gradient',
   online: 'Online Image',
   wikimedia: 'Wikimedia Image of the Day',
 };
@@ -73,12 +79,17 @@ function modeToTab(mode: BackgroundMode): EditorTab {
 
 export default function BackgroundEditor() {
   const { config, customImageUrl, setConfig, setCustomImage, clearCustomImage, bing, astronomy } = useBackground();
+  const { colorScheme } = useSettings();
+  const isDark = colorScheme !== 'light';
   const fileRef        = useRef<HTMLInputElement>(null);
-  const customSwatchRef = useRef<HTMLDivElement>(null);
+  const customSwatchRef = useRef<HTMLButtonElement>(null);
   const letterboxBtnRef = useRef<HTMLButtonElement>(null);
+  const gradFromBtnRef  = useRef<HTMLButtonElement>(null);
+  const gradToBtnRef    = useRef<HTMLButtonElement>(null);
   const [dragOver, setDragOver]       = useState(false);
   const [pickerOpen, setPickerOpen]   = useState(false);
   const [lbPickerOpen, setLbPickerOpen] = useState(false);
+  const [gradPickerOpen, setGradPickerOpen] = useState<'from' | 'to' | null>(null);
 
   const activeTab = modeToTab(config.mode);
 
@@ -89,17 +100,19 @@ export default function BackgroundEditor() {
 
   const switchTab = (tab: EditorTab) => {
     if (tab === activeTab) return;
-    if (tab === 'colors')   { setConfig({ ...config, mode: 'preset', value: PRESETS[0].id }); return; }
+    if (tab === 'colors')   { setConfig({ ...config, mode: 'preset', value: COLOR_PRESETS[0].id }); return; }
     if (tab === 'image')    { setConfig({ mode: 'custom', value: '' }); return; }
     if (tab === 'unsplash') { setConfig(lastUnsplashConfig.current); return; }
     if (tab === 'bing')     { setConfig({ mode: 'bing', value: '' }); return; }
-    // Placeholder tabs (astronomy / gradient / online / wikimedia) — resolve
+    if (tab === 'gradient') { setConfig({ mode: 'colourGradient', value: '' }); return; }
+    if (tab === 'online')   { setConfig({ mode: 'online', value: '' }); return; }
+    // Placeholder tabs (astronomy / wikimedia) — resolve
     // the mode from the registry rather than hardcoding one branch per future provider.
     const provider = Object.values(BACKGROUND_PROVIDERS).find(def => def.panel === tab);
     if (provider) setConfig({ mode: provider.mode, value: '' } as typeof config);
   };
 
-  const isPlaceholderTab = !['colors', 'image', 'unsplash', 'bing', 'astronomy'].includes(activeTab);
+  const isPlaceholderTab = !['colors', 'image', 'unsplash', 'bing', 'astronomy', 'gradient', 'online'].includes(activeTab);
 
   const processFile = (file: File) => {
     if (file.size > SIZE_LIMIT_MB * 1024 * 1024) {
@@ -129,18 +142,18 @@ export default function BackgroundEditor() {
 
   const astro       = config.mode === 'astronomy' ? config : null;
   const bingCfg     = config.mode === 'bing' ? config : null;
+  const grad        = config.mode === 'colourGradient' ? config : null;
+  const customCfg   = config.mode === 'custom' ? config : null;
+  const onlineCfg   = config.mode === 'online' ? config : null;
   const isCustomActive = config.mode === 'color' || config.mode === 'gradient';
   const isPresetActive = (id: string) => config.mode === 'preset' && config.value === id;
-  const intensity   = config.gradientIntensity ?? (config.customGradient === false ? 0 : 100);
-  const customThumbBg = isCustomActive && config.customColor
-    ? generateGradient(config.customColor)
-    : RAINBOW_BG;
+  // Live theme-accurate preview: exact for the mode it was picked in, derived otherwise.
   const pickerValue = config.customColor
-    ?? PRESETS.find(p => p.id === config.value)?.css.match(/#[0-9a-f]{6}/i)?.[0]
-    ?? '#6366f1';
+    ? getAdaptiveColor({ color: config.customColor, pickedInDark: config.customColorScheme !== 'light' }, isDark)
+    : '#6366f1';
 
   const handleCustomColorPick = (hex: string) => {
-    setConfig({ ...config, mode: 'gradient', value: generateGradient(hex), customColor: hex });
+    setConfig({ ...config, mode: 'color', value: hex, customColor: hex, customColorScheme: isDark ? 'dark' : 'light' });
   };
 
   return (
@@ -157,9 +170,9 @@ export default function BackgroundEditor() {
       {activeTab === 'colors' && (
         <>
           <section className="settings-section">
-            <div className="settings-section-label">Presets</div>
+            <div className="settings-section-label">Solid Color</div>
             <div className="preset-grid">
-              {PRESETS.map(preset => (
+              {COLOR_PRESETS.map(preset => (
                 <button
                   key={preset.id}
                   className={`preset-tile${isPresetActive(preset.id) ? ' active' : ''}`}
@@ -170,25 +183,16 @@ export default function BackgroundEditor() {
                   <span className="preset-tile-label">{preset.label}</span>
                 </button>
               ))}
-              <div
-                ref={customSwatchRef}
-                className={`preset-tile bg-preset-thumb--custom${isCustomActive ? ' active' : ''}`}
-                style={{ background: customThumbBg }}
-                onClick={() => setPickerOpen(true)}
-              >
-                {isCustomActive
-                  ? <span className="sg-swatch-check-lg">✓</span>
-                  : <span className="preset-tile-label">Custom</span>
-                }
-              </div>
             </div>
-            <DetailedSettings>
-              <SettingsSlider
-                label="Gradient Intensity"
-                value={intensity}
-                onChange={v => setConfig({ ...config, gradientIntensity: v })}
+
+            <SettingsRow label="Custom Color">
+              <button
+                ref={customSwatchRef}
+                className={`bg-color-swatch${isCustomActive ? ' active' : ''}`}
+                style={{ background: pickerValue }}
+                onClick={() => setPickerOpen(true)}
               />
-            </DetailedSettings>
+            </SettingsRow>
           </section>
         </>
       )}
@@ -229,31 +233,88 @@ export default function BackgroundEditor() {
             onChange={handleFile}
           />
           <p className="bg-sync-warning">Media does not sync between devices due to browser storage limits.</p>
-          {customImageUrl && config.mode === 'custom' && (
+          {customImageUrl && customCfg && (
             <>
-              <div className="bg-scaling-row">
-                <span className="bg-scaling-label">Scaling</span>
-                <select
-                  className="bg-scaling-select"
-                  value={config.scalingMode ?? 'fit'}
-                  onChange={e => setConfig({ ...config, scalingMode: e.target.value as 'cover' | 'fit' })}
-                >
-                  <option value="cover">Cover (crop to fill)</option>
-                  <option value="fit">Fit (preserve ratio)</option>
-                </select>
-              </div>
-              {(config.scalingMode ?? 'fit') === 'fit' && (
-                <div className="bg-scaling-row">
-                  <span className="bg-scaling-label">Background</span>
+              {(customCfg.scaleToFit ?? true) && (
+                <SettingsRow label="Background Color">
                   <button
                     ref={letterboxBtnRef}
-                    className="bg-color-swatch bg-letterbox-swatch"
-                    style={{ background: config.letterboxColor ?? '#000000' }}
+                    className="bg-color-swatch"
+                    style={{ background: customCfg.letterboxColor ?? '#000000' }}
                     onClick={() => setLbPickerOpen(true)}
                   />
-                  <span className="bg-color-hint">{config.letterboxColor ?? '#000000'}</span>
-                </div>
+                </SettingsRow>
               )}
+
+              <DetailedSettings>
+                <SettingsSlider
+                  label="Blur"
+                  value={customCfg.blur ?? 0}
+                  onChange={v => setConfig({ ...customCfg, blur: v })}
+                  min={0}
+                  max={100}
+                  step={1}
+                  valueFormatter={noLabel}
+                />
+
+                <div className="bg-luminosity-slider-wrap">
+                  <SettingsSlider
+                    label="Luminosity"
+                    value={customCfg.luminosity ?? 100}
+                    onChange={v => setConfig({ ...customCfg, luminosity: v })}
+                    min={0}
+                    max={200}
+                    step={5}
+                    valueFormatter={noLabel}
+                  />
+                </div>
+
+                <SettingsRow label="Scale background to fit">
+                  <SettingsSwitch
+                    checked={customCfg.scaleToFit ?? true}
+                    onChange={v => setConfig({ ...customCfg, scaleToFit: v })}
+                  />
+                </SettingsRow>
+
+                <div className="bg-position-row">
+                  <span className="sg-form-label">Position</span>
+                  <Dropdown
+                    options={POSITION_OPTIONS}
+                    value={customCfg.position ?? 'center'}
+                    onChange={v => setConfig({ ...customCfg, position: v })}
+                  />
+                </div>
+
+                <SettingsRow label="Automatically dim at night">
+                  <SettingsSwitch
+                    checked={customCfg.autoDimNight ?? false}
+                    onChange={v => setConfig({ ...customCfg, autoDimNight: v })}
+                  />
+                </SettingsRow>
+
+                {customCfg.autoDimNight && (
+                  <div className="bg-night-time-row">
+                    <div className="bg-night-time-field">
+                      <span className="bg-night-time-label">Night starts at</span>
+                      <input
+                        type="time"
+                        className="bg-night-time-input"
+                        value={customCfg.nightStart || '22:00'}
+                        onChange={e => setConfig({ ...customCfg, nightStart: e.target.value || '22:00' })}
+                      />
+                    </div>
+                    <div className="bg-night-time-field">
+                      <span className="bg-night-time-label">Night ends at</span>
+                      <input
+                        type="time"
+                        className="bg-night-time-input"
+                        value={customCfg.nightEnd || '05:00'}
+                        onChange={e => setConfig({ ...customCfg, nightEnd: e.target.value || '05:00' })}
+                      />
+                    </div>
+                  </div>
+                )}
+              </DetailedSettings>
             </>
           )}
         </section>
@@ -474,7 +535,153 @@ export default function BackgroundEditor() {
         </section>
       )}
 
-      {/* ── Placeholder tabs (gradient / online / wikimedia) — not yet implemented ── */}
+      {/* ── Color Gradient tab ── */}
+      {activeTab === 'gradient' && grad && (
+        <section className="settings-section">
+          <div className="settings-section-label">Color Gradient</div>
+
+          <SettingsRow label="Type">
+            <SegmentedControl
+              options={GRADIENT_TYPE_OPTIONS}
+              value={grad.gradientType ?? 'linear'}
+              onChange={v => setConfig({ ...grad, gradientType: v })}
+            />
+          </SettingsRow>
+
+          <SettingsRow label="From Color">
+            <button
+              ref={gradFromBtnRef}
+              className="bg-color-swatch"
+              style={{ background: grad.from ?? '#3498db' }}
+              onClick={() => setGradPickerOpen('from')}
+            />
+          </SettingsRow>
+
+          <SettingsRow label="To Color">
+            <button
+              ref={gradToBtnRef}
+              className="bg-color-swatch"
+              style={{ background: grad.to ?? '#9b59b6' }}
+              onClick={() => setGradPickerOpen('to')}
+            />
+          </SettingsRow>
+
+          {(grad.gradientType ?? 'linear') === 'linear' && (
+            <SettingsSlider
+              label="Angle"
+              value={grad.angle ?? 135}
+              onChange={v => setConfig({ ...grad, angle: v })}
+              min={0}
+              max={360}
+              step={1}
+              valueFormatter={v => `${v}°`}
+            />
+          )}
+        </section>
+      )}
+
+      {/* ── Online Image tab — mirrors the Custom Image panel's layout exactly ── */}
+      {activeTab === 'online' && onlineCfg && (
+        <section className="settings-section">
+          <div className="settings-section-label">Online Image</div>
+
+          <input
+            className="bg-url-input"
+            type="url"
+            placeholder="https://example.com/image.jpg"
+            value={onlineCfg.value}
+            onChange={e => setConfig({ ...onlineCfg, value: e.target.value.trim() })}
+            spellCheck={false}
+          />
+
+          {onlineCfg.value && (
+            <>
+              {(onlineCfg.scaleToFit ?? true) && (
+                <SettingsRow label="Background Color">
+                  <button
+                    ref={letterboxBtnRef}
+                    className="bg-color-swatch"
+                    style={{ background: onlineCfg.letterboxColor ?? '#000000' }}
+                    onClick={() => setLbPickerOpen(true)}
+                  />
+                </SettingsRow>
+              )}
+
+              <DetailedSettings>
+                <SettingsSlider
+                  label="Blur"
+                  value={onlineCfg.blur ?? 0}
+                  onChange={v => setConfig({ ...onlineCfg, blur: v })}
+                  min={0}
+                  max={100}
+                  step={1}
+                  valueFormatter={noLabel}
+                />
+
+                <div className="bg-luminosity-slider-wrap">
+                  <SettingsSlider
+                    label="Luminosity"
+                    value={onlineCfg.luminosity ?? 100}
+                    onChange={v => setConfig({ ...onlineCfg, luminosity: v })}
+                    min={0}
+                    max={200}
+                    step={5}
+                    valueFormatter={noLabel}
+                  />
+                </div>
+
+                <SettingsRow label="Scale background to fit">
+                  <SettingsSwitch
+                    checked={onlineCfg.scaleToFit ?? true}
+                    onChange={v => setConfig({ ...onlineCfg, scaleToFit: v })}
+                  />
+                </SettingsRow>
+
+                <div className="bg-position-row">
+                  <span className="sg-form-label">Position</span>
+                  <Dropdown
+                    options={POSITION_OPTIONS}
+                    value={onlineCfg.position ?? 'center'}
+                    onChange={v => setConfig({ ...onlineCfg, position: v })}
+                  />
+                </div>
+
+                <SettingsRow label="Automatically dim at night">
+                  <SettingsSwitch
+                    checked={onlineCfg.autoDimNight ?? false}
+                    onChange={v => setConfig({ ...onlineCfg, autoDimNight: v })}
+                  />
+                </SettingsRow>
+
+                {onlineCfg.autoDimNight && (
+                  <div className="bg-night-time-row">
+                    <div className="bg-night-time-field">
+                      <span className="bg-night-time-label">Night starts at</span>
+                      <input
+                        type="time"
+                        className="bg-night-time-input"
+                        value={onlineCfg.nightStart || '22:00'}
+                        onChange={e => setConfig({ ...onlineCfg, nightStart: e.target.value || '22:00' })}
+                      />
+                    </div>
+                    <div className="bg-night-time-field">
+                      <span className="bg-night-time-label">Night ends at</span>
+                      <input
+                        type="time"
+                        className="bg-night-time-input"
+                        value={onlineCfg.nightEnd || '05:00'}
+                        onChange={e => setConfig({ ...onlineCfg, nightEnd: e.target.value || '05:00' })}
+                      />
+                    </div>
+                  </div>
+                )}
+              </DetailedSettings>
+            </>
+          )}
+        </section>
+      )}
+
+      {/* ── Placeholder tabs (wikimedia) — not yet implemented ── */}
       {isPlaceholderTab && (
         <section className="settings-section">
           <div className="settings-section-label">{PANEL_LABELS[activeTab]}</div>
@@ -497,6 +704,24 @@ export default function BackgroundEditor() {
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
       />
+      {grad && (
+        <>
+          <CustomColorPicker
+            value={grad.from ?? '#3498db'}
+            onChange={hex => setConfig({ ...grad, from: hex })}
+            anchorRef={gradFromBtnRef}
+            open={gradPickerOpen === 'from'}
+            onClose={() => setGradPickerOpen(null)}
+          />
+          <CustomColorPicker
+            value={grad.to ?? '#9b59b6'}
+            onChange={hex => setConfig({ ...grad, to: hex })}
+            anchorRef={gradToBtnRef}
+            open={gradPickerOpen === 'to'}
+            onClose={() => setGradPickerOpen(null)}
+          />
+        </>
+      )}
     </div>
   );
 }

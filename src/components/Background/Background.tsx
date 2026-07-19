@@ -118,13 +118,15 @@ export default function Background() {
   const { backgroundCss, config, unsplash, bing, astronomy } = useBackground();
   const { layers, active } = useCrossfadeBackground(backgroundCss);
 
-  const isFit       = config.mode === 'custom' && (config.scalingMode ?? 'fit') === 'fit';
-  const letterboxBg = config.mode === 'custom' ? (config.letterboxColor ?? '#000000') : '#000000';
-
   // Modular display controls — apply to the active layer regardless of provider.
   const blur         = config.blur ?? 0;
   const luminosity   = config.luminosity ?? 100;
   const scaleToFit   = config.scaleToFit ?? true;
+
+  // Only 'custom' has a letterbox fill color of its own — every other mode's
+  // "contain" mode just shows the page's own dark background behind the image.
+  const isFit       = config.mode === 'custom' && scaleToFit;
+  const letterboxBg = config.mode === 'custom' ? (config.letterboxColor ?? '#000000') : '#000000';
   const position     = config.position ?? 'center';
   const autoDimNight = config.autoDimNight ?? false;
   const nightStart   = config.nightStart ?? '22:00';

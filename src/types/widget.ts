@@ -83,6 +83,7 @@ interface WidgetBase {
   w: number;
   h: number;
   bgColor?: string;
+  bgColorScheme?: 'dark' | 'light'; // which theme was active when bgColor was picked — see getAdaptiveColor (colorUtils.ts)
   bgPresetId?: string;
   bgOpacity?: number;
   bgDim?: number;

@@ -25,15 +25,16 @@
 }
 
 /* Background layer — opacity-controlled so Global Opacity works for both formula and preset CSS.
-   Resolution order: named preset (data-attr CSS var) → custom inline override → global theme formula */
+   Resolution order: --widget-bg-preset-css (inline, always set for any active preset/custom
+   color — see WidgetContainer.tsx/ThemeContext.tsx) → global theme formula fallback. */
 .sg-widget::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--preset-bg, var(--widget-bg-preset-css, linear-gradient(135deg,
+  background: var(--widget-bg-preset-css, linear-gradient(135deg,
     var(--widget-bg-color, #2a2d3d),
     var(--widget-bg-color-end, #2a2d3d)
-  )));
+  ));
   opacity: var(--widget-bg-opacity, 1);
   pointer-events: none;
   z-index: 0;

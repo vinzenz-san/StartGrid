@@ -8,12 +8,9 @@ export interface BackgroundShared {
   // Fields below are shared optionals used by multiple modes; kept here so
   // BackgroundEditor can read them without mode-narrowing until editor panels
   // are split per-provider (future step).
-  gradientIntensity?: number;
-  customColor?: string;
-  scalingMode?: 'cover' | 'fit';
-  letterboxColor?: string;
-  /** @deprecated kept for backwards-compat with stored configs */
-  customGradient?: boolean;
+  customColor?: string;      // the hex a user picked via the Solid Color panel's "Custom Color" swatch
+  customColorScheme?: 'dark' | 'light'; // which theme was active when customColor was picked — see getAdaptiveColor (colorUtils.ts)
+  letterboxColor?: string;  // fill color for empty space around a 'custom' image when scaleToFit is on
   // Modular display controls — apply to the active background layer
   // regardless of provider (see Background.tsx).
   dateMode?: 'today' | 'custom'; // default 'today'
@@ -70,14 +67,18 @@ export interface AstronomyConfig extends BackgroundShared {
   showApodTitle?: boolean; // default false — overlay NASA's title for the day
 }
 
-export interface ColourGradientConfig extends BackgroundShared {
+export interface ColorGradientConfig extends BackgroundShared {
   mode: 'colourGradient';
-  value: string; // unused placeholder; kept for storage shape uniformity
+  value: string;             // unused; kept for storage shape uniformity with other modes
+  gradientType?: 'linear' | 'radial'; // default 'linear'
+  angle?: number;             // 0-360, default 135 — linear only
+  from?: string;               // hex, default '#3498db'
+  to?: string;                 // hex, default '#9b59b6'
 }
 
 export interface OnlineImageConfig extends BackgroundShared {
   mode: 'online';
-  value: string; // unused placeholder; kept for storage shape uniformity
+  value: string; // user-supplied image URL
 }
 
 export interface WikimediaConfig extends BackgroundShared {
@@ -92,7 +93,7 @@ export type BackgroundConfig =
   | UnsplashConfig
   | BingConfig
   | AstronomyConfig
-  | ColourGradientConfig
+  | ColorGradientConfig
   | OnlineImageConfig
   | WikimediaConfig;
 
@@ -102,7 +103,6 @@ export type BackgroundMode = BackgroundConfig['mode'];
 export const DEFAULT_BG: PresetConfig = {
   mode: 'preset',
   value: 'midnight',
-  gradientIntensity: 100,
 };
 
 // ─── Editor grouping ───────────────────────────────────────────────────────
@@ -130,38 +130,3 @@ export interface BackgroundRenderCtx {
   /** Current cached NASA Astronomy Picture of the Day image URL */
   apodImageUrl?: string | null;
 }
-
-// ─── Preset definitions (unchanged) ────────────────────────────────────────
-export interface PresetDef {
-  id: string;
-  label: string;
-  css: string;
-  flatColor: string;
-  darkStart: string;
-  darkEnd: string;
-  lightStart: string;
-  lightEnd: string;
-}
-
-export const PRESETS: PresetDef[] = [
-  { id: 'midnight', label: 'Midnight',
-    css: 'linear-gradient(135deg, #0f1117 0%, #1a1d2e 100%)', flatColor: '#1a1d2e',
-    darkStart: '#0f1117', darkEnd: '#1a1d2e',
-    lightStart: '#64748b', lightEnd: '#e2e8f0' },
-  { id: 'aurora',   label: 'Aurora',
-    css: 'linear-gradient(135deg, #0d1b2a 0%, #1b4332 50%, #081c15 100%)', flatColor: '#1b4332',
-    darkStart: '#0d1b2a', darkEnd: '#1b4332',
-    lightStart: '#34d399', lightEnd: '#dcfce7' },
-  { id: 'dusk',     label: 'Dusk',
-    css: 'linear-gradient(135deg, #1a0533 0%, #2d1b69 50%, #11032e 100%)', flatColor: '#2d1b69',
-    darkStart: '#1a0533', darkEnd: '#2d1b69',
-    lightStart: '#a855f7', lightEnd: '#f3e8ff' },
-  { id: 'ocean',    label: 'Ocean',
-    css: 'linear-gradient(135deg, #03071e 0%, #023e8a 100%)', flatColor: '#023e8a',
-    darkStart: '#03071e', darkEnd: '#023e8a',
-    lightStart: '#3b82f6', lightEnd: '#dbeafe' },
-  { id: 'ember',    label: 'Ember',
-    css: 'linear-gradient(135deg, #1a0a00 0%, #7c2d12 50%, #450a00 100%)', flatColor: '#7c2d12',
-    darkStart: '#1a0a00', darkEnd: '#7c2d12',
-    lightStart: '#f97316', lightEnd: '#ffedd5' },
-];

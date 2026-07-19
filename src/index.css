@@ -59,20 +59,13 @@
 .preset-tile[data-preset-id="dusk"]     { background: linear-gradient(135deg, #1a0533 0%, #2d1b69 50%, #11032e 100%); }
 .preset-tile[data-preset-id="ocean"]    { background: linear-gradient(135deg, #03071e 0%, #023e8a 100%); }
 .preset-tile[data-preset-id="ember"]    { background: linear-gradient(135deg, #1a0a00 0%, #7c2d12 50%, #450a00 100%); }
+.preset-tile[data-preset-id="sun"]      { background: linear-gradient(135deg, #1a1300 0%, #b8860b 50%, #3d2e00 100%); }
 [data-scheme="light"] .preset-tile[data-preset-id="midnight"] { background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%); }
 [data-scheme="light"] .preset-tile[data-preset-id="aurora"]   { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); }
 [data-scheme="light"] .preset-tile[data-preset-id="dusk"]     { background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); }
 [data-scheme="light"] .preset-tile[data-preset-id="ocean"]    { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
 [data-scheme="light"] .preset-tile[data-preset-id="ember"]    { background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%); }
-
-/* ── Widget presets (data-preset) ─────────────────── */
-
-/* Dark / system defaults */
-.sg-widget[data-preset="midnight"] { --preset-bg: linear-gradient(135deg, #1a1d2e 0%, #2a2d3d 100%); }
-.sg-widget[data-preset="aurora"]   { --preset-bg: linear-gradient(135deg, #1b4332 0%, #166534 100%); }
-.sg-widget[data-preset="dusk"]     { --preset-bg: linear-gradient(135deg, #2d1b69 0%, #4c1d95 100%); }
-.sg-widget[data-preset="ocean"]    { --preset-bg: linear-gradient(135deg, #0a2d6e 0%, #1a3fa0 100%); }
-.sg-widget[data-preset="ember"]    { --preset-bg: linear-gradient(135deg, #7c2d12 0%, #9a3412 100%); }
+[data-scheme="light"] .preset-tile[data-preset-id="sun"]      { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
 
 /* A widget with an explicit local theme (data-theme) always wins over the page-wide
    html[data-scheme] — :not([data-theme="dark"]) keeps the page-light rule from leaking
@@ -90,10 +83,10 @@ html[data-scheme="light"] .sg-widget:not([data-theme="dark"]),
 html[data-scheme="light"] .sg-widget:not([data-theme="dark"])::before,
 .sg-widget[data-theme="light"]::before {
   /* Same opacity-controlled approach as dark mode — no inverse glass formula */
-  background: var(--preset-bg, var(--widget-bg-preset-css, linear-gradient(135deg,
+  background: var(--widget-bg-preset-css, linear-gradient(135deg,
     var(--widget-bg-color, #e2e8f0),
     var(--widget-bg-color-end, #e2e8f0)
-  )));
+  ));
   opacity: var(--widget-bg-opacity, 1);
 }
 
