@@ -162,4 +162,17 @@
 
 .sg-backup-error       { font-size: 10px; color: #e05252; padding: 2px 0 4px; line-height: 1.4; }
 .sg-backup-error--warn { color: var(--text-muted); }
+
+/* ── Language dropdown ───────────────────────────────────────────────────── */
+/* The shared .sg-dropdown-trigger's width: 100% resolves relative to its own
+   shrink-wrapped wrapper inside a SettingsRow's flex layout, so it collapses
+   to fit just the "English"/"Deutsch" label text. Fix the wrapper's own size
+   here instead of touching the shared class (which the Background mode
+   switcher and Position picker rely on stretching to their full container
+   width) — the portaled menu already tracks this trigger's rendered width via
+   Dropdown.tsx's floating-ui size() middleware, so it widens automatically. */
+.sg-lang-dropdown {
+  flex: 0 0 auto;
+  width: 105px;
+}
 .sg-backup-ok          { font-size: 10px; color: #52b152; padding: 2px 0 4px; }
