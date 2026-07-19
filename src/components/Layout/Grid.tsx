@@ -24,7 +24,7 @@ interface DropTarget { col: number; row: number; w: number; h: number; valid: bo
 export default function Grid() {
   const { isEditMode, toggleEditMode } = useEditMode();
   const { widgets, updateWidget, loaded } = useWidgets();
-  const { developerOptionsEnabled, settingsButtonPosition, settingsPinned, elementInspectorEnabled } = useSettings();
+  const { developerOptionsEnabled, settingsButtonPosition, settingsPinned, elementInspectorEnabled, t } = useSettings();
   const gridRef = useRef<HTMLDivElement>(null);
   const gearBtnRef = useRef<HTMLButtonElement>(null);
   const [dropTarget,        setDropTarget]        = useState<DropTarget | null>(null);
@@ -82,7 +82,7 @@ export default function Grid() {
               ref={gearBtnRef}
               className={`sg-btn-control sg-btn-control--settings${settingsPanelOpen ? ' active' : ''}${gearDarkVariant ? ' sg-btn-control--dark-variant' : ''}`}
               onPointerDown={e => { e.stopPropagation(); e.preventDefault(); if (!settingsPinned) setSettingsPanelOpen(s => !s); }}
-              title="Settings"
+              title={t('dashboard.settings')}
             >
               <GearIcon size={15} />
             </button>
@@ -100,7 +100,7 @@ export default function Grid() {
               <button
                 className={`sg-btn-control${isEditMode ? ' active' : ''}`}
                 onPointerDown={() => { setSettingsPanelOpen(false); toggleEditMode(); }}
-                title={isEditMode ? 'Lock layout (Ctrl+E)' : 'Unlock layout (Ctrl+E)'}
+                title={isEditMode ? t('dashboard.lockLayout') : t('dashboard.unlockLayout')}
               >
                 {isEditMode
                   ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>

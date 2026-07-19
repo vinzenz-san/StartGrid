@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import { useStorage } from '../hooks/useStorage';
 import { lightenHex } from '../lib/colorUtils';
+import { DICTIONARIES, interpolate, type TranslationKey } from '../i18n';
 
 const STORAGE_KEY = 'sg:settings';
 
@@ -33,6 +34,7 @@ export const SETTINGS_DEFAULTS = {
 
 interface SettingsCtx extends AppSettings {
   updateSettings: (patch: Partial<AppSettings>) => void;
+  t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
 }
 
 const Ctx = createContext<SettingsCtx | null>(null);
@@ -69,8 +71,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const updateSettings = (patch: Partial<AppSettings>) =>
     setSettings(prev => ({ ...(prev ?? SETTINGS_DEFAULTS), ...patch }));
 
+  const t = (key: TranslationKey, vars?: Record<string, string | number>) =>
+    interpolate(DICTIONARIES[s.language][key], vars);
+
   return (
-    <Ctx.Provider value={{ ...s, updateSettings }}>
+    <Ctx.Provider value={{ ...s, updateSettings, t }}>
       {children}
     </Ctx.Provider>
   );

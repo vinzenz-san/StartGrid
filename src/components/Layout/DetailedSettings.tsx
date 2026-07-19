@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useSettingsPanelOpen } from '../../contexts/SettingsPanelOpenContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import './DetailedSettings.css';
 
 interface Props {
@@ -17,6 +18,7 @@ interface Props {
  */
 export function DetailedSettings({ children }: Props) {
   const sidebarOpen = useSettingsPanelOpen();
+  const { t } = useSettings();
   const [isOpen, setIsOpen] = useState(false);
   const toggle = () => setIsOpen(prev => !prev);
 
@@ -30,9 +32,9 @@ export function DetailedSettings({ children }: Props) {
         <button
           className="sg-detailed-settings-trigger"
           onClick={toggle}
-          title={isOpen ? 'Hide advanced settings' : 'Show advanced settings'}
+          title={isOpen ? t('detailedSettings.hide') : t('detailedSettings.show')}
         >
-          {isOpen ? 'Close Display Settings' : 'Open Display Settings'}
+          {isOpen ? t('detailedSettings.close') : t('detailedSettings.open')}
         </button>
       </div>
       <div className={`sg-detailed-settings-collapse${isOpen ? ' sg-detailed-settings-collapse--expanded' : ''}`}>
