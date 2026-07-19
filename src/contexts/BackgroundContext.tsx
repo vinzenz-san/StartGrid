@@ -7,6 +7,7 @@ import { useSettings } from './SettingsContext';
 import { useUnsplash, UnsplashAttribution } from '../hooks/useUnsplash';
 import { useBing } from '../hooks/useBing';
 import { useAstronomy } from '../hooks/useAstronomy';
+import { useWikimedia } from '../hooks/useWikimedia';
 
 const SYNC_KEY          = 'sg:background';
 const LOCAL_KEY         = 'sg:background:image';
@@ -16,6 +17,7 @@ const FAST_CONFIG_KEY   = 'sg:bg:fastConfig';
 const FAST_URL_KEY      = 'sg:unsplash:fastUrl';
 const FAST_BING_URL_KEY = 'sg:bing:fastUrl';
 const FAST_APOD_URL_KEY = 'sg:apod:fastUrl';
+const FAST_WIKIMEDIA_URL_KEY = 'sg:wikimedia:fastUrl';
 
 function readFastConfig(): BackgroundConfig | null {
   try {
@@ -57,6 +59,16 @@ function writeFastApodUrl(url: string | null): void {
   } catch {}
 }
 
+function readFastWikimediaUrl(): string | null {
+  try { return localStorage.getItem(FAST_WIKIMEDIA_URL_KEY); } catch { return null; }
+}
+function writeFastWikimediaUrl(url: string | null): void {
+  try {
+    if (url) localStorage.setItem(FAST_WIKIMEDIA_URL_KEY, url);
+    else localStorage.removeItem(FAST_WIKIMEDIA_URL_KEY);
+  } catch {}
+}
+
 interface BackgroundCtx {
   config: BackgroundConfig;
   customImageUrl: string | null;
@@ -87,6 +99,14 @@ interface BackgroundCtx {
     error: string | null;
     fetchNow: () => void;
   };
+  wikimedia: {
+    imageUrl: string | null;
+    title: string | undefined;
+    artist: string | undefined;
+    isFetching: boolean;
+    error: string | null;
+    fetchNow: () => void;
+  };
 }
 
 const Ctx = createContext<BackgroundCtx | null>(null);
@@ -101,6 +121,7 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
   const [unsplashImageUrl, setUnsplashImageUrlRaw] = useState<string | null>(readFastUrl);
   const [bingImageUrl, setBingImageUrlRaw]  = useState<string | null>(readFastBingUrl);
   const [apodImageUrl, setApodImageUrlRaw]  = useState<string | null>(readFastApodUrl);
+  const [wikimediaImageUrl, setWikimediaImageUrlRaw] = useState<string | null>(readFastWikimediaUrl);
   const [loaded, setLoaded]                 = useState(false);
   const lastSaved                           = useRef('');
 
@@ -119,9 +140,15 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
     writeFastApodUrl(url);
   };
 
+  const setWikimediaImageUrl = (url: string | null) => {
+    setWikimediaImageUrlRaw(url);
+    writeFastWikimediaUrl(url);
+  };
+
   const { attribution, isFetching, error, fetchNow } = useUnsplash(config, setUnsplashImageUrl);
   const { title: bingTitle, isFetching: bingFetching, error: bingError, fetchNow: bingFetchNow } = useBing(config, setBingImageUrl);
   const { title: apodTitle, copyright: apodCopyright, isFetching: apodFetching, error: apodError, fetchNow: apodFetchNow } = useAstronomy(config, setApodImageUrl);
+  const { title: wikimediaTitle, artist: wikimediaArtist, isFetching: wikimediaFetching, error: wikimediaError, fetchNow: wikimediaFetchNow } = useWikimedia(config, setWikimediaImageUrl);
 
   // Hydrate from real storage (sync + local) on mount
   useEffect(() => {
@@ -173,6 +200,7 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
     unsplashImageUrl,
     bingImageUrl,
     apodImageUrl,
+    wikimediaImageUrl,
   });
 
   return (
@@ -183,6 +211,7 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
       unsplash: { imageUrl: unsplashImageUrl, attribution, isFetching, error, fetchNow },
       bing: { imageUrl: bingImageUrl, title: bingTitle, isFetching: bingFetching, error: bingError, fetchNow: bingFetchNow },
       astronomy: { imageUrl: apodImageUrl, title: apodTitle, copyright: apodCopyright, isFetching: apodFetching, error: apodError, fetchNow: apodFetchNow },
+      wikimedia: { imageUrl: wikimediaImageUrl, title: wikimediaTitle, artist: wikimediaArtist, isFetching: wikimediaFetching, error: wikimediaError, fetchNow: wikimediaFetchNow },
     }}>
       {children}
     </Ctx.Provider>

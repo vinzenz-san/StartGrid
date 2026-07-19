@@ -115,7 +115,7 @@ const POSITION_CSS: Record<BackgroundPosition, string> = {
 };
 
 export default function Background() {
-  const { backgroundCss, config, unsplash, bing, astronomy } = useBackground();
+  const { backgroundCss, config, unsplash, bing, astronomy, wikimedia } = useBackground();
   const { layers, active } = useCrossfadeBackground(backgroundCss);
 
   // Modular display controls — apply to the active layer regardless of provider.
@@ -162,6 +162,11 @@ export default function Background() {
     (config.showTitle ?? false) &&
     !!bing.title;
 
+  const showWikimediaTitle =
+    config.mode === 'wikimedia' &&
+    (config.showTitle ?? false) &&
+    !!wikimedia.title;
+
   return (
     <>
       {isFit && (
@@ -198,6 +203,12 @@ export default function Background() {
       {showBingTitle && (
         <div className="sg-bg-attribution sg-apod-title-active">
           {bing.title}
+        </div>
+      )}
+      {showWikimediaTitle && (
+        <div className="sg-bg-attribution sg-apod-title-active">
+          {wikimedia.title}
+          {wikimedia.artist && <>{' '}&copy; {wikimedia.artist}</>}
         </div>
       )}
     </>

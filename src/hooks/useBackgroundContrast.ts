@@ -268,7 +268,7 @@ function getAnalyticLuminance(backgroundCss: string): number {
  * since the button is `position: fixed` and doesn't move on scroll.
  */
 export function useBackgroundContrast(buttonRef: RefObject<HTMLElement | null>): boolean {
-  const { config, customImageUrl, backgroundCss, unsplash, bing, astronomy } = useBackground();
+  const { config, customImageUrl, backgroundCss, unsplash, bing, astronomy, wikimedia } = useBackground();
   const { settingsButtonPosition } = useSettings();
 
   const [isDarkVariant, setIsDarkVariant] = useState(false);
@@ -307,12 +307,13 @@ export function useBackgroundContrast(buttonRef: RefObject<HTMLElement | null>):
     // to FALLBACK_HEX (near-black) — permanently reading as "dark background"
     // regardless of how bright the actual photo is, leaving the white icon
     // variant stuck on even over a bright image.
-    if (config.mode === 'custom' || config.mode === 'unsplash' || config.mode === 'astronomy' || config.mode === 'bing' || config.mode === 'online') {
+    if (config.mode === 'custom' || config.mode === 'unsplash' || config.mode === 'astronomy' || config.mode === 'bing' || config.mode === 'online' || config.mode === 'wikimedia') {
       const url =
         config.mode === 'custom'    ? customImageUrl :
         config.mode === 'unsplash'  ? unsplash.imageUrl :
         config.mode === 'astronomy' ? astronomy.imageUrl :
         config.mode === 'bing'      ? bing.imageUrl :
+        config.mode === 'wikimedia' ? wikimedia.imageUrl :
         config.value; // 'online' — the user-supplied URL is itself the image source, no fetched-metadata hook needed
       if (!url) { applyRaw(luminance(FALLBACK_HEX)); return; }
 
@@ -335,7 +336,7 @@ export function useBackgroundContrast(buttonRef: RefObject<HTMLElement | null>):
     }
 
     applyRaw(getAnalyticLuminance(backgroundCss));
-  }, [buttonRef, config, customImageUrl, unsplash.imageUrl, bing.imageUrl, astronomy.imageUrl, backgroundCss]);
+  }, [buttonRef, config, customImageUrl, unsplash.imageUrl, bing.imageUrl, astronomy.imageUrl, wikimedia.imageUrl, backgroundCss]);
 
   // Mount + background change + position change.
   useLayoutEffect(() => {
