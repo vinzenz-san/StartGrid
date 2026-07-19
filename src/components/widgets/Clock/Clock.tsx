@@ -2,10 +2,9 @@ import { useRef, useState, useEffect } from 'react';
 import type { ClockData } from '../../../types/widget';
 import { SettingsRow, SegmentedControl, SettingsSwitch } from '../../shared/Form';
 import CustomColorPicker from '../../shared/CustomColorPicker';
+import { useSettings } from '../../../contexts/SettingsContext';
+import { LOCALES } from '../../../i18n';
 import './Clock.css';
-
-const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 function formatTime(d: Date, fmt: '12h' | '24h', secs: boolean) {
   const h24 = d.getHours();
@@ -27,6 +26,7 @@ interface SettingsProps {
 }
 
 export function ClockSettings({ data, onUpdateData }: SettingsProps) {
+  const { t } = useSettings();
   const { format = '24h', showSeconds = true, showDate = true,
           fontSize = 'M', dateFontSize = 'M', isBold = false, boldDate = false, fontColor } = data;
   const colorBtnRef = useRef<HTMLButtonElement>(null);
@@ -35,20 +35,20 @@ export function ClockSettings({ data, onUpdateData }: SettingsProps) {
 
   return (
     <div className="sg-clock-settings" onClick={e => e.stopPropagation()}>
-      <SettingsRow label="Format">
+      <SettingsRow label={t('widget.clock.format')}>
         <SegmentedControl
           options={[{ value: '24h', label: '24h' }, { value: '12h', label: '12h' }]}
           value={format}
           onChange={v => onUpdateData({ format: v })}
         />
       </SettingsRow>
-      <SettingsRow label="Show seconds">
+      <SettingsRow label={t('widget.clock.showSeconds')}>
         <SettingsSwitch checked={showSeconds} onChange={v => onUpdateData({ showSeconds: v })} />
       </SettingsRow>
-      <SettingsRow label="Show date">
+      <SettingsRow label={t('widget.clock.showDate')}>
         <SettingsSwitch checked={showDate} onChange={v => onUpdateData({ showDate: v })} />
       </SettingsRow>
-      <SettingsRow label="Time size">
+      <SettingsRow label={t('widget.clock.timeSize')}>
         <SegmentedControl
           options={[
             { value: 'S',  label: 'S'  },
@@ -60,7 +60,7 @@ export function ClockSettings({ data, onUpdateData }: SettingsProps) {
           onChange={v => onUpdateData({ fontSize: v as ClockData['fontSize'] })}
         />
       </SettingsRow>
-      <SettingsRow label="Date size">
+      <SettingsRow label={t('widget.clock.dateSize')}>
         <SegmentedControl
           options={[
             { value: 'S', label: 'S' },
@@ -71,18 +71,18 @@ export function ClockSettings({ data, onUpdateData }: SettingsProps) {
           onChange={v => onUpdateData({ dateFontSize: v as ClockData['dateFontSize'] })}
         />
       </SettingsRow>
-      <SettingsRow label="Bold time">
+      <SettingsRow label={t('widget.clock.boldTime')}>
         <SettingsSwitch checked={isBold} onChange={v => onUpdateData({ isBold: v })} />
       </SettingsRow>
-      <SettingsRow label="Bold date">
+      <SettingsRow label={t('widget.clock.boldDate')}>
         <SettingsSwitch checked={boldDate} onChange={v => onUpdateData({ boldDate: v })} />
       </SettingsRow>
-      <SettingsRow label="Font color">
+      <SettingsRow label={t('widget.clock.fontColor')}>
         <button
           ref={colorBtnRef}
           className="sg-clock-color-btn"
           style={{ background: pickerValue }}
-          title="Pick font color"
+          title={t('widget.clock.pickFontColor')}
           onClick={() => setPickerOpen(o => !o)}
           onPointerDown={e => e.stopPropagation()}
         />
@@ -109,6 +109,7 @@ interface Props {
 }
 
 export default function Clock({ data }: Props) {
+  const { language } = useSettings();
   const { format = '24h', showSeconds = true, showDate = true,
           fontSize = 'M', dateFontSize = 'M', isBold = false, boldDate = false, fontColor } = data;
   const [now, setNow] = useState(() => new Date());
@@ -118,7 +119,7 @@ export default function Clock({ data }: Props) {
     return () => clearInterval(id);
   }, []);
 
-  const dateStr = `${DAYS[now.getDay()]}, ${MONTHS[now.getMonth()]} ${now.getDate()}`;
+  const dateStr = new Intl.DateTimeFormat(LOCALES[language], { weekday: 'long', month: 'long', day: 'numeric' }).format(now);
 
   const style = {
     ...(fontColor ? { '--clock-color': fontColor } as React.CSSProperties : {}),

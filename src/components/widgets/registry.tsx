@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, GmailData, CalendarData, NotesData, PlaceholderData } from '../../types/widget';
+import type { TranslationKey } from '../../i18n';
 import Clock, { ClockSettings } from './Clock/Clock';
 import Quicklinks, { QuicklinksSettings } from './Quicklinks/Quicklinks';
 import BookmarkFolder, { BookmarkFolderSettings } from './BookmarkFolder/BookmarkFolder';
@@ -140,6 +141,22 @@ const _registry = {
 
 // One cast total — lets WidgetContainer index by dynamic widget.type.
 export const WIDGET_REGISTRY = _registry as Record<WidgetType, WidgetEntry>;
+
+// `entry.label` above stays a plain English literal — it's read as a live
+// fallback for a widget's resolved title (WidgetContainer.tsx) and as the
+// Add-Widget menu's internal key, not stored per-widget data. This map lets
+// render sites look up the translated display text via t() without touching
+// the registry's own (English, internal) label field.
+export const WIDGET_TYPE_LABEL_KEYS: Record<WidgetType, TranslationKey> = {
+  clock:          'widgets.type.clock',
+  quicklinks:     'widgets.type.quicklinks',
+  bookmarks:      'widgets.type.bookmarks',
+  bookmarkSearch: 'widgets.type.bookmarkSearch',
+  gmail:          'widgets.type.gmail',
+  calendar:       'widgets.type.calendar',
+  notes:          'widgets.type.notes',
+  placeholder:    'widgets.type.placeholder',
+};
 
 // Ordered list for the "Add Widget" menu (excludes placeholder handled separately if desired).
 export const WIDGET_MENU_TYPES: WidgetType[] = [

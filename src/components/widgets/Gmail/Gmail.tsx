@@ -3,6 +3,7 @@ import type { GmailData, GmailMessage } from './gmail.types';
 import { useGmail } from './useGmail';
 import { useGoogleAuth } from '../../../hooks/useGoogleAuth';
 import { SettingsRow, SettingsSwitch, SettingsSlider, ActionButton } from '../../shared/Form';
+import { useSettings } from '../../../contexts/SettingsContext';
 import './Gmail.css';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -12,12 +13,12 @@ function parseSender(from: string): string {
   return match ? match[1].trim() : from;
 }
 
-function formatRelativeTime(iso: string): string {
+function formatRelativeTime(iso: string, nowLabel: string): string {
   const diff  = Date.now() - new Date(iso).getTime();
   const mins  = Math.floor(diff / 60_000);
   const hours = Math.floor(diff / 3_600_000);
   const days  = Math.floor(diff / 86_400_000);
-  if (mins  < 1)  return 'now';
+  if (mins  < 1)  return nowLabel;
   if (mins  < 60) return `${mins}m`;
   if (hours < 24) return `${hours}h`;
   return `${days}d`;
@@ -77,15 +78,16 @@ function SkeletonRow() {
 // ── Email row ─────────────────────────────────────────────────────────────────
 
 function EmailRow({ email, showSnippet }: { email: GmailMessage; showSnippet: boolean }) {
+  const { t } = useSettings();
   return (
     <a className={`sg-gm-row${email.isUnread ? ' sg-gm-row--unread' : ''}`}
       href={`https://mail.google.com/mail/u/0/#inbox/${email.threadId}`}
       title={`${parseSender(email.from)} — ${email.subject}`}>
-      {email.isUnread && <span className="sg-gm-unread-dot" aria-label="Unread" />}
+      {email.isUnread && <span className="sg-gm-unread-dot" aria-label={t('widget.gmail.unreadAria')} />}
       <div className="sg-gm-row-main">
         <div className="sg-gm-row-top">
           <span className="sg-gm-sender">{parseSender(email.from)}</span>
-          <span className="sg-gm-time">{formatRelativeTime(email.date)}</span>
+          <span className="sg-gm-time">{formatRelativeTime(email.date, t('widget.gmail.relativeNow'))}</span>
         </div>
         <span className="sg-gm-subject">{email.subject}</span>
         {showSnippet && email.snippet && <span className="sg-gm-snippet">{email.snippet}</span>}
@@ -102,6 +104,7 @@ interface SettingsProps {
 }
 
 export function GmailSettings({ data, onUpdateData }: SettingsProps) {
+  const { t } = useSettings();
   const maxEmails    = data.maxEmails    ?? 5;
   const showSnippets = data.showSnippets ?? true;
   const { isConnected, isConnecting, email, error, connect, disconnect } = useGoogleAuth();
@@ -109,21 +112,21 @@ export function GmailSettings({ data, onUpdateData }: SettingsProps) {
   return (
     <div className="sg-gm-settings" onClick={e => e.stopPropagation()}>
       <SettingsSlider
-        label="Max emails"
+        label={t('widget.gmail.maxEmails')}
         min={5} max={30} step={1}
         value={maxEmails}
         onChange={v => onUpdateData({ maxEmails: v })}
         valueFormatter={v => String(v)}
       />
 
-      <SettingsRow label="Show snippets">
+      <SettingsRow label={t('widget.gmail.showSnippets')}>
         <SettingsSwitch checked={showSnippets} onChange={v => onUpdateData({ showSnippets: v })} />
       </SettingsRow>
 
       <div className="sg-gm-settings-divider" />
 
       <div className="sg-gm-settings-section">
-        <span className="sg-gm-settings-label">Google Account</span>
+        <span className="sg-gm-settings-label">{t('widget.gmail.googleAccount')}</span>
         {isConnected ? (
           <>
             {email && <p className="sg-gm-account-email">{email}</p>}
@@ -132,16 +135,16 @@ export function GmailSettings({ data, onUpdateData }: SettingsProps) {
               cooldownTime={1}
               onClick={disconnect}
             >
-              <IconDisconnect /> Disconnect account
+              <IconDisconnect /> {t('widget.gmail.disconnect')}
             </ActionButton>
           </>
         ) : (
           <>
             <button className="sg-gm-connect-btn" onClick={connect} disabled={isConnecting}>
-              <IconConnect /> {isConnecting ? 'Connecting…' : 'Connect Google Account'}
+              <IconConnect /> {isConnecting ? t('widget.gmail.connecting') : t('widget.gmail.connect')}
             </button>
             {error && <p className="sg-gm-connect-error">{error}</p>}
-            <p className="sg-gm-connect-note">Grants read-only access to your Gmail inbox.</p>
+            <p className="sg-gm-connect-note">{t('widget.gmail.grantNote')}</p>
           </>
         )}
       </div>
@@ -157,6 +160,7 @@ interface Props {
 }
 
 export default function Gmail({ data, onUpdateData: _onUpdateData }: Props) {
+  const { t } = useSettings();
   const { status, emails, unreadCount, refresh } = useGmail();
   const { isConnected, connect, isConnecting } = useGoogleAuth();
   const maxEmails    = data.maxEmails    ?? 5;
@@ -174,12 +178,12 @@ export default function Gmail({ data, onUpdateData: _onUpdateData }: Props) {
       <div className="sg-gm-header">
         <div className="sg-gm-title">
           <IconGmail />
-          <span>Gmail</span>
+          <span>{t('widget.gmail.title')}</span>
           {!isLoading && !isUnauthed && unreadCount > 0 && <span className="sg-gm-badge">{unreadCount}</span>}
           {!isLoading && !isUnauthed && unreadCount === 0 && status === 'success' && <span className="sg-gm-badge sg-gm-badge--zero">0</span>}
         </div>
         <button className="sg-gm-refresh" onClick={() => refresh(maxEmails)}
-          disabled={isLoading || isUnauthed} title="Refresh" aria-label="Refresh emails">
+          disabled={isLoading || isUnauthed} title={t('widget.gmail.refresh')} aria-label={t('widget.gmail.refreshAria')}>
           <IconRefresh spinning={isLoading} />
         </button>
       </div>
@@ -187,9 +191,9 @@ export default function Gmail({ data, onUpdateData: _onUpdateData }: Props) {
         {isUnauthed ? (
           <div className="sg-gm-empty">
             <IconGmail />
-            <span className="sg-gm-empty-text">Connect your Google Account to see your inbox.</span>
+            <span className="sg-gm-empty-text">{t('widget.gmail.connectPrompt')}</span>
             <button className="sg-gm-connect-btn" onClick={connect} disabled={isConnecting}>
-              <IconConnect /> {isConnecting ? 'Connecting…' : 'Connect Google Account'}
+              <IconConnect /> {isConnecting ? t('widget.gmail.connecting') : t('widget.gmail.connect')}
             </button>
           </div>
         ) : isLoading ? (
@@ -197,12 +201,12 @@ export default function Gmail({ data, onUpdateData: _onUpdateData }: Props) {
         ) : status === 'error' ? (
           <div className="sg-gm-empty">
             <span className="sg-gm-empty-icon">⚠</span>
-            <span className="sg-gm-empty-text">Could not load emails</span>
+            <span className="sg-gm-empty-text">{t('widget.gmail.loadError')}</span>
           </div>
         ) : visibleEmails.length === 0 ? (
           <div className="sg-gm-empty">
             <span className="sg-gm-empty-icon">✓</span>
-            <span className="sg-gm-empty-text">All caught up!</span>
+            <span className="sg-gm-empty-text">{t('widget.gmail.allCaughtUp')}</span>
           </div>
         ) : (
           visibleEmails.map(email => <EmailRow key={email.id} email={email} showSnippet={showSnippets} />)

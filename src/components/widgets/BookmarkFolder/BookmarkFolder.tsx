@@ -3,6 +3,7 @@ import type { BookmarksData as BookmarkFolderData, BookmarkSortMode } from '../.
 import { SettingsRow, SettingsSwitch } from '../../shared/Form';
 import { useBookmarkFolder } from './useBookmarkFolder';
 import type { BmNode } from './bookmarks.mock';
+import { useSettings } from '../../../contexts/SettingsContext';
 import './BookmarkFolder.css';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -52,6 +53,7 @@ interface FolderPickerNodeProps {
 }
 
 function FolderPickerNode({ node, selectedId, onSelect, depth, expandedIds }: FolderPickerNodeProps) {
+  const { t } = useSettings();
   const [open, setOpen] = useState(() => (expandedIds ?? new Set<string>()).has(node.id));
   const subFolders = node.children?.filter(c => !c.url) ?? [];
 
@@ -80,7 +82,7 @@ function FolderPickerNode({ node, selectedId, onSelect, depth, expandedIds }: Fo
           )}
         </span>
         <span className="sg-bf-fp-icon">📁</span>
-        <span className="sg-bf-fp-name">{node.title || '(Root)'}</span>
+        <span className="sg-bf-fp-name">{node.title || t('widget.bookmarkFolder.rootFallback')}</span>
       </div>
       {open && subFolders.map(f => (
         <FolderPickerNode key={f.id} node={f} selectedId={selectedId} onSelect={onSelect} depth={depth + 1} expandedIds={expandedIds ?? new Set()} />
@@ -97,6 +99,7 @@ interface SettingsProps {
 }
 
 export function BookmarkFolderSettings({ data, onUpdateData }: SettingsProps) {
+  const { t } = useSettings();
   const bookmarks = useBookmarkFolder();
   const [tree, setTree]               = useState<BmNode[]>([]);
   const [treeLoading, setTreeLoading] = useState(true);
@@ -115,32 +118,32 @@ export function BookmarkFolderSettings({ data, onUpdateData }: SettingsProps) {
 
   return (
     <div className="sg-bf-settings" onClick={e => e.stopPropagation()}>
-      <SettingsRow label="Show icons">
+      <SettingsRow label={t('widget.bookmarkFolder.showIcons')}>
         <SettingsSwitch checked={data.showIcons} onChange={v => onUpdateData({ showIcons: v })} />
       </SettingsRow>
-      <SettingsRow label="Compact mode">
+      <SettingsRow label={t('widget.bookmarkFolder.compactMode')}>
         <SettingsSwitch checked={data.compactMode} onChange={v => onUpdateData({ compactMode: v })} />
       </SettingsRow>
-      <SettingsRow label="Sort order">
+      <SettingsRow label={t('widget.bookmarkFolder.sortOrder')}>
         <select
           className="sg-bf-sort-select"
           value={data?.sortingMode ?? 'original'}
           onChange={e => onUpdateData({ sortingMode: e.target.value as BookmarkSortMode })}
         >
-          <option value="original">Original</option>
-          <option value="foldersFirst">Folders first</option>
-          <option value="alphabetical">A–Z</option>
+          <option value="original">{t('widget.bookmarkFolder.sortOriginal')}</option>
+          <option value="foldersFirst">{t('widget.bookmarkFolder.sortFoldersFirst')}</option>
+          <option value="alphabetical">{t('widget.bookmarkFolder.sortAlphabetical')}</option>
         </select>
       </SettingsRow>
 
       <div className="sg-bf-settings-divider" />
 
-      <span className="sg-bf-settings-label">Root folder</span>
+      <span className="sg-bf-settings-label">{t('widget.bookmarkFolder.rootFolder')}</span>
       {bookmarks.isMock && (
-        <p className="sg-bf-settings-note">Mock data — real bookmarks available in the extension.</p>
+        <p className="sg-bf-settings-note">{t('widget.bookmarkFolder.mockNote')}</p>
       )}
       {treeLoading ? (
-        <p className="sg-bf-settings-note">Loading…</p>
+        <p className="sg-bf-settings-note">{t('widget.bookmarkFolder.loading')}</p>
       ) : (
         <div className="sg-bf-fp-tree">
           {tree[0]?.children?.map(n => (
@@ -169,6 +172,7 @@ interface ItemRowProps {
 }
 
 function ItemRow({ node, showIcons, compact, onFolderClick }: ItemRowProps) {
+  const { t } = useSettings();
   const [iconError, setIconError] = useState(false);
   const isFolder  = !node.url;
   const hostname  = node.url ? hostnameOf(node.url) : '';
@@ -193,7 +197,7 @@ function ItemRow({ node, showIcons, compact, onFolderClick }: ItemRowProps) {
     return (
       <div className={cls} title={node.title} onClick={() => onFolderClick(node)}>
         {icon}
-        <span className="sg-bf-item-title">{node.title || '(Unnamed folder)'}</span>
+        <span className="sg-bf-item-title">{node.title || t('widget.bookmarkFolder.unnamedFolder')}</span>
         <span className="sg-bf-item-chevron">›</span>
       </div>
     );
@@ -217,11 +221,12 @@ interface Props {
 }
 
 export default function BookmarkFolder({ data, onUpdateData }: Props) {
+  const { t } = useSettings();
   const bookmarks    = useBookmarkFolder();
   const rootFolderId = data.rootFolderId ?? '1';
 
   const [navStack, setNavStack] = useState<NavEntry[]>([]);
-  const [rootName, setRootName] = useState('Bookmarks');
+  const [rootName, setRootName] = useState(t('widget.bookmarkFolder.defaultRootName'));
   const [items,    setItems]    = useState<BmNode[]>([]);
   const [loading,  setLoading]  = useState(true);
 
@@ -231,13 +236,14 @@ export default function BookmarkFolder({ data, onUpdateData }: Props) {
   useEffect(() => {
     setNavStack([]);
     bookmarks.getNode(rootFolderId).then(node => {
-      const folderName = node?.title || 'Bookmarks';
+      const folderName = node?.title || t('widget.bookmarkFolder.defaultRootName');
       setRootName(folderName);
       if (data.folderTitle !== folderName) {
         onUpdateData({ folderTitle: folderName });
       }
     });
-  }, [rootFolderId]); // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rootFolderId]);
 
   // Load children for current folder
   useEffect(() => {
@@ -248,7 +254,7 @@ export default function BookmarkFolder({ data, onUpdateData }: Props) {
   }, [currentId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function enterFolder(node: BmNode) {
-    setNavStack(prev => [...prev, { id: node.id, name: node.title || '(Folder)' }]);
+    setNavStack(prev => [...prev, { id: node.id, name: node.title || t('widget.bookmarkFolder.folderFallback') }]);
   }
 
   function goToBreadcrumb(index: number) {
@@ -283,12 +289,12 @@ export default function BookmarkFolder({ data, onUpdateData }: Props) {
       <div className="sg-bf-body">
         {loading ? (
           <div className="sg-bf-empty">
-            <span className="sg-bf-empty-text">Loading…</span>
+            <span className="sg-bf-empty-text">{t('widget.bookmarkFolder.loading')}</span>
           </div>
         ) : displayItems.length === 0 ? (
           <div className="sg-bf-empty">
             <span className="sg-bf-empty-icon">📁</span>
-            <span className="sg-bf-empty-text">Folder is empty</span>
+            <span className="sg-bf-empty-text">{t('widget.bookmarkFolder.folderEmpty')}</span>
           </div>
         ) : (
           <div className="sg-bf-list">

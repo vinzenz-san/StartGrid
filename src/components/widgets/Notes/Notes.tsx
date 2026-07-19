@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { NotesData } from '../../../types/widget';
 import { SettingsRow, SegmentedControl } from '../../shared/Form';
 import { storageLocal } from '../../../lib/storageLocal';
+import { useSettings } from '../../../contexts/SettingsContext';
 import './Notes.css';
 
 const SYNC_CHAR_LIMIT = 4_000;
@@ -15,6 +16,7 @@ interface SettingsProps {
 }
 
 export function NotesSettings({ data, onUpdateData, widgetId }: SettingsProps) {
+  const { t } = useSettings();
   const storageMode = data.storageMode ?? 'local';
 
   const handleModeChange = async (newMode: 'local' | 'synced') => {
@@ -34,16 +36,16 @@ export function NotesSettings({ data, onUpdateData, widgetId }: SettingsProps) {
 
   return (
     <div className="sg-notes-settings" onClick={e => e.stopPropagation()}>
-      <SettingsRow label="Font size">
+      <SettingsRow label={t('widget.notes.fontSize')}>
         <SegmentedControl
           options={[{ value: 'S', label: 'S' }, { value: 'M', label: 'M' }, { value: 'L', label: 'L' }]}
           value={data.fontSize ?? 'M'}
           onChange={v => onUpdateData({ fontSize: v as 'S' | 'M' | 'L' })}
         />
       </SettingsRow>
-      <SettingsRow label="Storage">
+      <SettingsRow label={t('widget.notes.storage')}>
         <SegmentedControl
-          options={[{ value: 'local', label: 'Local' }, { value: 'synced', label: 'Cloud' }]}
+          options={[{ value: 'local', label: t('widget.notes.storageLocal') }, { value: 'synced', label: t('widget.notes.storageCloud') }]}
           value={storageMode}
           onChange={v => handleModeChange(v as 'local' | 'synced')}
         />
@@ -61,6 +63,7 @@ interface Props {
 }
 
 export default function Notes({ data, onUpdateData, widgetId }: Props) {
+  const { t } = useSettings();
   const storageMode = data.storageMode ?? 'local';
   const localKey    = widgetId ? `note_content_${widgetId}` : null;
 
@@ -112,7 +115,7 @@ export default function Notes({ data, onUpdateData, widgetId }: Props) {
       <textarea
         className={`sg-notes ${sizeCls}`}
         value={content}
-        placeholder="Type a note…"
+        placeholder={t('widget.notes.placeholder')}
         spellCheck={false}
         maxLength={storageMode === 'synced' ? SYNC_CHAR_LIMIT : undefined}
         onChange={e => handleChange(e.target.value)}
