@@ -62,11 +62,22 @@
 }
 
 /* ── Scrollable content ──────────────────────────────────────────────────── */
+/* 20px flex gap is the single source of truth for spacing between top-level
+   sections — it applies uniformly to direct children regardless of whether
+   a given child is a bare <PanelSection> or a glow/blur hover wrapper <div>
+   around one, matching the 20px horizontal side padding for a symmetrical
+   grid. padding-top is intentionally smaller (10px) than the inter-card gap
+   — the header sits flush above without its own card background, so the
+   full 20px read as too much empty space there. */
 .sg-settings-content {
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 10px;
   padding-bottom: 24px;
   scrollbar-width: thin;
   scrollbar-color: var(--border-strong) transparent;
@@ -83,18 +94,9 @@
   .sg-settings-content::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 }
 
-/* ── Accent color swatch ─────────────────────────────────────────────────── */
-.sg-accent-swatch {
-  width: 22px;
-  height: 22px;
-  border-radius: 5px;
-  border: 2px solid var(--border);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: border-color 0.12s, transform 0.12s;
-  padding: 0;
-}
-.sg-accent-swatch:hover { border-color: var(--text-muted); transform: scale(1.1); }
+/* Accent color swatch now reuses .bg-color-swatch (BackgroundEditor.css) for
+   exact structural parity with the Color Gradient panel's From/To swatches —
+   see SettingsRow usage in the SETTINGS section below. */
 
 /* ── Add Widget section ──────────────────────────────────────────────────── */
 .sg-widget-add-section {

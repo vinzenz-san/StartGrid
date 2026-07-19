@@ -4,9 +4,11 @@ export const customProvider: BackgroundProviderDef<CustomImageConfig> = {
   mode: 'custom',
   label: 'Image / GIF',
   panel: 'image',
-  resolveCss(config, ctx) {
+  resolveCss(_config, ctx) {
     if (!ctx.customImageUrl) return '#0f1117';
-    const size = (config.scalingMode ?? 'fit') === 'fit' ? 'contain' : 'cover';
-    return `url("${ctx.customImageUrl}") center/${size} no-repeat`;
+    // Size/position/repeat come from the shared display controls
+    // (Background.tsx's layerStyle), same as every other image-backed
+    // provider (bing.ts, astronomy.ts) — just the bare url() here.
+    return `url("${ctx.customImageUrl}")`;
   },
 };

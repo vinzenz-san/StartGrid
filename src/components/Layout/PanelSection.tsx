@@ -1,4 +1,4 @@
-import { Children, Fragment, type ReactNode } from 'react';
+import { Children, type ReactNode } from 'react';
 import { useSectionCollapse } from '../../hooks/useSectionCollapse';
 import './PanelSection.css';
 
@@ -70,32 +70,19 @@ interface PanelSectionListProps {
 }
 
 /**
- * Wraps a static or conditionally-rendered list of <PanelSection> children
- * and auto-inserts the `sg-settings-divider` <hr> between them — a new
- * section never needs a manually-placed divider, and one can never be
- * forgotten or duplicated when sections are reordered.
+ * Wraps a static or conditionally-rendered list of <PanelSection> children.
+ * Spacing between sections comes entirely from each card's own padding/margin
+ * (see .sg-panel-section) — no divider is inserted between them.
  *
  * Children.toArray already strips out null/undefined/boolean entries (the
  * result of `{condition && <PanelSection .../>}`), but the explicit filter
  * below documents that guarantee rather than relying on its implicit
- * behavior — a conditionally-hidden section (e.g. a future dev-only
- * section) never leaves an orphaned divider next to it.
+ * behavior.
  */
 export function PanelSectionList({ children }: PanelSectionListProps) {
   const items = Children.toArray(children).filter(
     child => child !== null && child !== undefined && typeof child !== 'boolean',
   );
 
-  return (
-    <>
-      {items.map((child, i) => (
-        // Index keys are safe here — this list is static/conditional content,
-        // never reordered at runtime.
-        <Fragment key={i}>
-          {i > 0 && <hr className="sg-settings-divider" />}
-          {child}
-        </Fragment>
-      ))}
-    </>
-  );
+  return <>{items}</>;
 }

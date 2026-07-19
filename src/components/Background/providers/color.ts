@@ -1,14 +1,17 @@
-import { mixHex, darkenHex } from '../../../lib/colorUtils';
-import { ColorConfig, BackgroundProviderDef } from '../../../types/background';
+import { getAdaptiveColor } from '../../../lib/colorUtils';
+import { ColorConfig, BackgroundProviderDef, BackgroundRenderCtx } from '../../../types/background';
 
-function resolveColorCss(config: ColorConfig): string {
-  if (config.customColor) {
-    const intensity = config.gradientIntensity ?? (config.customGradient === false ? 0 : 100);
-    const t = intensity / 100;
-    const blendedEnd = mixHex(config.customColor, darkenHex(config.customColor), t);
-    return `linear-gradient(135deg, ${config.customColor} 0%, ${blendedEnd} 100%)`;
-  }
-  return config.value;
+// customColor + customColorScheme is the single stored anchor; the
+// counterpart for whichever theme is currently active is derived
+// algorithmically (see getAdaptiveColor). Falls back to the raw `value`
+// for configs saved before this scheme existed (a pre-baked hex or
+// gradient CSS string from the old picker).
+function resolveColorCss(config: ColorConfig, ctx: BackgroundRenderCtx): string {
+  if (!config.customColor) return config.value;
+  return getAdaptiveColor(
+    { color: config.customColor, pickedInDark: config.customColorScheme !== 'light' },
+    ctx.isDark,
+  );
 }
 
 export const colorProvider: BackgroundProviderDef<ColorConfig> = {

@@ -1,27 +1,21 @@
-/* ── Section divider ─────────────────────────────────────────────────────── */
-.sg-settings-divider {
-  border: none;
-  border-top: 1.5px solid var(--border-strong);
-  margin: 8px 0;
-}
-
 /* ── Top-level panel sections ────────────────────────────────────────────────
-   One rule drives spacing to every divider in the sidebar: 14px top+bottom
-   padding here + the divider's own 8px margin = 22px, always, on both sides
-   of every <hr>, for every section — collapsible or not, regardless of what
-   its last child is. A dedicated class (not the shared .settings-section,
-   which twelve other files reuse for unrelated nested groupings) so this
-   rule can't leak elsewhere, and future sections just need this one class
-   to fall into the same rhythm — no per-section padding/margin overrides.
-   Owned by <PanelSection> — every section in the settings sidebar renders
-   through that component, so this file is the single source of truth for
-   panel-section spacing. The side margin insets its background card
-   from the sidebar's edges (the sidebar itself has no horizontal padding).
-   Horizontal padding/margin are deliberately larger than the 14px vertical
-   rhythm above — Tabliss-style generous side breathing room — while the
-   vertical values stay untouched so the divider-spacing math above still holds. */
+   14px top+bottom padding gives each card its own comfortable internal
+   rhythm. Spacing BETWEEN sections is owned by .sg-settings-content's flex
+   `gap` (SettingsPanel.css) instead of card-local margin — a container-level
+   gap applies uniformly to direct children regardless of whether a given
+   child is a bare <PanelSection> or a glow/blur hover wrapper <div> around
+   one, so it can't be defeated by intermediate DOM nesting the way a
+   :last-child margin rule on the card itself could. A dedicated class (not
+   the shared .settings-section, which twelve other files reuse for
+   unrelated nested groupings) so this rule can't leak elsewhere, and future
+   sections just need this one class to fall into the same rhythm — no
+   per-section padding/margin overrides. Owned by <PanelSection> — every
+   section in the settings sidebar renders through that component, so this
+   file is the single source of truth for panel-section internal spacing.
+   The side margin insets its background card from the sidebar's edges (the
+   sidebar itself has no horizontal padding). */
 .sg-panel-section {
-  padding: 14px 20px 14px;
+  padding: 14px 20px;
   margin: 0 12px;
   display: flex;
   flex-direction: column;

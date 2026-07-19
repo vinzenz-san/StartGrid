@@ -5,8 +5,8 @@ import { useEditMode } from '../../contexts/EditModeContext';
 import { useWidgets } from '../../contexts/WidgetContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useSettings } from '../../contexts/SettingsContext';
-import { darkenHex, mixHex } from '../../lib/colorUtils';
-import { THEME_SWATCHES } from './SwatchPicker';
+import { darkenHex, mixHex, getAdaptiveColor } from '../../lib/colorUtils';
+import { COLOR_PRESETS } from '../../lib/presets';
 import { dragState } from '../../lib/dragState';
 import type { Widget } from '../../types/widget';
 import { WIDGET_REGISTRY } from '../widgets/registry';
@@ -24,7 +24,7 @@ interface Props { widget: Widget; }
 export default function WidgetContainer({ widget }: Props) {
   const { isEditMode } = useEditMode();
   const { removeWidget, updateWidget } = useWidgets();
-  const { globalColor, globalOpacity, globalDim, globalGradientIntensity, globalPresetId, widgetShadowOpacity } = useTheme();
+  const { globalColor, globalColorScheme, globalOpacity, globalDim, globalGradientIntensity, globalPresetId, widgetShadowOpacity } = useTheme();
   const { colorScheme, enableCustomContextMenu } = useSettings();
   const elRef = useRef<HTMLDivElement>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -166,7 +166,6 @@ export default function WidgetContainer({ widget }: Props) {
   const localTransparencyPct = 100 - localOpacityPct;
   const localDimPct          = Math.round(widget.bgDim ?? globalDim);
   const localShadowPct       = Math.round(widget.bgShadow ?? widgetShadowOpacity);
-  const effectiveColor       = widget.bgColor ?? globalColor;
 
   // Effective intensity: per-widget value if set, else backwards-compat from old boolean, else global
   const localIntensity = widget.bgGradientIntensity
@@ -177,44 +176,36 @@ export default function WidgetContainer({ widget }: Props) {
     ? widget.localColorScheme !== 'light'
     : colorScheme !== 'light';
 
+  const resolvePresetColor = (presetId: string) => {
+    const preset = COLOR_PRESETS.find(p => p.id === presetId);
+    if (!preset) return null;
+    return !widgetIsDark && preset.lightOverride
+      ? preset.lightOverride
+      : getAdaptiveColor({ color: preset.master, pickedInDark: true }, widgetIsDark);
+  };
+
+  // Local preset > local custom color > global preset > global custom color —
+  // one resolved hex regardless of which layer is active, so the blend below
+  // (and the SwatchPicker preview) never needs to special-case presets vs colors.
+  const effectiveColor =
+    (widget.bgPresetId && resolvePresetColor(widget.bgPresetId)) ??
+    (widget.bgColor !== undefined
+      ? getAdaptiveColor({ color: widget.bgColor, pickedInDark: widget.bgColorScheme !== 'light' }, widgetIsDark)
+      : null) ??
+    (globalPresetId && resolvePresetColor(globalPresetId)) ??
+    getAdaptiveColor({ color: globalColor, pickedInDark: globalColorScheme !== 'light' }, widgetIsDark);
+
   // Local override: set CSS variables on the element so ::before / ::after pick them up.
   const localOverrideStyle: React.CSSProperties = overrideEnabled
     ? (() => {
-        const base: Record<string, string> = {
+        const t = localIntensity / 100;
+        const colorEnd = mixHex(effectiveColor, darkenHex(effectiveColor), t);
+        return {
           '--widget-bg-opacity':     String(widget.bgOpacity ?? globalOpacity),
           '--widget-dim':            String(widget.bgDim ?? globalDim),
           '--widget-shadow-opacity': String(widget.bgShadow ?? widgetShadowOpacity),
-        };
-        const t = localIntensity / 100;
-        if (widget.bgPresetId) {
-          // Named preset: compute intensity-blended gradient inline, overriding CSS attr selector
-          const swatch = THEME_SWATCHES.find(s => s.id === widget.bgPresetId);
-          if (swatch) {
-            const endColor   = widgetIsDark ? swatch.darkEnd   : swatch.lightEnd;
-            const startColor = widgetIsDark ? swatch.darkStart : swatch.lightStart;
-            const blendedStart = mixHex(endColor, startColor, t);
-            base['--preset-bg'] = `linear-gradient(135deg, ${blendedStart} 0%, ${endColor} 100%)`;
-          }
-        } else if (widget.bgColor !== undefined) {
-          // Explicit local custom color: compute blended gradient
-          const colorEnd = mixHex(effectiveColor, darkenHex(effectiveColor), t);
-          base['--widget-bg-preset-css'] = `linear-gradient(135deg, ${effectiveColor} 0%, ${colorEnd} 100%)`;
-        } else if (globalPresetId) {
-          // No local preset/color but global preset active: re-compute with local intensity
-          // so the local Gradient Intensity slider is always reactive
-          const swatch = THEME_SWATCHES.find(s => s.id === globalPresetId);
-          if (swatch) {
-            const endColor   = widgetIsDark ? swatch.darkEnd   : swatch.lightEnd;
-            const startColor = widgetIsDark ? swatch.darkStart : swatch.lightStart;
-            const blendedStart = mixHex(endColor, startColor, t);
-            base['--widget-bg-preset-css'] = `linear-gradient(135deg, ${blendedStart} 0%, ${endColor} 100%)`;
-          }
-        } else {
-          // No local preset/color and no global preset: compute from globalColor
-          const colorEnd = mixHex(effectiveColor, darkenHex(effectiveColor), t);
-          base['--widget-bg-preset-css'] = `linear-gradient(135deg, ${effectiveColor} 0%, ${colorEnd} 100%)`;
-        }
-        return base as React.CSSProperties;
+          '--widget-bg-preset-css':  `linear-gradient(135deg, ${effectiveColor} 0%, ${colorEnd} 100%)`,
+        } as React.CSSProperties;
       })()
     : {};
 
@@ -265,7 +256,7 @@ export default function WidgetContainer({ widget }: Props) {
       <div className="sg-widget-float-divider" />
       <div className="sg-widget-appearance">
         <div className="sg-widget-appearance-row">
-          <span className="sg-widget-appearance-label">Override global style</span>
+          <span className="sg-widget-appearance-label">Local Style</span>
           <button
             role="switch"
             aria-checked={overrideEnabled}
@@ -291,12 +282,20 @@ export default function WidgetContainer({ widget }: Props) {
             <div className="sg-widget-appearance-section">
               <span className="sg-widget-appearance-label">Presets</span>
               <SwatchPicker
-                value={widget.bgColor ?? globalColor}
-                onChange={(color, presetId) => updateWidget(widget.id, { bgColor: color, bgPresetId: presetId ?? undefined })}
+                isDark={widgetIsDark}
+                presetId={widget.bgPresetId}
+                customColor={widget.bgColor}
+                customColorScheme={widget.bgColorScheme}
+                onSelectPreset={id => updateWidget(widget.id, { bgPresetId: id, bgColor: undefined, bgColorScheme: undefined })}
+                onSelectCustom={(hex, scheme) => updateWidget(widget.id, { bgColor: hex, bgColorScheme: scheme, bgPresetId: undefined })}
               />
               <button
                 className="sg-widget-match-global-btn"
-                onClick={() => updateWidget(widget.id, { bgColor: globalColor, bgPresetId: globalPresetId ?? undefined })}
+                onClick={() => updateWidget(widget.id, {
+                  bgColor: globalPresetId ? undefined : globalColor,
+                  bgColorScheme: globalPresetId ? undefined : globalColorScheme,
+                  bgPresetId: globalPresetId ?? undefined,
+                })}
                 onPointerDown={e => e.stopPropagation()}
               >
                 ⬡ Match global widget color
@@ -344,6 +343,7 @@ export default function WidgetContainer({ widget }: Props) {
                 className="sg-widget-appearance-reset-all"
                 onClick={() => updateWidget(widget.id, {
                   bgColor: undefined,
+                  bgColorScheme: undefined,
                   bgPresetId: undefined,
                   bgOpacity: undefined,
                   bgDim: undefined,
@@ -353,7 +353,7 @@ export default function WidgetContainer({ widget }: Props) {
                 })}
                 onPointerDown={e => e.stopPropagation()}
               >
-                ↺ Reset to Global Styles
+                ↺ Reset to Global
               </button>
             </div>
           </>
@@ -373,7 +373,6 @@ export default function WidgetContainer({ widget }: Props) {
           settingsOpen ? 'sg-widget--settings-active' : '',
           settingsOpen ? 'sg-widget--glow'             : '',
         ].filter(Boolean).join(' ')}
-        data-preset={overrideEnabled && widget.bgPresetId ? widget.bgPresetId : undefined}
         data-theme={overrideEnabled ? widget.localColorScheme : undefined}
         draggable={isEditMode && !resizePreview}
         onDragStart={handleDragStart}

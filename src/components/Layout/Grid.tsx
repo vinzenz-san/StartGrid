@@ -65,7 +65,7 @@ export default function Grid() {
   };
 
   return (
-    <ElementInspectorProvider>
+    <ElementInspectorProvider enabled={developerOptionsEnabled && elementInspectorEnabled}>
     <div className={`sg-root${isEditMode ? ' sg-root--edit' : ''}`}>
 
       {/* ── Floating control cluster ── */}
