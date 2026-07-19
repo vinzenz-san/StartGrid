@@ -1,41 +1,43 @@
 import { useState } from 'react';
 import { useBackground } from '../../contexts/BackgroundContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import { UnsplashConfig } from '../../types/background';
 import { SettingsRow, SettingsSwitch } from '../shared/Form';
 import { DetailedSettings } from '../Layout/DetailedSettings';
 import './UnsplashSettings.css';
 
-const TOPIC_CHIPS = [
-  { label: 'Nature',        id: '6sMVjTLSkeQ' },
-  { label: 'Architecture',  id: 'rnSKDHwwYUk' },
-  { label: 'Travel',        id: 'Fzo3zuOHN6w' },
-  { label: 'Minimal',       id: '_8zFHuhRhyo' },
-  { label: 'Street',        id: 'xHxYTMHLgOc' },
-  { label: 'Technology',    id: 'qPYsDzvJOYc' },
-  { label: 'Wallpapers',    id: 'bo8jQKTaE0Y' },
-];
-
-const INTERVAL_OPTIONS = [
-  { label: '15 min',  value: 900   },
-  { label: '30 min',  value: 1800  },
-  { label: '1 hour',  value: 3600  },
-  { label: '4 hours', value: 14400 },
-  { label: '12 hours',value: 43200 },
-  { label: '24 hours',value: 86400 },
-];
-
-const SOURCE_TABS: { label: string; value: UnsplashConfig['source'] }[] = [
-  { label: 'Topics',  value: 'topics' },
-  { label: 'Search',  value: 'search' },
-  { label: 'Random',  value: 'random' },
-];
-
 export default function UnsplashSettings() {
   const { config, setConfig, unsplash } = useBackground();
+  const { t } = useSettings();
   const [apiKeyVisible, setApiKeyVisible] = useState(false);
 
   if (config.mode !== 'unsplash') return null;
   const uc = config as UnsplashConfig;
+
+  const TOPIC_CHIPS = [
+    { label: t('background.unsplash.topic.nature'),       id: '6sMVjTLSkeQ' },
+    { label: t('background.unsplash.topic.architecture'), id: 'rnSKDHwwYUk' },
+    { label: t('background.unsplash.topic.travel'),       id: 'Fzo3zuOHN6w' },
+    { label: t('background.unsplash.topic.minimal'),      id: '_8zFHuhRhyo' },
+    { label: t('background.unsplash.topic.street'),       id: 'xHxYTMHLgOc' },
+    { label: t('background.unsplash.topic.technology'),   id: 'qPYsDzvJOYc' },
+    { label: t('background.unsplash.topic.wallpapers'),   id: 'bo8jQKTaE0Y' },
+  ];
+
+  const INTERVAL_OPTIONS = [
+    { label: t('background.unsplash.interval.15min'),   value: 900   },
+    { label: t('background.unsplash.interval.30min'),   value: 1800  },
+    { label: t('background.unsplash.interval.1hour'),   value: 3600  },
+    { label: t('background.unsplash.interval.4hours'),  value: 14400 },
+    { label: t('background.unsplash.interval.12hours'), value: 43200 },
+    { label: t('background.unsplash.interval.24hours'), value: 86400 },
+  ];
+
+  const SOURCE_TABS: { label: string; value: UnsplashConfig['source'] }[] = [
+    { label: t('background.unsplash.sourceTopics'), value: 'topics' },
+    { label: t('background.unsplash.sourceSearch'), value: 'search' },
+    { label: t('background.unsplash.sourceRandom'), value: 'random' },
+  ];
 
   const update = (patch: Partial<UnsplashConfig>) =>
     setConfig({ ...uc, ...patch });
@@ -57,12 +59,12 @@ export default function UnsplashSettings() {
 
       {/* API Key */}
       <section className="settings-section">
-        <div className="settings-section-label">Unsplash API Key</div>
+        <div className="settings-section-label">{t('background.unsplash.apiKeyLabel')}</div>
         <div className="sg-usp-key-row">
           <input
             className="sg-usp-input"
             type={apiKeyVisible ? 'text' : 'password'}
-            placeholder="Paste your Access Key…"
+            placeholder={t('background.unsplash.apiKeyPlaceholder')}
             value={uc.apiKey ?? ''}
             onChange={e => update({ apiKey: e.target.value.trim() })}
             spellCheck={false}
@@ -70,19 +72,19 @@ export default function UnsplashSettings() {
           <button
             className="sg-usp-eye"
             onClick={() => setApiKeyVisible(v => !v)}
-            title={apiKeyVisible ? 'Hide' : 'Show'}
+            title={apiKeyVisible ? t('background.unsplash.hide') : t('background.unsplash.show')}
           >
             {apiKeyVisible ? '🙈' : '👁'}
           </button>
         </div>
         <p className="bg-sync-warning">
-          Get a free key at unsplash.com/developers — register an app, copy the Access Key.
+          {t('background.unsplash.apiKeyHelp')}
         </p>
       </section>
 
       {/* Source tabs */}
       <section className="settings-section">
-        <div className="settings-section-label">Source</div>
+        <div className="settings-section-label">{t('background.unsplash.source')}</div>
         <div className="sg-usp-tabs">
           {SOURCE_TABS.map(t => (
             <button
@@ -113,7 +115,7 @@ export default function UnsplashSettings() {
           <input
             className="sg-usp-input sg-usp-input--search"
             type="text"
-            placeholder="e.g. dark forest, cyberpunk city…"
+            placeholder={t('background.unsplash.searchPlaceholder')}
             value={uc.query ?? ''}
             onChange={e => update({ query: e.target.value })}
           />
@@ -121,7 +123,7 @@ export default function UnsplashSettings() {
 
         {source === 'random' && (
           <p className="bg-sync-warning" style={{ marginTop: 6 }}>
-            A random photo from Unsplash's editorial feed.
+            {t('background.unsplash.randomNote')}
           </p>
         )}
       </section>
@@ -131,7 +133,7 @@ export default function UnsplashSettings() {
       {/* Rotation interval + attribution — advanced */}
       <DetailedSettings>
         <section className="settings-section">
-          <div className="settings-section-label">Change photo every</div>
+          <div className="settings-section-label">{t('background.unsplash.changePhotoEvery')}</div>
           <div className="sg-usp-interval-row">
             {INTERVAL_OPTIONS.map(opt => (
               <button
@@ -146,14 +148,14 @@ export default function UnsplashSettings() {
         </section>
 
         <section className="settings-section">
-          <SettingsRow label="Show attribution">
+          <SettingsRow label={t('background.unsplash.showAttribution')}>
             <SettingsSwitch checked={showAttr} onChange={v => update({ showAttribution: v })} />
           </SettingsRow>
 
           {/* Current attribution preview */}
           {unsplash.attribution && (
             <p className="sg-usp-attr-preview">
-              Current: <em>{unsplash.attribution.photographerName}</em> on Unsplash
+              {t('background.unsplash.currentAttributionPrefix')} <em>{unsplash.attribution.photographerName}</em> {t('background.unsplash.currentAttributionSuffix')}
             </p>
           )}
         </section>
@@ -167,14 +169,14 @@ export default function UnsplashSettings() {
             onClick={unsplash.fetchNow}
             disabled={unsplash.isFetching || !uc.apiKey}
           >
-            {unsplash.isFetching ? 'Loading…' : 'Next photo ↺'}
+            {unsplash.isFetching ? t('background.unsplash.loading') : t('background.unsplash.nextPhoto')}
           </button>
         </div>
         {unsplash.error && (
           <p className="sg-usp-error">{unsplash.error}</p>
         )}
         {!uc.apiKey && (
-          <p className="sg-usp-error">Enter an API key above to start.</p>
+          <p className="sg-usp-error">{t('background.unsplash.enterApiKey')}</p>
         )}
       </section>
 
