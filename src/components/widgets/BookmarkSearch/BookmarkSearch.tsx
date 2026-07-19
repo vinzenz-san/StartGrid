@@ -6,6 +6,7 @@ import { SettingsSlider } from '../../shared/Form';
 import { SettingsRow } from '../../shared/Form';
 import { useBookmarkFolder } from '../BookmarkFolder/useBookmarkFolder';
 import type { BmNode } from '../BookmarkFolder/bookmarks.mock';
+import { useSettings } from '../../../contexts/SettingsContext';
 import './BookmarkSearch.css';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -23,6 +24,7 @@ interface RowProps {
 }
 
 function BookmarkRow({ node, onFolderClick, onBookmarkClick }: RowProps) {
+  const { t } = useSettings();
   const [iconError, setIconError] = useState(false);
   const isFolder = !node.url;
   const hostname = node.url ? hostnameOf(node.url) : '';
@@ -47,7 +49,7 @@ function BookmarkRow({ node, onFolderClick, onBookmarkClick }: RowProps) {
     return (
       <div className="sg-bks-item sg-bks-item--folder" onClick={() => onFolderClick(node)}>
         {icon}
-        <span className="sg-bks-item-title">{node.title || '(Folder)'}</span>
+        <span className="sg-bks-item-title">{node.title || t('widget.bookmarkSearch.folderFallback')}</span>
         <span className="sg-bks-item-chevron">›</span>
       </div>
     );
@@ -72,16 +74,17 @@ interface SettingsProps {
 }
 
 export function BookmarkSearchSettings({ data, onUpdateData }: SettingsProps) {
+  const { t } = useSettings();
   return (
     <div className="sg-bks-settings" onClick={e => e.stopPropagation()}>
       <SettingsSlider
-        label="Max results"
+        label={t('widget.bookmarkSearch.maxResults')}
         min={5} max={30} step={1}
         value={data.maxResults ?? 10}
         onChange={v => onUpdateData({ maxResults: v })}
         valueFormatter={v => String(v)}
       />
-      <SettingsRow label="Focus shortcut">
+      <SettingsRow label={t('widget.bookmarkSearch.focusShortcut')}>
         <span className="sg-bks-shortcut-badge">Ctrl + Shift + F</span>
       </SettingsRow>
     </div>
@@ -98,6 +101,7 @@ interface Props {
 }
 
 export default function BookmarkSearch({ data }: Props) {
+  const { t } = useSettings();
   const bookmarks  = useBookmarkFolder();
   const maxResults = data.maxResults ?? 10;
 
@@ -224,7 +228,7 @@ export default function BookmarkSearch({ data }: Props) {
   }, [folderStack]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function enterFolder(node: BmNode) {
-    setFolderStack(prev => [...prev, { id: node.id, name: node.title || '(Folder)' }]);
+    setFolderStack(prev => [...prev, { id: node.id, name: node.title || t('widget.bookmarkSearch.folderFallback') }]);
     setIsFocused(true);
   }
 
@@ -258,17 +262,17 @@ export default function BookmarkSearch({ data }: Props) {
       <div className="sg-bks-float-body">
         {loading ? (
           <div className="sg-bks-empty">
-            <span className="sg-bks-empty-text">Loading…</span>
+            <span className="sg-bks-empty-text">{t('widget.bookmarkSearch.loading')}</span>
           </div>
         ) : !isInFolder && !hasQuery ? (
           <div className="sg-bks-empty">
             <span className="sg-bks-empty-icon">🔍</span>
-            <span className="sg-bks-empty-text">Type to search bookmarks</span>
+            <span className="sg-bks-empty-text">{t('widget.bookmarkSearch.typeToSearch')}</span>
           </div>
         ) : displayItems.length === 0 ? (
           <div className="sg-bks-empty">
             <span className="sg-bks-empty-icon">{isInFolder ? '📁' : '🔍'}</span>
-            <span className="sg-bks-empty-text">{isInFolder ? 'Folder is empty' : 'No results'}</span>
+            <span className="sg-bks-empty-text">{isInFolder ? t('widget.bookmarkSearch.folderEmpty') : t('widget.bookmarkSearch.noResults')}</span>
           </div>
         ) : (
           <div className="sg-bks-list">
@@ -282,7 +286,7 @@ export default function BookmarkSearch({ data }: Props) {
             ))}
             {!isInFolder && totalResultCount > maxResults && (
               <div className="sg-bks-overflow-banner">
-                Showing top {maxResults} results. Refine your search to see more.
+                {t('widget.bookmarkSearch.overflow', { n: maxResults })}
               </div>
             )}
           </div>
@@ -313,7 +317,7 @@ export default function BookmarkSearch({ data }: Props) {
               ref={searchRef}
               className="sg-bks-search"
               type="text"
-              placeholder="Search bookmarks…"
+              placeholder={t('widget.bookmarkSearch.searchPlaceholder')}
               value={query}
               onChange={e => setQuery(e.target.value)}
               onFocus={() => setIsFocused(true)}

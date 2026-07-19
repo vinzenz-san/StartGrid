@@ -4,12 +4,11 @@ import { GCAL_COLORS, DEFAULT_EVENT_COLOR } from './calendar.types';
 import { useCalendar } from './useCalendar';
 import { useGoogleAuth } from '../../../hooks/useGoogleAuth';
 import { SettingsRow, SegmentedControl, SettingsSwitch } from '../../shared/Form';
+import { useSettings } from '../../../contexts/SettingsContext';
+import { LOCALES } from '../../../i18n';
 import './Calendar.css';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-const WEEKDAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-const MONTHS   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 function toLocalDateKey(event: CalendarEvent): string {
   return (event.start.date ?? event.start.dateTime!).slice(0, 10);
@@ -19,18 +18,30 @@ function localDateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-function formatDayHeading(dateKey: string): string {
+// Narrow weekday initials (Su/Mo/Tu/…) for the monthly grid header, derived
+// from a known-Sunday-start week rather than a hardcoded array — follows the
+// active locale's own weekday naming.
+function getDowLabels(locale: string): string[] {
+  const sunday = new Date(2023, 0, 1); // a Sunday
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(sunday);
+    d.setDate(sunday.getDate() + i);
+    return new Intl.DateTimeFormat(locale, { weekday: 'narrow' }).format(d);
+  });
+}
+
+function formatDayHeading(dateKey: string, locale: string, todayLabel: string, tomorrowLabel: string): string {
   const [y, m, day] = dateKey.split('-').map(Number);
   const d = new Date(y, m - 1, day);
   const today    = localDateKey(new Date());
   const tomorrow = localDateKey(new Date(Date.now() + 86_400_000));
-  if (dateKey === today)    return 'Today';
-  if (dateKey === tomorrow) return 'Tomorrow';
-  return `${WEEKDAYS[d.getDay()]}, ${MONTHS[m-1]} ${day}`;
+  if (dateKey === today)    return todayLabel;
+  if (dateKey === tomorrow) return tomorrowLabel;
+  return new Intl.DateTimeFormat(locale, { weekday: 'short', month: 'short', day: 'numeric' }).format(d);
 }
 
-function formatTimeBlock(event: CalendarEvent): string {
-  if (event.start.date) return 'All Day';
+function formatTimeBlock(event: CalendarEvent, allDayLabel: string): string {
+  if (event.start.date) return allDayLabel;
   const fmt = (iso: string) => {
     const d = new Date(iso);
     return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
@@ -38,9 +49,8 @@ function formatTimeBlock(event: CalendarEvent): string {
   return `${fmt(event.start.dateTime!)} – ${fmt(event.end.dateTime!)}`;
 }
 
-function formatHeaderDate(): string {
-  const d = new Date();
-  return `${WEEKDAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`;
+function formatHeaderDate(locale: string): string {
+  return new Intl.DateTimeFormat(locale, { weekday: 'short', month: 'short', day: 'numeric' }).format(new Date());
 }
 
 function eventColor(colorId?: string): string {
@@ -133,31 +143,31 @@ function SkeletonGroup() {
 
 // ── Event / Day ───────────────────────────────────────────────────────────────
 
-function EventRow({ event }: { event: CalendarEvent }) {
+function EventRow({ event, allDayLabel }: { event: CalendarEvent; allDayLabel: string }) {
   return (
     <a className={`sg-cal-event${event.start.date ? ' sg-cal-event--allday' : ''}`} href={event.htmlLink} title={event.summary}>
       <span className="sg-cal-dot" style={{ background: eventColor(event.colorId) }} aria-hidden="true"/>
-      <span className="sg-cal-time">{formatTimeBlock(event)}</span>
+      <span className="sg-cal-time">{formatTimeBlock(event, allDayLabel)}</span>
       <span className="sg-cal-title">{event.summary}</span>
     </a>
   );
 }
 
-function DayGroup({ group }: { group: DayGroup }) {
+function DayGroup({ group, locale, todayLabel, tomorrowLabel, allDayLabel }: { group: DayGroup; locale: string; todayLabel: string; tomorrowLabel: string; allDayLabel: string }) {
   return (
     <div className="sg-cal-day">
-      <div className="sg-cal-day-heading">{formatDayHeading(group.dateKey)}</div>
-      {group.events.map(evt => <EventRow key={evt.id} event={evt}/>)}
+      <div className="sg-cal-day-heading">{formatDayHeading(group.dateKey, locale, todayLabel, tomorrowLabel)}</div>
+      {group.events.map(evt => <EventRow key={evt.id} event={evt} allDayLabel={allDayLabel}/>)}
     </div>
   );
 }
 
 // ── Monthly grid ──────────────────────────────────────────────────────────────
 
-const DOW_LABELS = ['S','M','T','W','T','F','S'];
-
-function MonthlyCalendar({ events, showAllDay }: { events: CalendarEvent[]; showAllDay: boolean }) {
+function MonthlyCalendar({ events, showAllDay, locale, prevMonthLabel, nextMonthLabel }: { events: CalendarEvent[]; showAllDay: boolean; locale: string; prevMonthLabel: string; nextMonthLabel: string }) {
   const [display, setDisplay] = useState(() => { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d; });
+  const dowLabels = getDowLabels(locale);
+  const monthLabel = new Intl.DateTimeFormat(locale, { month: 'short' }).format(display);
   const year = display.getFullYear(), month = display.getMonth();
   const firstDow = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month+1, 0).getDate();
@@ -179,12 +189,12 @@ function MonthlyCalendar({ events, showAllDay }: { events: CalendarEvent[]; show
   return (
     <div className="sg-cal-monthly">
       <div className="sg-cal-monthly-nav">
-        <button className="sg-cal-monthly-nav-btn" onClick={() => setDisplay(new Date(year,month-1,1))} aria-label="Previous month">‹</button>
-        <span className="sg-cal-monthly-nav-label">{MONTHS[month]} {year}</span>
-        <button className="sg-cal-monthly-nav-btn" onClick={() => setDisplay(new Date(year,month+1,1))} aria-label="Next month">›</button>
+        <button className="sg-cal-monthly-nav-btn" onClick={() => setDisplay(new Date(year,month-1,1))} aria-label={prevMonthLabel}>‹</button>
+        <span className="sg-cal-monthly-nav-label">{monthLabel} {year}</span>
+        <button className="sg-cal-monthly-nav-btn" onClick={() => setDisplay(new Date(year,month+1,1))} aria-label={nextMonthLabel}>›</button>
       </div>
       <div className="sg-cal-monthly-grid">
-        {DOW_LABELS.map((d,i) => <div key={i} className="sg-cal-monthly-dow">{d}</div>)}
+        {dowLabels.map((d,i) => <div key={i} className="sg-cal-monthly-dow">{d}</div>)}
         {cells.map((day,i) => {
           if (!day) return <div key={`e${i}`} className="sg-cal-monthly-cell sg-cal-monthly-cell--empty"/>;
           const key = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
@@ -214,6 +224,7 @@ interface SettingsProps {
 }
 
 export function CalendarSettings({ data, onUpdateData }: SettingsProps) {
+  const { t } = useSettings();
   const maxDays    = data.maxDays    ?? 3;
   const showAllDay = data.showAllDay ?? true;
   const viewMode   = data.viewMode   ?? 'agenda';
@@ -221,16 +232,16 @@ export function CalendarSettings({ data, onUpdateData }: SettingsProps) {
 
   return (
     <div className="sg-cal-settings" onClick={e => e.stopPropagation()}>
-      <SettingsRow label="View">
+      <SettingsRow label={t('widget.calendar.view')}>
         <SegmentedControl
-          options={[{ value: 'agenda', label: 'Agenda' }, { value: 'monthly', label: 'Monthly' }]}
+          options={[{ value: 'agenda', label: t('widget.calendar.viewAgenda') }, { value: 'monthly', label: t('widget.calendar.viewMonthly') }]}
           value={viewMode}
           onChange={v => onUpdateData({ viewMode: v })}
         />
       </SettingsRow>
 
       {viewMode === 'agenda' && (
-        <SettingsRow label="Days ahead">
+        <SettingsRow label={t('widget.calendar.daysAhead')}>
           <div className="sg-cal-slider-wrap">
             <input type="range" min={1} max={28} value={maxDays}
               onChange={e => onUpdateData({ maxDays: Number(e.target.value) })}
@@ -240,28 +251,28 @@ export function CalendarSettings({ data, onUpdateData }: SettingsProps) {
         </SettingsRow>
       )}
 
-      <SettingsRow label="All-day events">
+      <SettingsRow label={t('widget.calendar.allDayEvents')}>
         <SettingsSwitch checked={showAllDay} onChange={v => onUpdateData({ showAllDay: v })} />
       </SettingsRow>
 
       <div className="sg-cal-settings-divider"/>
 
       <div className="sg-cal-settings-section">
-        <span className="sg-cal-settings-label">Google Account</span>
+        <span className="sg-cal-settings-label">{t('widget.calendar.googleAccount')}</span>
         {isConnected ? (
           <>
             {email && <p className="sg-cal-account-email">{email}</p>}
             <button className="sg-cal-connect-btn sg-cal-connect-btn--disconnect" onClick={disconnect}>
-              <IconDisconnect/> Disconnect account
+              <IconDisconnect/> {t('widget.calendar.disconnect')}
             </button>
           </>
         ) : (
           <>
             <button className="sg-cal-connect-btn" onClick={connect} disabled={isConnecting}>
-              <IconConnect/> {isConnecting ? 'Connecting…' : 'Connect Google Account'}
+              <IconConnect/> {isConnecting ? t('widget.calendar.connecting') : t('widget.calendar.connect')}
             </button>
             {error && <p className="sg-cal-connect-error">{error}</p>}
-            <p className="sg-cal-connect-note">Grants read-only access to your Google Calendar.</p>
+            <p className="sg-cal-connect-note">{t('widget.calendar.grantNote')}</p>
           </>
         )}
       </div>
@@ -277,6 +288,8 @@ interface Props {
 }
 
 export default function Calendar({ data, onUpdateData: _onUpdateData }: Props) {
+  const { t, language } = useSettings();
+  const locale = LOCALES[language];
   const { status, events, refresh } = useCalendar();
   const { isConnected, connect, isConnecting } = useGoogleAuth();
   const maxDays    = data.maxDays    ?? 3;
@@ -294,10 +307,10 @@ export default function Calendar({ data, onUpdateData: _onUpdateData }: Props) {
       <div className="sg-cal-header">
         <div className="sg-cal-title">
           <IconCalendar/>
-          <span>{formatHeaderDate()}</span>
+          <span>{formatHeaderDate(locale)}</span>
         </div>
         <button className="sg-cal-refresh" onClick={() => refresh()}
-          disabled={isLoading || isUnauthed} title="Refresh" aria-label="Refresh calendar">
+          disabled={isLoading || isUnauthed} title={t('widget.calendar.refresh')} aria-label={t('widget.calendar.refreshAria')}>
           <IconRefresh spinning={isLoading}/>
         </button>
       </div>
@@ -305,9 +318,9 @@ export default function Calendar({ data, onUpdateData: _onUpdateData }: Props) {
         {isUnauthed ? (
           <div className="sg-cal-empty">
             <IconCalendar/>
-            <span className="sg-cal-empty-text">Connect your Google Account to see your calendar.</span>
+            <span className="sg-cal-empty-text">{t('widget.calendar.connectPrompt')}</span>
             <button className="sg-cal-connect-btn" onClick={connect} disabled={isConnecting}>
-              <IconConnect/> {isConnecting ? 'Connecting…' : 'Connect Google Account'}
+              <IconConnect/> {isConnecting ? t('widget.calendar.connecting') : t('widget.calendar.connect')}
             </button>
           </div>
         ) : isLoading ? (
@@ -315,18 +328,33 @@ export default function Calendar({ data, onUpdateData: _onUpdateData }: Props) {
         ) : status === 'error' ? (
           <div className="sg-cal-empty">
             <span className="sg-cal-empty-icon">⚠</span>
-            <span className="sg-cal-empty-text">Could not load calendar</span>
+            <span className="sg-cal-empty-text">{t('widget.calendar.loadError')}</span>
           </div>
         ) : viewMode === 'monthly' ? (
-          <MonthlyCalendar events={events} showAllDay={showAllDay}/>
+          <MonthlyCalendar
+            events={events}
+            showAllDay={showAllDay}
+            locale={locale}
+            prevMonthLabel={t('widget.calendar.prevMonth')}
+            nextMonthLabel={t('widget.calendar.nextMonth')}
+          />
         ) : (() => {
           const groups = groupEventsByDay(events, maxDays, showAllDay);
           return groups.length === 0 ? (
             <div className="sg-cal-empty">
               <span className="sg-cal-empty-icon">✓</span>
-              <span className="sg-cal-empty-text">No upcoming events</span>
+              <span className="sg-cal-empty-text">{t('widget.calendar.noUpcomingEvents')}</span>
             </div>
-          ) : groups.map(g => <DayGroup key={g.dateKey} group={g}/>);
+          ) : groups.map(g => (
+            <DayGroup
+              key={g.dateKey}
+              group={g}
+              locale={locale}
+              todayLabel={t('widget.calendar.today')}
+              tomorrowLabel={t('widget.calendar.tomorrow')}
+              allDayLabel={t('widget.calendar.allDay')}
+            />
+          ));
         })()}
       </div>
     </div>
