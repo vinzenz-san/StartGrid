@@ -145,6 +145,15 @@ export default function WidgetContainer({ widget }: Props) {
     handle.addEventListener('pointerup', onUp);
   };
 
+  // ── Custom context menu ───────────────────────────────────────────────────
+
+  const handleContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!enableCustomContextMenu) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setSettingsOpen(true);
+  };
+
   // ── Data update helper ────────────────────────────────────────────────────
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -369,7 +378,7 @@ export default function WidgetContainer({ widget }: Props) {
         draggable={isEditMode && !resizePreview}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
-        onContextMenu={enableCustomContextMenu ? e => e.preventDefault() : undefined}
+        onContextMenu={handleContextMenu}
         style={{
           gridColumn: `${widget.col} / span ${displayW}`,
           gridRow:    `${widget.row} / span ${displayH}`,

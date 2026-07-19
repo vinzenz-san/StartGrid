@@ -126,7 +126,7 @@ export default function UnsplashSettings() {
         )}
       </section>
 
-      {/* Dimming is rendered by BackgroundEditor for all modes */}
+      {/* Luminosity is rendered by BackgroundEditor for all modes */}
 
       {/* Rotation interval + attribution — advanced */}
       <DetailedSettings persistenceKey="bg-unsplash">

@@ -1,12 +1,58 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { useBackground } from '../contexts/BackgroundContext';
 import { useSettings } from '../contexts/SettingsContext';
-import { PRESETS, type BackgroundConfig } from '../types/background';
+import { PRESETS, type BackgroundConfig, type BackgroundPosition } from '../types/background';
 import { luminance, mixHex, darkenHex } from '../lib/colorUtils';
+
+const DEBUG_CONTRAST = false; // flip off once the APOD white-icon issue is confirmed fixed
+
+// Same 9-way mapping Background.tsx uses for `background-position`, expressed
+// as per-axis alignment instead of CSS keywords — 'start'/'end' matching the
+// low/high edge of the axis, so the sampling offset math below can mirror
+// exactly where the real background-position placed the image on screen.
+const POSITION_ALIGN: Record<BackgroundPosition, { x: 'start' | 'center' | 'end'; y: 'start' | 'center' | 'end' }> = {
+  center:         { x: 'center', y: 'center' },
+  top:            { x: 'center', y: 'start'  },
+  bottom:         { x: 'center', y: 'end'    },
+  left:           { x: 'start',  y: 'center' },
+  right:          { x: 'end',    y: 'center' },
+  'top-left':     { x: 'start',  y: 'start'  },
+  'top-right':    { x: 'end',    y: 'start'  },
+  'bottom-left':  { x: 'start',  y: 'end'    },
+  'bottom-right': { x: 'end',    y: 'end'    },
+};
+
+function resolveAxisOffset(viewportSize: number, drawnSize: number, align: 'start' | 'center' | 'end'): number {
+  if (align === 'start') return 0;
+  if (align === 'end') return viewportSize - drawnSize;
+  return (viewportSize - drawnSize) / 2;
+}
 
 const LUMINANCE_THRESHOLD = 160;
 const RESIZE_DEBOUNCE_MS  = 180;
 const FALLBACK_HEX        = '#0f1117'; // matches each provider's own no-image/no-preset fallback
+
+// ── Background-script relay ──────────────────────────────────────────────
+// Raw global lookup rather than importing webextension-polyfill — this file
+// isn't part of the background entry's module graph so the dynamic-import
+// chunk-loading concern doesn't apply here, but there's no need to pull the
+// polyfill in for a single sendMessage call either. Both Firefox's native
+// `browser.runtime.sendMessage` and Chrome MV3's `chrome.runtime.sendMessage`
+// (Promise-based when called with no callback) resolve the same way.
+
+interface FetchExternalImageResponse {
+  ok: boolean;
+  dataUrl?: string;
+  error?: string;
+}
+
+function sendRuntimeMessage(message: { action: string; url: string }): Promise<FetchExternalImageResponse | undefined> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const globalApi = globalThis as any;
+  const runtime = globalApi.browser?.runtime ?? globalApi.chrome?.runtime;
+  if (!runtime?.sendMessage) return Promise.resolve(undefined);
+  return runtime.sendMessage(message);
+}
 
 // ── Offscreen image cache ────────────────────────────────────────────────
 // One entry, keyed by url+fit+viewport. The expensive step (decode + draw)
@@ -16,6 +62,7 @@ const FALLBACK_HEX        = '#0f1117'; // matches each provider's own no-image/n
 interface ImgCache {
   url: string;
   fit: 'cover' | 'contain';
+  position: BackgroundPosition;
   viewportW: number;
   viewportH: number;
   ready: boolean;
@@ -34,13 +81,16 @@ function ensureImageCache(
   cacheRef: RefObject<ImgCache | null>,
   url: string,
   fit: 'cover' | 'contain',
+  position: BackgroundPosition,
+  isExternal: boolean,
   cb: (cache: ImgCache) => void,
 ) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const existing = cacheRef.current;
 
-  if (existing && existing.url === url && existing.fit === fit && existing.viewportW === vw && existing.viewportH === vh) {
+  if (existing && existing.url === url && existing.fit === fit && existing.position === position
+    && existing.viewportW === vw && existing.viewportH === vh) {
     if (existing.ready || existing.failed) { cb(existing); return; }
     existing.waiters.push(cb);
     return;
@@ -52,14 +102,23 @@ function ensureImageCache(
   const ctx = canvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
 
   const cache: ImgCache = {
-    url, fit, viewportW: vw, viewportH: vh, ready: false, failed: false,
+    url, fit, position, viewportW: vw, viewportH: vh, ready: false, failed: false,
     naturalW: 0, naturalH: 0, scale: 1, offsetX: 0, offsetY: 0, canvas, ctx, waiters: [cb],
   };
   (cacheRef as { current: ImgCache | null }).current = cache;
 
   const img = new Image();
-  img.crossOrigin = 'anonymous'; // required for cross-origin (Unsplash) canvas reads
-  img.src = url;
+  // crossOrigin is only meaningful (and only accepted by the browser) on a
+  // real http(s) request — setting it before assigning a data: URL src is
+  // what was actually causing the `naturalW: 0, failed: true` load failures,
+  // since browsers reject a CORS-mode image element loading a data: URL.
+  // External images are now always resolved to a data: URL via the
+  // background-script relay below, and local/custom images are already
+  // data:/blob: URIs, so this only ever applies to a genuine http(s) src.
+  const isRemoteHttpUrl = url.startsWith('http://') || url.startsWith('https://');
+  if (isRemoteHttpUrl && !isExternal) {
+    img.crossOrigin = 'anonymous';
+  }
 
   const finish = (failed: boolean) => {
     if (cacheRef.current !== cache) return; // superseded by a newer request mid-flight
@@ -73,9 +132,17 @@ function ensureImageCache(
           : Math.min(vw / cache.naturalW, vh / cache.naturalH);
         const drawnW = cache.naturalW * scale;
         const drawnH = cache.naturalH * scale;
+        const align = POSITION_ALIGN[position] ?? POSITION_ALIGN.center;
         cache.scale   = scale;
-        cache.offsetX = (vw - drawnW) / 2;
-        cache.offsetY = (vh - drawnH) / 2;
+        // Previously always (vw - drawnW) / 2 / (vh - drawnH) / 2 — silently
+        // assumed centered placement regardless of the actual configured
+        // `position`. Background.tsx applies `background-position` from that
+        // same config, so a non-center position meant this canvas rendered
+        // the image somewhere different than what's actually on screen —
+        // sampling could land in a letterbox/crop zone that isn't really
+        // there (or vice versa), depending on where the button happened to sit.
+        cache.offsetX = resolveAxisOffset(vw, drawnW, align.x);
+        cache.offsetY = resolveAxisOffset(vh, drawnH, align.y);
         try {
           ctx.clearRect(0, 0, vw, vh);
           ctx.drawImage(img, cache.offsetX, cache.offsetY, drawnW, drawnH);
@@ -86,28 +153,81 @@ function ensureImageCache(
         cache.failed = true;
       }
     }
+    if (DEBUG_CONTRAST) {
+      console.log('[bg-contrast] image load finished', {
+        // `sourceUrl` is the original request URL used as the cache key —
+        // NOT necessarily what img.src actually loaded (for external images
+        // that's always a data: URL by this point). Check img.src directly
+        // if you need to confirm what was actually assigned to the element.
+        sourceUrl: cache.url, imgSrc: img.src.slice(0, 60), fit: cache.fit, position: cache.position,
+        naturalW: cache.naturalW, naturalH: cache.naturalH,
+        scale: cache.scale, offsetX: cache.offsetX, offsetY: cache.offsetY,
+        failed: cache.failed,
+      });
+    }
     cache.ready = true;
     const waiters = cache.waiters;
     cache.waiters = [];
     waiters.forEach(w => w(cache));
   };
 
-  if (typeof img.decode === 'function') {
-    img.decode().then(() => finish(false)).catch(() => finish(true));
+  const startLoad = () => {
+    if (typeof img.decode === 'function') {
+      img.decode().then(() => finish(false)).catch(() => finish(true));
+    } else {
+      img.onload  = () => finish(false);
+      img.onerror = () => finish(true);
+    }
+  };
+
+  if (isExternal) {
+    // A page-context fetch() of these external images still gets CORS-blocked
+    // by the host's own response headers even with host_permissions declared
+    // and crossOrigin="anonymous" set (confirmed via console: apod.nasa.gov
+    // refuses it) — host_permissions only reliably bypasses CORS for a
+    // fetch/XHR made from the extension's *background* context, not its page
+    // context. So the actual fetch is relayed there via runtime messaging;
+    // the background script fetches the bytes and returns them as a base64
+    // data: URL, which needs no blob/object-URL cleanup and is never tainted.
+    sendRuntimeMessage({ action: 'FETCH_EXTERNAL_IMAGE', url })
+      .then(response => {
+        if (DEBUG_CONTRAST) {
+          console.log('[bg-contrast] Received payload from background:', response?.dataUrl ? 'YES (Base64)' : 'NO/EMPTY', response);
+        }
+        if (cacheRef.current !== cache) return; // superseded while the message was in flight
+        if (!response?.ok || !response.dataUrl) throw new Error(response?.error || 'Fetch failed');
+        img.src = response.dataUrl;
+        startLoad();
+      })
+      .catch(err => {
+        if (DEBUG_CONTRAST) console.log('[bg-contrast] background relay failed', err);
+        finish(true);
+      });
   } else {
-    img.onload  = () => finish(false);
-    img.onerror = () => finish(true);
+    // Local/custom images are already data: or blob: URIs — no network
+    // round-trip needed, load directly.
+    img.src = url;
+    startLoad();
   }
 }
 
 function sampleImage(cache: ImgCache, px: number, py: number, letterboxHex: string): number | null {
-  if (cache.failed || !cache.naturalW) return null;
+  if (cache.failed || !cache.naturalW) {
+    if (DEBUG_CONTRAST) console.log('[bg-contrast] sampleImage: no usable cache', { failed: cache.failed, naturalW: cache.naturalW });
+    return null;
+  }
 
   if (cache.fit === 'contain') {
     const drawnW = cache.naturalW * cache.scale;
     const drawnH = cache.naturalH * cache.scale;
     if (px < cache.offsetX || px > cache.offsetX + drawnW || py < cache.offsetY || py > cache.offsetY + drawnH) {
-      return luminance(letterboxHex); // point falls in the letterbox bars, not the image
+      const letterboxLuminance = luminance(letterboxHex);
+      if (DEBUG_CONTRAST) {
+        console.log('[bg-contrast] sampleImage: point falls in letterbox bars', {
+          px, py, offsetX: cache.offsetX, offsetY: cache.offsetY, drawnW, drawnH, letterboxLuminance,
+        });
+      }
+      return letterboxLuminance; // point falls in the letterbox bars, not the image
     }
   }
 
@@ -115,8 +235,11 @@ function sampleImage(cache: ImgCache, px: number, py: number, letterboxHex: stri
     const x = Math.max(0, Math.min(cache.canvas.width  - 1, Math.round(px)));
     const y = Math.max(0, Math.min(cache.canvas.height - 1, Math.round(py)));
     const [r, g, b] = cache.ctx.getImageData(x, y, 1, 1).data;
-    return 0.299 * r + 0.587 * g + 0.114 * b;
-  } catch {
+    const sampledLuminance = 0.299 * r + 0.587 * g + 0.114 * b;
+    if (DEBUG_CONTRAST) console.log('[bg-contrast] sampleImage: sampled pixel', { x, y, r, g, b, sampledLuminance });
+    return sampledLuminance;
+  } catch (err) {
+    if (DEBUG_CONTRAST) console.log('[bg-contrast] sampleImage: getImageData threw (tainted canvas?)', err);
     return null; // tainted canvas — caller falls back to a safe default
   }
 }
@@ -185,7 +308,7 @@ function getAnalyticLuminance(
  * since the button is `position: fixed` and doesn't move on scroll.
  */
 export function useBackgroundContrast(buttonRef: RefObject<HTMLElement | null>): boolean {
-  const { config, customImageUrl, backgroundCss, unsplash } = useBackground();
+  const { config, customImageUrl, backgroundCss, unsplash, bing, astronomy } = useBackground();
   const { colorScheme, settingsButtonPosition } = useSettings();
   const isDark = colorScheme !== 'light';
 
@@ -198,21 +321,58 @@ export function useBackgroundContrast(buttonRef: RefObject<HTMLElement | null>):
     const rect = btn.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
-    const dim = config.dimAmount ?? 0;
+    const luminosityMul = (config.luminosity ?? 100) / 100;
 
     const applyRaw = (raw: number) => {
-      setIsDarkVariant(raw * (1 - dim) > LUMINANCE_THRESHOLD);
+      const adjusted = raw * luminosityMul;
+      const needsDarkIcon = adjusted > LUMINANCE_THRESHOLD;
+      if (DEBUG_CONTRAST) {
+        console.log('[bg-contrast] contrast decision', {
+          mode: config.mode,
+          rawLuminance: raw,
+          luminosityMul,
+          adjustedLuminance: adjusted,
+          threshold: LUMINANCE_THRESHOLD,
+          decision: needsDarkIcon ? 'dark-icon (bright bg)' : 'light-icon (dark bg)',
+          settingState: 'isDarkVariant',
+        });
+      }
+      setIsDarkVariant(needsDarkIcon);
     };
 
-    if (config.mode === 'custom' || config.mode === 'unsplash') {
-      const url = config.mode === 'custom' ? customImageUrl : unsplash.imageUrl;
+    // Every URL-backed provider (custom upload, Unsplash, Bing, APOD) needs the
+    // same canvas-sampling path — only preset/color/gradient can be resolved
+    // analytically from hex stops. Astronomy/Bing were previously missing
+    // here, so they fell through to getAnalyticLuminance() below, which finds
+    // no hex colors in a `url(...)` background string and silently defaults
+    // to FALLBACK_HEX (near-black) — permanently reading as "dark background"
+    // regardless of how bright the actual photo is, leaving the white icon
+    // variant stuck on even over a bright image.
+    if (config.mode === 'custom' || config.mode === 'unsplash' || config.mode === 'astronomy' || config.mode === 'bing') {
+      const url =
+        config.mode === 'custom'    ? customImageUrl :
+        config.mode === 'unsplash'  ? unsplash.imageUrl :
+        config.mode === 'astronomy' ? astronomy.imageUrl :
+        bing.imageUrl;
       if (!url) { applyRaw(luminance(FALLBACK_HEX)); return; }
 
-      const fit: 'cover' | 'contain' =
-        config.mode === 'custom' && (config.scalingMode ?? 'fit') === 'fit' ? 'contain' : 'cover';
-      const letterboxHex = config.letterboxColor ?? '#000000';
+      // 'custom' has its own dedicated scalingMode/letterboxColor fields;
+      // every other image mode uses the shared scaleToFit control instead
+      // (see Background.tsx's layerStyle) and has no letterbox of its own.
+      const fit: 'cover' | 'contain' = config.mode === 'custom'
+        ? ((config.scalingMode ?? 'fit') === 'fit' ? 'contain' : 'cover')
+        : ((config.scaleToFit ?? true) ? 'contain' : 'cover');
+      const letterboxHex = config.mode === 'custom' ? (config.letterboxColor ?? '#000000') : '#000000';
+      // 'custom' has no position control of its own (always centered);
+      // every other image mode uses the shared `position` control, which the
+      // sampling offset math must mirror or it can sample the wrong spot.
+      const position: BackgroundPosition = config.mode === 'custom' ? 'center' : (config.position ?? 'center');
 
-      ensureImageCache(imgCacheRef, url, fit, cache => {
+      // 'custom' images are already local data:/blob: URIs; every other mode
+      // here is a real cross-origin URL that needs the background-script relay.
+      const isExternal = config.mode !== 'custom';
+
+      ensureImageCache(imgCacheRef, url, fit, position, isExternal, cache => {
         const sampled = sampleImage(cache, cx, cy, letterboxHex);
         applyRaw(sampled ?? luminance(letterboxHex));
       });
@@ -220,7 +380,7 @@ export function useBackgroundContrast(buttonRef: RefObject<HTMLElement | null>):
     }
 
     applyRaw(getAnalyticLuminance(config, isDark, cx, cy, backgroundCss));
-  }, [buttonRef, config, customImageUrl, unsplash.imageUrl, isDark, backgroundCss]);
+  }, [buttonRef, config, customImageUrl, unsplash.imageUrl, bing.imageUrl, astronomy.imageUrl, isDark, backgroundCss]);
 
   // Mount + background change + position change.
   useLayoutEffect(() => {

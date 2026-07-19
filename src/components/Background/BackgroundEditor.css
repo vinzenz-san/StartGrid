@@ -6,6 +6,18 @@
   flex-direction: column;
 }
 
+/* .settings-section's own 14px horizontal padding (index.css) is meant for
+   contexts with no other inset (e.g. the widget floating settings panel).
+   Here it's nested inside <PanelSection>'s .sg-panel-section, which already
+   applies 14px of its own — stacking the two double-indents every provider
+   section relative to the mode-switcher <Dropdown>, which sits directly in
+   .bg-editor with no .settings-section wrapper. Zero it out in this context
+   only, so nothing but PanelSection's own padding sets the left/right inset. */
+.bg-editor .settings-section:not(.bg-bing-section) {
+  padding-left: 0;
+  padding-right: 0;
+}
+
 .bg-color-swatch {
   width: 36px;
   height: 28px;
@@ -145,9 +157,93 @@
   cursor: pointer;
 }
 
-/* Dim slider uses shared .settings-slider-row from index.css */
+/* Luminosity slider uses shared .settings-slider-row from index.css */
 
 /* Mode switcher — shared <Dropdown> primitive, just needs spacing to the panel below */
 .bg-editor > .sg-dropdown {
   margin-bottom: 12px;
+}
+
+/* Astronomy tab */
+.bg-apod-date-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.bg-apod-date-icon {
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.bg-apod-date-input {
+  flex: 1;
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--surface-hover);
+  color: var(--text);
+  cursor: pointer;
+}
+
+/* Night-mode start/end times — two stacked label+input columns, flush left
+   with the rest of the (zero-padded) Astronomy section. */
+.bg-night-time-row {
+  display: flex;
+  gap: 12px;
+  padding: 4px 0;
+  margin-left: 0;
+}
+
+.bg-night-time-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.bg-night-time-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.bg-night-time-input {
+  width: 100%;
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--surface-hover);
+  color: var(--text);
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+/* Position — label sits on its own line above a full-width <Dropdown>,
+   matching the mode-switcher's own layout rather than a side-by-side row. */
+.bg-position-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+/* Luminosity slider — subtle tick at the 100 (middle) mark of its 0–200 range */
+.bg-luminosity-slider-wrap {
+  position: relative;
+}
+.bg-luminosity-slider-wrap::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 15px;
+  width: 2px;
+  height: 8px;
+  background: var(--text-muted);
+  opacity: 0.5;
+  transform: translateX(-50%);
+  pointer-events: none;
+  border-radius: 1px;
 }

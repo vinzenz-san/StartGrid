@@ -1,11 +1,66 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useBackground } from '../../contexts/BackgroundContext';
+import type { BackgroundPosition } from '../../types/background';
 import './Background.css';
 
 // Extracts the quoted url("...") from a CSS `background` shorthand value, if present.
 function extractUrl(css: string): string | null {
   const match = css.match(/url\(["']?([^"')]+)["']?\)/);
   return match ? match[1] : null;
+}
+
+// Splits a provider's resolved `background` shorthand string (a flat hex, a
+// gradient function, or a `url(...) center/cover no-repeat` value) into
+// explicit longhand properties. React warns when a style object mixes the
+// `background` shorthand with longhands like backgroundSize/backgroundPosition
+// in the same object (the shorthand implicitly resets those sub-properties),
+// so the modular display controls (blur/scaleToFit/position) below need the
+// layer's own image/color expressed as longhands too, never the shorthand.
+function splitBackgroundLayer(css: string): Pick<CSSProperties, 'backgroundImage' | 'backgroundColor'> {
+  const url = extractUrl(css);
+  if (url) return { backgroundImage: `url("${url}")` };
+  if (/^#[0-9a-fA-F]{3,8}$/.test(css.trim())) return { backgroundColor: css.trim() };
+  // linear-gradient(...) or any other CSS <image> function — valid directly
+  // as background-image, unlike a flat color.
+  return { backgroundImage: css };
+}
+
+// Parses "HH:MM" into minutes since midnight. Malformed input (missing colon,
+// non-numeric parts) falls back to 0 rather than throwing.
+function parseTimeToMinutes(time: string): number {
+  const [h, m] = time.split(':').map(Number);
+  return (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0);
+}
+
+// Whether the current system time falls within [start, end). Handles windows
+// that cross midnight (start > end, e.g. 22:00 → 05:00) as well as same-day
+// windows (start < end, e.g. 09:00 → 17:00).
+export function isNightTime(start: string, end: string, now: Date = new Date()): boolean {
+  const startMin = parseTimeToMinutes(start);
+  const endMin   = parseTimeToMinutes(end);
+  const nowMin   = now.getHours() * 60 + now.getMinutes();
+
+  if (startMin === endMin) return false;
+  if (startMin < endMin) {
+    // Same-day window, e.g. 09:00 → 17:00
+    return nowMin >= startMin && nowMin < endMin;
+  }
+  // Crosses midnight, e.g. 22:00 → 05:00
+  return nowMin >= startMin || nowMin < endMin;
+}
+
+// Re-evaluates isNightTime() once a minute so the dim state flips on its own
+// without a page refresh, without needing a full second-by-second clock tick.
+function useIsNightTime(start: string, end: string): boolean {
+  const [isNight, setIsNight] = useState(() => isNightTime(start, end));
+
+  useEffect(() => {
+    setIsNight(isNightTime(start, end));
+    const id = setInterval(() => setIsNight(isNightTime(start, end)), 60_000);
+    return () => clearInterval(id);
+  }, [start, end]);
+
+  return isNight;
 }
 
 // Dual-layer cross-fade (Tabliss-style double buffer): two absolutely-stacked
@@ -47,29 +102,66 @@ function useCrossfadeBackground(backgroundCss: string) {
   return { layers, active };
 }
 
+const POSITION_CSS: Record<BackgroundPosition, string> = {
+  center:       'center',
+  top:          'top',
+  bottom:       'bottom',
+  left:         'left',
+  right:        'right',
+  'top-left':     'left top',
+  'top-right':    'right top',
+  'bottom-left':  'left bottom',
+  'bottom-right': 'right bottom',
+};
+
 export default function Background() {
-  const { backgroundCss, config, unsplash } = useBackground();
+  const { backgroundCss, config, unsplash, astronomy } = useBackground();
   const { layers, active } = useCrossfadeBackground(backgroundCss);
 
-  const dimAmount   = config.dimAmount ?? 0;
   const isFit       = config.mode === 'custom' && (config.scalingMode ?? 'fit') === 'fit';
   const letterboxBg = config.mode === 'custom' ? (config.letterboxColor ?? '#000000') : '#000000';
+
+  // Modular display controls — apply to the active layer regardless of provider.
+  const blur         = config.blur ?? 0;
+  const luminosity   = config.luminosity ?? 100;
+  const scaleToFit   = config.scaleToFit ?? true;
+  const position     = config.position ?? 'center';
+  const autoDimNight = config.autoDimNight ?? false;
+  const nightStart   = config.nightStart ?? '22:00';
+  const nightEnd     = config.nightEnd ?? '05:00';
+
+  const isNight = useIsNightTime(nightStart, nightEnd);
+  // Additional multiplicative dim during the configured night window — the
+  // stored luminosity value itself is never mutated, only the rendered brightness.
+  const effectiveLuminosity = autoDimNight && isNight ? luminosity * 0.6 : luminosity;
+
+  const layerStyle: CSSProperties = {
+    filter: `blur(${blur}px) brightness(${effectiveLuminosity / 100})`,
+    backgroundSize: scaleToFit ? 'contain' : 'cover',
+    backgroundPosition: POSITION_CSS[position],
+    backgroundRepeat: 'no-repeat',
+  };
+
+  const layer0Style = splitBackgroundLayer(layers[0]);
+  const layer1Style = splitBackgroundLayer(layers[1]);
 
   const showAttribution =
     config.mode === 'unsplash' &&
     (config.showAttribution ?? true) &&
     !!unsplash.attribution;
 
+  const showApodTitle =
+    config.mode === 'astronomy' &&
+    (config.showApodTitle ?? false) &&
+    !!astronomy.title;
+
   return (
     <>
       {isFit && (
         <div className="sg-background-letterbox" style={{ background: letterboxBg }} />
       )}
-      <div className={`sg-bg-layer${active === 0 ? ' sg-bg-layer--active' : ''}`} style={{ background: layers[0] }} />
-      <div className={`sg-bg-layer${active === 1 ? ' sg-bg-layer--active' : ''}`} style={{ background: layers[1] }} />
-      {dimAmount > 0 && (
-        <div className="sg-background-dim" style={{ opacity: dimAmount }} />
-      )}
+      <div className={`sg-bg-layer${active === 0 ? ' sg-bg-layer--active' : ''}`} style={{ ...layer0Style, ...layerStyle }} />
+      <div className={`sg-bg-layer${active === 1 ? ' sg-bg-layer--active' : ''}`} style={{ ...layer1Style, ...layerStyle }} />
       {showAttribution && unsplash.attribution && (
         <div className="sg-bg-attribution">
           Photo by{' '}
@@ -88,6 +180,12 @@ export default function Background() {
           >
             Unsplash
           </a>
+        </div>
+      )}
+      {showApodTitle && (
+        <div className="sg-bg-attribution sg-apod-title-active">
+          {astronomy.title}
+          {astronomy.copyright && <>{' '}&copy; {astronomy.copyright}</>}
         </div>
       )}
     </>

@@ -1,6 +1,10 @@
 // ─── Shared across all modes ───────────────────────────────────────────────
+export type BackgroundPosition =
+  | 'center' | 'top' | 'bottom' | 'left' | 'right'
+  | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+
 export interface BackgroundShared {
-  dimAmount?: number;        // 0–1, global dim overlay
+  luminosity?: number;       // 0–200, default 100 (mid-point = normal brightness)
   // Fields below are shared optionals used by multiple modes; kept here so
   // BackgroundEditor can read them without mode-narrowing until editor panels
   // are split per-provider (future step).
@@ -10,6 +14,16 @@ export interface BackgroundShared {
   letterboxColor?: string;
   /** @deprecated kept for backwards-compat with stored configs */
   customGradient?: boolean;
+  // Modular display controls — apply to the active background layer
+  // regardless of provider (see Background.tsx).
+  dateMode?: 'today' | 'custom'; // default 'today'
+  customDate?: string;           // YYYY-MM-DD, default current date
+  blur?: number;                 // 0–100 (px), default 0
+  scaleToFit?: boolean;          // default true — object-fit: contain vs cover
+  position?: BackgroundPosition; // default 'center'
+  autoDimNight?: boolean;        // default false
+  nightStart?: string;           // HH:MM (24h), default '22:00'
+  nightEnd?: string;             // HH:MM (24h), default '05:00'
 }
 
 // ─── Per-mode discriminated configs ────────────────────────────────────────
@@ -48,12 +62,38 @@ export interface BingConfig extends BackgroundShared {
   value: string; // unused; kept for storage shape uniformity with other modes
 }
 
+// ─── Placeholder Tabliss-parity providers (not yet implemented) ───────────
+export interface AstronomyConfig extends BackgroundShared {
+  mode: 'astronomy';
+  value: string; // unused placeholder; kept for storage shape uniformity
+  showApodTitle?: boolean; // default false — overlay NASA's title for the day
+}
+
+export interface ColourGradientConfig extends BackgroundShared {
+  mode: 'colourGradient';
+  value: string; // unused placeholder; kept for storage shape uniformity
+}
+
+export interface OnlineImageConfig extends BackgroundShared {
+  mode: 'online';
+  value: string; // unused placeholder; kept for storage shape uniformity
+}
+
+export interface WikimediaConfig extends BackgroundShared {
+  mode: 'wikimedia';
+  value: string; // unused placeholder; kept for storage shape uniformity
+}
+
 export type BackgroundConfig =
   | PresetConfig
   | ColorConfig
   | CustomImageConfig
   | UnsplashConfig
-  | BingConfig;
+  | BingConfig
+  | AstronomyConfig
+  | ColourGradientConfig
+  | OnlineImageConfig
+  | WikimediaConfig;
 
 export type BackgroundMode = BackgroundConfig['mode'];
 
@@ -67,7 +107,7 @@ export const DEFAULT_BG: PresetConfig = {
 // ─── Editor grouping ───────────────────────────────────────────────────────
 // Which settings-panel sub-view a provider's controls render under. Several
 // modes can share one panel (preset/color/gradient all live under "colors").
-export type BackgroundPanel = 'colors' | 'image' | 'unsplash' | 'bing';
+export type BackgroundPanel = 'colors' | 'image' | 'unsplash' | 'bing' | 'astronomy' | 'gradient' | 'online' | 'wikimedia';
 
 // ─── Provider registry interface ───────────────────────────────────────────
 export interface BackgroundProviderDef<C extends BackgroundConfig = BackgroundConfig> {
@@ -86,6 +126,8 @@ export interface BackgroundRenderCtx {
   unsplashImageUrl?: string | null;
   /** Current cached Bing Daily Wallpaper image URL */
   bingImageUrl?: string | null;
+  /** Current cached NASA Astronomy Picture of the Day image URL */
+  apodImageUrl?: string | null;
 }
 
 // ─── Preset definitions (unchanged) ────────────────────────────────────────
