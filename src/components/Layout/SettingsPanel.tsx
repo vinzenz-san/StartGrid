@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { ElementInspector } from './ElementInspector';
 import BackgroundEditor from '../Background/BackgroundEditor';
 import SwatchPicker from '../shared/SwatchPicker';
@@ -19,11 +19,11 @@ import { useWidgets } from '../../contexts/WidgetContext';
 import { useGridConfig } from '../../contexts/GridConfigContext';
 import { useApplyGridConfig } from '../../hooks/useApplyGridConfig';
 import { WIDGET_REGISTRY, WIDGET_MENU_TYPES, WIDGET_TYPE_LABEL_KEYS } from '../widgets/registry';
-import { findFreePosition } from '../../lib/gridUtils';
+import { findFreePosition, compactWidgets } from '../../lib/gridUtils';
 import { DEFAULT_BG } from '../../types/background';
 import type { Language, SettingsButtonPosition } from '../../contexts/SettingsContext';
 import type { WidgetType } from '../../types/widget';
-import type { GridConfig } from '../../types/grid';
+import { DEFAULT_GRID_CONFIG, type GridConfig } from '../../types/grid';
 import './SettingsPanel.css';
 
 const APP_NAME = 'Startgrid';
@@ -58,11 +58,12 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
   const {
     colorScheme, accentColor, language, developerOptionsEnabled,
     enableCustomContextMenu, settingsPinned, elementInspectorEnabled, updateSettings, t,
+    disableGridGlow, disableWidgetGlow, disableBackgroundBlur,
   } = useSettings();
   const panelRef = useRef<HTMLDivElement>(null);
   const { config, setConfig } = useBackground();
   const { isEditMode, toggleEditMode } = useEditMode();
-  const { widgets, addWidget, updateWidget } = useWidgets();
+  const { widgets, addWidget, updateWidget, replaceAllWidgets } = useWidgets();
   const { gridConfig } = useGridConfig();
   const { applyGridConfig } = useApplyGridConfig();
   const [devConfirmOpen,   setDevConfirmOpen]   = useState(false);
@@ -75,6 +76,18 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
   const [draftGrid,        setDraftGrid]        = useState<GridConfig>(gridConfig);
   const [gridConfirmOpen,  setGridConfirmOpen]  = useState(false);
   const accentSwatchRef = useRef<HTMLButtonElement>(null);
+
+  // gridConfig starts at DEFAULT_GRID_CONFIG (useStorage's synchronous
+  // initial value) and only reflects the real saved config once storage.get()
+  // resolves asynchronously — draftGrid's useState above captures whatever
+  // gridConfig was AT MOUNT TIME, which is that default, not the eventual
+  // real value. Re-sync whenever gridConfig changes (hydration completing,
+  // a cross-device sync update, or this panel's own apply/reset) so the
+  // sliders always reflect the true current config rather than getting
+  // stuck at defaults until manually touched.
+  useEffect(() => {
+    setDraftGrid(gridConfig);
+  }, [gridConfig]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importError, setImportError] = useState<string | null>(null);
@@ -115,6 +128,15 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
   const confirmApplyGrid = () => {
     applyGridConfig(draftGrid);
     setGridConfirmOpen(false);
+  };
+
+  const handleResetGrid = () => {
+    applyGridConfig(DEFAULT_GRID_CONFIG);
+    setDraftGrid(DEFAULT_GRID_CONFIG);
+  };
+
+  const handleCompactGrid = () => {
+    replaceAllWidgets(compactWidgets(widgets, gridConfig.columns));
   };
 
   const transparencyPct = 100 - Math.round(globalOpacity * 100);
@@ -217,7 +239,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
 
           {/* ══ 2. BACKGROUND ══ */}
           <div
-            onMouseEnter={() => document.documentElement.classList.add('sg-blur-all-widgets')}
+            onMouseEnter={() => { if (!disableBackgroundBlur) document.documentElement.classList.add('sg-blur-all-widgets'); }}
             onMouseLeave={() => document.documentElement.classList.remove('sg-blur-all-widgets')}
           >
           <PanelSection title={t('background.sectionTitle')} collapsible persistenceKey="background" collapseGap="spacious">
@@ -227,7 +249,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
 
           {/* ══ 3. WIDGETS ══ */}
           <div
-            onMouseEnter={() => document.documentElement.classList.add('sg-glow-all-widgets')}
+            onMouseEnter={() => { if (!disableWidgetGlow) document.documentElement.classList.add('sg-glow-all-widgets'); }}
             onMouseLeave={() => document.documentElement.classList.remove('sg-glow-all-widgets')}
           >
           <PanelSection title={t('widgets.sectionTitle')} collapsible persistenceKey="widgets">
@@ -308,31 +330,32 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
           </div>
 
           {/* ══ 4. GRID ══ */}
+          <div
+            onMouseEnter={() => { if (!disableGridGlow) document.documentElement.classList.add('sg-grid-glow-hover'); }}
+            onMouseLeave={() => document.documentElement.classList.remove('sg-grid-glow-hover')}
+          >
           <PanelSection title={t('grid.sectionTitle')} collapsible persistenceKey="grid">
             <SettingsSlider
               label={t('grid.columns')}
               value={draftGrid.columns}
               onChange={v => setDraftGrid(g => ({ ...g, columns: v }))}
-              min={2}
-              max={24}
+              min={4}
+              max={64}
               step={1}
               valueFormatter={v => String(v)}
             />
+            {/* Single square-cell control — writes the same value to both
+                cellWidth and cellHeight so the grid stays 1:1. The schema
+                still carries them as independent fields (see grid.ts) for
+                configs saved before this simplification; this slider just
+                displays cellWidth as the representative value and, the
+                moment it's touched, brings cellHeight into sync with it. */}
             <SettingsSlider
-              label={t('grid.cellWidth')}
+              label={t('grid.cellSize')}
               value={draftGrid.cellWidth}
-              onChange={v => setDraftGrid(g => ({ ...g, cellWidth: v }))}
-              min={40}
-              max={240}
-              step={5}
-              valueFormatter={v => `${v}px`}
-            />
-            <SettingsSlider
-              label={t('grid.cellHeight')}
-              value={draftGrid.cellHeight}
-              onChange={v => setDraftGrid(g => ({ ...g, cellHeight: v }))}
-              min={40}
-              max={240}
+              onChange={v => setDraftGrid(g => ({ ...g, cellWidth: v, cellHeight: v }))}
+              min={10}
+              max={200}
               step={5}
               valueFormatter={v => `${v}px`}
             />
@@ -346,10 +369,19 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
               valueFormatter={v => `${v}px`}
             />
             <p className="bg-sync-warning">{t('grid.note')}</p>
+            <p className="sg-grid-experimental-warning">{t('grid.experimentalWarning')}</p>
             <ActionButton variant="ghost" disabled={!gridDraftDirty} onClick={() => setGridConfirmOpen(true)}>
               {t('grid.apply')}
             </ActionButton>
+            <ActionButton variant="danger" onClick={handleResetGrid}>
+              {t('grid.reset')}
+            </ActionButton>
+            <p className="bg-sync-warning">{t('grid.compactGridHint')}</p>
+            <ActionButton variant="ghost" onClick={handleCompactGrid}>
+              {t('grid.compactGrid')}
+            </ActionButton>
           </PanelSection>
+          </div>
 
           {/* ══ 5. SETTINGS ══ */}
           <PanelSection title={t('settings.sectionTitle')} collapsible persistenceKey="settings" defaultOpen>
@@ -380,6 +412,25 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
                 onChange={v => updateSettings({ settingsButtonPosition: v })}
                 cols={3}
                 rows={2}
+              />
+            </SettingsRow>
+
+            <SettingsRow label={t('settings.disableGridGlow')}>
+              <SettingsSwitch
+                checked={disableGridGlow}
+                onChange={v => updateSettings({ disableGridGlow: v })}
+              />
+            </SettingsRow>
+            <SettingsRow label={t('settings.disableWidgetGlow')}>
+              <SettingsSwitch
+                checked={disableWidgetGlow}
+                onChange={v => updateSettings({ disableWidgetGlow: v })}
+              />
+            </SettingsRow>
+            <SettingsRow label={t('settings.disableBackgroundBlur')}>
+              <SettingsSwitch
+                checked={disableBackgroundBlur}
+                onChange={v => updateSettings({ disableBackgroundBlur: v })}
               />
             </SettingsRow>
 

@@ -19,13 +19,6 @@ interface TypedEntry<T> {
   label:       string;
   icon:        string;
   defaultSize: { w: number; h: number };
-  /** Minimum usable footprint in CSS pixels (not grid units) — grid-unit
-   *  minimums aren't portable across grid configs, since a "2 columns" floor
-   *  means something different once cell size changes. The grid-rescale
-   *  transform (gridRescale.ts) converts this into a unit-count floor for
-   *  whatever GridConfig is active at the time. Omit for widgets with no
-   *  meaningful minimum (e.g. the dev-only placeholder). */
-  minSize?:    { w: number; h: number };
   defaultData: T;
   devOnly?:    boolean;
   titleBehavior:        'optional' | 'auto' | 'none';
@@ -42,7 +35,6 @@ export interface WidgetEntry {
   label:       string;
   icon:        string;
   defaultSize: { w: number; h: number };
-  minSize?:    { w: number; h: number };
   defaultData: unknown;
   devOnly?:    boolean;
   titleBehavior:        'optional' | 'auto' | 'none';
@@ -62,7 +54,6 @@ const _registry = {
     label:         'Clock',
     icon:          '🕐',
     defaultSize:   { w: 2, h: 2 },
-    minSize:       { w: 140, h: 90 },
     defaultData:   { format: '24h', showSeconds: true, showDate: true } satisfies ClockData,
     titleBehavior: 'none',
     renderComponent: (data, onUpdateData) => <Clock data={data} onUpdateData={onUpdateData} />,
@@ -73,7 +64,6 @@ const _registry = {
     label:                 'Quicklinks',
     icon:                  '🔗',
     defaultSize:           { w: 2, h: 2 },
-    minSize:               { w: 120, h: 120 },
     defaultData:           { links: [], layout: 'grid' } satisfies QuicklinksData,
     titleBehavior:         'optional',
     defaultTitle:          'Quicklinks',
@@ -86,7 +76,6 @@ const _registry = {
     label:                 'Bookmark Folder',
     icon:                  '🔖',
     defaultSize:           { w: 2, h: 3 },
-    minSize:               { w: 150, h: 150 },
     defaultData:           { sortingMode: 'original' } satisfies BookmarksData,
     titleBehavior:         'optional',
     defaultTitle:          'Bookmarks',
@@ -100,7 +89,6 @@ const _registry = {
     label:         'Bookmark Search',
     icon:          '🔍',
     defaultSize:   { w: 2, h: 1 },
-    minSize:       { w: 200, h: 60 },
     defaultData:   { maxResults: 10 } satisfies BookmarkSearchData,
     titleBehavior: 'none',
     renderComponent: (data, onUpdateData) => <BookmarkSearch data={data} onUpdateData={onUpdateData} />,
@@ -111,7 +99,6 @@ const _registry = {
     label:         'Gmail',
     icon:          '✉',
     defaultSize:   { w: 2, h: 3 },
-    minSize:       { w: 220, h: 220 },
     defaultData:   { maxEmails: 5, showSnippets: true } satisfies GmailData,
     titleBehavior: 'auto',
     renderComponent: (data, onUpdateData) => <Gmail data={data} onUpdateData={onUpdateData} />,
@@ -122,7 +109,6 @@ const _registry = {
     label:         'Calendar',
     icon:          '📅',
     defaultSize:   { w: 2, h: 3 },
-    minSize:       { w: 220, h: 220 },
     defaultData:   { maxDays: 3, showAllDay: true } satisfies CalendarData,
     titleBehavior: 'auto',
     renderComponent: (data, onUpdateData) => <Calendar data={data} onUpdateData={onUpdateData} />,
@@ -133,7 +119,6 @@ const _registry = {
     label:                 'Notes',
     icon:                  '📝',
     defaultSize:           { w: 2, h: 2 },
-    minSize:               { w: 120, h: 100 },
     defaultData:           { content: '', fontSize: 'M', storageMode: 'local' } satisfies NotesData,
     titleBehavior:         'optional',
     defaultTitle:          'Notes',
@@ -146,7 +131,6 @@ const _registry = {
     label:         'Greeting',
     icon:          '👋',
     defaultSize:   { w: 2, h: 1 },
-    minSize:       { w: 150, h: 60 },
     defaultData:   { textSize: 'M', alignment: 'left' } satisfies GreetingData,
     titleBehavior: 'none',
     renderComponent: (data, onUpdateData) => <Greeting data={data} onUpdateData={onUpdateData} />,
@@ -157,7 +141,6 @@ const _registry = {
     label:         'Weather',
     icon:          '⛅',
     defaultSize:   { w: 2, h: 2 },
-    minSize:       { w: 160, h: 130 },
     defaultData:   { units: 'metric', showFeelsLike: true, showLocationName: true } satisfies WeatherData,
     titleBehavior: 'none',
     renderComponent: (data, onUpdateData) => <Weather data={data} onUpdateData={onUpdateData} />,

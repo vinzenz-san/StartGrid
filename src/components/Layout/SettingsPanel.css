@@ -176,3 +176,15 @@
   width: 105px;
 }
 .sg-backup-ok          { font-size: 10px; color: #52b152; padding: 2px 0 4px; }
+
+/* ── Grid section experimental warning ───────────────────────────────────── */
+.sg-grid-experimental-warning {
+  font-size: 11px;
+  line-height: 1.4;
+  color: #d19a1f;
+  background: rgba(234, 179, 8, 0.12);
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin: 4px 0 2px;
+}

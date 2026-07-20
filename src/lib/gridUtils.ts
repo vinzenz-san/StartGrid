@@ -77,3 +77,41 @@ export function findNearestFreePosition(
   // to the origin-scan so we always return *something* placeable.
   return findFreePosition(widgets, columns, w, h);
 }
+
+/** Topmost, then leftmost, free (col, row) a w×h rectangle fits into,
+ *  searching only rows 1..maxRow (a widget being compacted should only ever
+ *  move up, never down past its own current row) — used by compactWidgets
+ *  below. Returns null if nothing in that range fits (shouldn't happen in
+ *  practice, since the widget's own current position is always within the
+ *  scanned range and is a valid fallback). */
+function findTopLeftFit(
+  widgets: Widget[],
+  id: string,
+  w: number, h: number,
+  maxRow: number, columns: number,
+): { col: number; row: number } | null {
+  for (let row = 1; row <= maxRow; row++) {
+    for (let col = 1; col <= columns - w + 1; col++) {
+      if (isPositionFree(widgets, id, col, row, w, h)) return { col, row };
+    }
+  }
+  return null;
+}
+
+/** "Compact Grid" / gravity pass: pulls every widget as far up-and-left as
+ *  it can go without overlapping anything, closing empty gaps left behind
+ *  by moved/removed widgets. Processes widgets in row-then-column order so
+ *  earlier (topmost/leftmost) widgets settle into their final spot first,
+ *  and later widgets compact around them — deterministic regardless of the
+ *  input array's own order. Pure function: takes the current layout, returns
+ *  a new one; callers persist the result themselves. */
+export function compactWidgets(widgets: Widget[], columns: number): Widget[] {
+  const sorted = [...widgets].sort((a, b) => a.row - b.row || a.col - b.col);
+  const placed: Widget[] = [];
+  for (const widget of sorted) {
+    const fit = findTopLeftFit(placed, widget.id, widget.w, widget.h, widget.row, columns)
+      ?? { row: widget.row, col: widget.col };
+    placed.push({ ...widget, row: fit.row, col: fit.col });
+  }
+  return placed;
+}

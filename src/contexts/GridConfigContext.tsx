@@ -11,13 +11,25 @@ interface GridConfigContextType {
 const Ctx = createContext<GridConfigContextType | null>(null);
 
 export function GridConfigProvider({ children }: { children: ReactNode }) {
-  const [gridConfig, setGridConfigRaw, loaded] = useStorage<GridConfig>('gridConfig', DEFAULT_GRID_CONFIG);
+  const [storedGridConfig, setGridConfigRaw, loaded] = useStorage<GridConfig>('gridConfig', DEFAULT_GRID_CONFIG);
+
+  // Defensive merge against DEFAULT_GRID_CONFIG: useStorage overwrites the
+  // default wholesale with whatever JSON was stored rather than merging
+  // field-by-field, so a config saved by an older version of this schema
+  // (missing a field this version expects) would otherwise surface as
+  // `undefined` instead of falling back to a sane default.
+  const gridConfig: GridConfig = { ...DEFAULT_GRID_CONFIG, ...storedGridConfig };
 
   // Injected as runtime CSS custom properties (same pattern as ThemeContext's
   // --widget-bg-color etc.) so Grid.css can consume user-configured grid
   // geometry without a build-time step. index.css keeps static fallback
   // values for the pre-hydration flash, same spirit as its dark-background
   // anti-flash trick.
+  // cellWidth/cellHeight are read independently here on purpose — this
+  // context has no opinion on whether they're equal. The Settings UI's
+  // single "Cell Size" slider is what keeps them in sync going forward by
+  // always writing the same value to both; this context just passes
+  // whatever's stored straight through to --cell-w/--cell-h.
   useEffect(() => {
     document.documentElement.style.setProperty('--grid-cols', String(gridConfig.columns));
     document.documentElement.style.setProperty('--cell-w', `${gridConfig.cellWidth}px`);
