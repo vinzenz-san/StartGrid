@@ -44,6 +44,17 @@ export const de: Record<TranslationKey, string> = {
   'widgets.matchGlobalColor':    '⬡ An globale Widget-Farbe anpassen',
   'widgets.resetToGlobal':       '↺ Auf Global zurücksetzen',
 
+  'grid.sectionTitle': 'Raster',
+  'grid.columns':      'Spalten',
+  'grid.cellWidth':    'Zellenbreite',
+  'grid.cellHeight':   'Zellenhöhe',
+  'grid.gap':          'Abstand',
+  'grid.note':         'Änderungen an den Rastermaßen positionieren und skalieren Widgets neu, um ihre Bildschirmgröße möglichst beizubehalten.',
+  'grid.apply':        'Rasteränderungen anwenden',
+  'grid.confirm.title':   'Rasteränderungen anwenden?',
+  'grid.confirm.body':    'Ihre Widgets werden neu skaliert und bei Bedarf auseinandergerückt, um Überlappungen zu vermeiden. Dabei geht nichts verloren.',
+  'grid.confirm.confirm': 'Anwenden',
+
   'dev.sectionTitle': 'Entwickleroptionen',
   'dev.enableDevMode': 'Entwicklermodus aktivieren',
   'dev.confirm.title':   'Entwickleroptionen aktivieren?',

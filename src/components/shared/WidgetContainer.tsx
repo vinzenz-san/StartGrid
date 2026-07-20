@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useFloating, flip, shift, offset, autoUpdate } from '@floating-ui/react';
 import { useEditMode } from '../../contexts/EditModeContext';
 import { useWidgets } from '../../contexts/WidgetContext';
+import { useGridConfig } from '../../contexts/GridConfigContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useSettings } from '../../contexts/SettingsContext';
 import { darkenHex, mixHex, getAdaptiveColor } from '../../lib/colorUtils';
@@ -16,14 +17,12 @@ import SwatchPicker from './SwatchPicker';
 import ThemeToggle from './ThemeToggle';
 import './WidgetContainer.css';
 
-const CELL = 120;
-const GAP  = 12;
-
 interface Props { widget: Widget; }
 
 export default function WidgetContainer({ widget }: Props) {
   const { isEditMode } = useEditMode();
   const { removeWidget, updateWidget } = useWidgets();
+  const { gridConfig } = useGridConfig();
   const { globalColor, globalColorScheme, globalOpacity, globalDim, globalGradientIntensity, globalPresetId, widgetShadowOpacity } = useTheme();
   const { colorScheme, enableCustomContextMenu, t } = useSettings();
   const elRef = useRef<HTMLDivElement>(null);
@@ -108,8 +107,8 @@ export default function WidgetContainer({ widget }: Props) {
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     const rect = elRef.current!.getBoundingClientRect();
     dragState.widgetId = widget.id;
-    dragState.offCol = Math.max(0, Math.floor((e.clientX - rect.left) / ((rect.width  + GAP) / widget.w)));
-    dragState.offRow = Math.max(0, Math.floor((e.clientY - rect.top)  / ((rect.height + GAP) / widget.h)));
+    dragState.offCol = Math.max(0, Math.floor((e.clientX - rect.left) / ((rect.width  + gridConfig.gap) / widget.w)));
+    dragState.offRow = Math.max(0, Math.floor((e.clientY - rect.top)  / ((rect.height + gridConfig.gap) / widget.h)));
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', widget.id);
     requestAnimationFrame(() => elRef.current?.classList.add('dragging'));
@@ -129,12 +128,14 @@ export default function WidgetContainer({ widget }: Props) {
     handle.setPointerCapture(e.pointerId);
     const startX = e.clientX, startY = e.clientY;
     const startW = widget.w, startH = widget.h;
-    const maxW = 9 - widget.col;
-    const step = CELL + GAP;
+    const { columns, cellWidth, cellHeight, gap } = gridConfig;
+    const maxW = columns + 1 - widget.col;
+    const stepW = cellWidth  + gap;
+    const stepH = cellHeight + gap;
 
     const calc = (ev: PointerEvent) => ({
-      w: Math.max(1, Math.min(maxW, Math.round((startW * step - GAP + ev.clientX - startX + GAP / 2) / step))),
-      h: Math.max(1,              Math.round((startH * step - GAP + ev.clientY - startY + GAP / 2) / step)),
+      w: Math.max(1, Math.min(maxW, Math.round((startW * stepW - gap + ev.clientX - startX + gap / 2) / stepW))),
+      h: Math.max(1,              Math.round((startH * stepH - gap + ev.clientY - startY + gap / 2) / stepH)),
     });
 
     const onMove = (ev: PointerEvent) => setResizePreview(calc(ev));

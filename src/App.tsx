@@ -1,5 +1,6 @@
 import { EditModeProvider } from './contexts/EditModeContext';
 import { WidgetProvider } from './contexts/WidgetContext';
+import { GridConfigProvider } from './contexts/GridConfigContext';
 import { BackgroundProvider } from './contexts/BackgroundContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { SettingsProvider } from './contexts/SettingsContext';
@@ -13,8 +14,10 @@ export default function App() {
         <BackgroundProvider>
           <EditModeProvider>
             <WidgetProvider>
-              <Background />
-              <Grid />
+              <GridConfigProvider>
+                <Background />
+                <Grid />
+              </GridConfigProvider>
             </WidgetProvider>
           </EditModeProvider>
         </BackgroundProvider>
