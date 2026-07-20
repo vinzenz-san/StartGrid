@@ -29,6 +29,8 @@
     "https://bing.npanuhin.me/*",
     "https://*.nasa.gov/*",
     "https://*.unsplash.com/*",
-    "https://*.bing.com/*"
+    "https://*.bing.com/*",
+    "https://api.open-meteo.com/*",
+    "https://geocoding-api.open-meteo.com/*"
   ]
 }

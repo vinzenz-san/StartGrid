@@ -1,0 +1,113 @@
+.sg-weather {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.sg-weather-icon {
+  font-size: 42px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.sg-weather-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sg-weather-temp {
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.sg-weather-condition {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.sg-weather-feelslike,
+.sg-weather-location {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Empty / loading / error states ──────────────── */
+.sg-weather--empty {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+
+.sg-weather-empty-text {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.sg-weather-empty-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+
+/* ── Settings ─────────────────────────────────────── */
+.sg-weather-settings {
+  display: contents;
+}
+
+.sg-weather-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 4px 8px;
+  border-radius: 5px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  background: rgba(128, 128, 128, 0.1);
+  color: inherit;
+  font-size: 12px;
+}
+
+.sg-weather-input:focus { border-color: rgba(128, 128, 128, 0.6); }
+
+.sg-weather-results {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sg-weather-result {
+  text-align: left;
+  padding: 5px 8px;
+  border-radius: 5px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.sg-weather-result:hover { background: rgba(128, 128, 128, 0.1); }
+
+.sg-weather-current-location {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sg-weather-search-hint,
+.sg-weather-search-error {
+  font-size: 11px;
+  color: var(--text-muted);
+}

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, GmailData, CalendarData, NotesData, PlaceholderData } from '../../types/widget';
+import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, GmailData, CalendarData, NotesData, GreetingData, WeatherData, PlaceholderData } from '../../types/widget';
 import type { TranslationKey } from '../../i18n';
 import Clock, { ClockSettings } from './Clock/Clock';
 import Quicklinks, { QuicklinksSettings } from './Quicklinks/Quicklinks';
@@ -8,6 +8,8 @@ import BookmarkSearch, { BookmarkSearchSettings } from './BookmarkSearch/Bookmar
 import Gmail, { GmailSettings } from './Gmail/Gmail';
 import Calendar, { CalendarSettings } from './Calendar/Calendar';
 import Notes, { NotesSettings } from './Notes/Notes';
+import Greeting, { GreetingSettings } from './Greeting/Greeting';
+import Weather, { WeatherSettings } from './Weather/Weather';
 import WidgetPlaceholder from '../shared/WidgetPlaceholder';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -125,6 +127,26 @@ const _registry = {
     renderSettings:  (data, onUpdateData, widgetId) => <NotesSettings data={data} onUpdateData={onUpdateData} widgetId={widgetId} />,
   } satisfies TypedEntry<NotesData>,
 
+  greeting: {
+    label:         'Greeting',
+    icon:          '👋',
+    defaultSize:   { w: 2, h: 1 },
+    defaultData:   { textSize: 'M', alignment: 'left' } satisfies GreetingData,
+    titleBehavior: 'none',
+    renderComponent: (data, onUpdateData) => <Greeting data={data} onUpdateData={onUpdateData} />,
+    renderSettings:  (data, onUpdateData) => <GreetingSettings data={data} onUpdateData={onUpdateData} />,
+  } satisfies TypedEntry<GreetingData>,
+
+  weather: {
+    label:         'Weather',
+    icon:          '⛅',
+    defaultSize:   { w: 2, h: 2 },
+    defaultData:   { units: 'metric', showFeelsLike: true, showLocationName: true } satisfies WeatherData,
+    titleBehavior: 'none',
+    renderComponent: (data, onUpdateData) => <Weather data={data} onUpdateData={onUpdateData} />,
+    renderSettings:  (data, onUpdateData) => <WeatherSettings data={data} onUpdateData={onUpdateData} />,
+  } satisfies TypedEntry<WeatherData>,
+
   placeholder: {
     label:         'Placeholder',
     icon:          '⬜',
@@ -155,10 +177,12 @@ export const WIDGET_TYPE_LABEL_KEYS: Record<WidgetType, TranslationKey> = {
   gmail:          'widgets.type.gmail',
   calendar:       'widgets.type.calendar',
   notes:          'widgets.type.notes',
+  greeting:       'widgets.type.greeting',
+  weather:        'widgets.type.weather',
   placeholder:    'widgets.type.placeholder',
 };
 
 // Ordered list for the "Add Widget" menu (excludes placeholder handled separately if desired).
 export const WIDGET_MENU_TYPES: WidgetType[] = [
-  'clock', 'quicklinks', 'bookmarks', 'bookmarkSearch', 'gmail', 'calendar', 'notes', 'placeholder',
+  'clock', 'quicklinks', 'bookmarks', 'bookmarkSearch', 'gmail', 'calendar', 'notes', 'greeting', 'weather', 'placeholder',
 ];
