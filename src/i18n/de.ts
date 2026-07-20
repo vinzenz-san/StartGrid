@@ -283,4 +283,8 @@ export const de: Record<TranslationKey, string> = {
   'widget.calendar.refreshAria':      'Kalender aktualisieren',
   'widget.calendar.prevMonth':        'Vorheriger Monat',
   'widget.calendar.nextMonth':        'Nächster Monat',
+  'widget.calendar.noEventsForDay':   'Keine Termine an diesem Tag',
+  'widget.calendar.closeAria':        'Termindetails schließen',
+  'widget.calendar.location':         'Ort',
+  'widget.calendar.description':      'Beschreibung',
 };
