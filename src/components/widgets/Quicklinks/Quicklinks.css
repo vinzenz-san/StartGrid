@@ -47,6 +47,14 @@
 }
 .sg-ql-links--row::-webkit-scrollbar { display: none; }
 
+/* ── Alignment (applied alongside the layout variant above) ── */
+
+.sg-ql-links--align-left   { justify-content: flex-start; align-content: flex-start; }
+.sg-ql-links--align-center { justify-content: center;     align-content: center; }
+.sg-ql-links--align-right  { justify-content: flex-end;   align-content: flex-end; }
+.sg-ql-links--align-top    { align-items: flex-start;     justify-content: flex-start; }
+.sg-ql-links--align-bottom { align-items: flex-end;       justify-content: flex-end; }
+
 /* ── Link item ── */
 
 .sg-ql-link {

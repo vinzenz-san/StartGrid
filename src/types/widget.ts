@@ -7,6 +7,8 @@ export interface ClockData {
   isBold?: boolean;
   boldDate?: boolean;
   fontColor?: string;
+  /** IANA timezone id (e.g. 'Europe/Berlin'), or 'local' for the system timezone. Default 'local'. */
+  timezone?: string;
 }
 
 export interface QuickLink {
@@ -19,12 +21,15 @@ export interface QuickLink {
   showWhiteBadge?: boolean;
 }
 
+export type WidgetAlignment = 'left' | 'center' | 'right' | 'top' | 'bottom';
+
 export interface QuicklinksData {
   links: QuickLink[];
   layout: 'grid' | 'list';
   iconSize?: 'small' | 'medium' | 'large';
   showTitles?: boolean;
   textSize?: 'S' | 'M' | 'L';
+  alignment?: WidgetAlignment; // default 'left'
 }
 
 export type BookmarkSortMode = 'original' | 'foldersFirst' | 'alphabetical';
@@ -32,8 +37,11 @@ export type BookmarkSortMode = 'original' | 'foldersFirst' | 'alphabetical';
 export interface BookmarksData {
   rootFolderId?: string;
   folderTitle?:  string;
-  showIcons:     boolean;
-  compactMode:   boolean;
+  iconSize?:     'small' | 'medium' | 'large'; // default 'medium'
+  showTitles?:   boolean;                      // default true
+  textSize?:     'S' | 'M' | 'L';               // default 'M'
+  layout?:       'list' | 'grid';               // default 'list'
+  alignment?:    WidgetAlignment;                // default 'left'
   sortingMode?:  BookmarkSortMode;
 }
 
