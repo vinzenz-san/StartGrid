@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import type { CalendarData, CalendarEvent } from './calendar.types';
 import { GCAL_COLORS, DEFAULT_EVENT_COLOR } from './calendar.types';
 import { useCalendar } from './useCalendar';
@@ -47,6 +49,12 @@ function formatTimeBlock(event: CalendarEvent, allDayLabel: string): string {
     return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   };
   return `${fmt(event.start.dateTime!)} – ${fmt(event.end.dateTime!)}`;
+}
+
+function formatFullDate(dateKey: string, locale: string): string {
+  const [y, m, day] = dateKey.split('-').map(Number);
+  const d = new Date(y, m - 1, day);
+  return new Intl.DateTimeFormat(locale, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(d);
 }
 
 function formatHeaderDate(locale: string): string {
@@ -162,10 +170,91 @@ function DayGroup({ group, locale, todayLabel, tomorrowLabel, allDayLabel }: { g
   );
 }
 
+// ── Event details popover (Monthly View) ─────────────────────────────────────
+
+interface SelectedDay { dateKey: string; anchor: DOMRect; }
+
+interface EventDetailsPopoverProps {
+  selected: SelectedDay;
+  events: CalendarEvent[];
+  locale: string;
+  allDayLabel: string;
+  noEventsLabel: string;
+  closeAriaLabel: string;
+  locationLabel: string;
+  descriptionLabel: string;
+  onClose: () => void;
+}
+
+const POPOVER_WIDTH = 260;
+const POPOVER_MARGIN = 8;
+
+function EventDetailsPopover({
+  selected, events, locale, allDayLabel, noEventsLabel, closeAriaLabel,
+  locationLabel, descriptionLabel, onClose,
+}: EventDetailsPopoverProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handlePointerDown = (e: PointerEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) onClose();
+    };
+    const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('pointerdown', handlePointerDown, true);
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown, true);
+      document.removeEventListener('keydown', handleKeyDown, true);
+    };
+  }, [onClose]);
+
+  const { anchor } = selected;
+  const left = Math.min(Math.max(anchor.left, POPOVER_MARGIN), window.innerWidth - POPOVER_WIDTH - POPOVER_MARGIN);
+  const spaceBelow = window.innerHeight - anchor.bottom;
+  const openUpward = spaceBelow < 220 && anchor.top > spaceBelow;
+  const style: CSSProperties = openUpward
+    ? { left, bottom: Math.max(window.innerHeight - anchor.top + 4, POPOVER_MARGIN) }
+    : { left, top: Math.min(anchor.bottom + 4, window.innerHeight - POPOVER_MARGIN) };
+
+  return createPortal(
+    <div className="sg-cal-event-popover" ref={panelRef} style={style} onPointerDown={e => e.stopPropagation()}>
+      <div className="sg-cal-event-popover-header">
+        <span className="sg-cal-event-popover-date">{formatFullDate(selected.dateKey, locale)}</span>
+        <button className="sg-cal-event-popover-close" onClick={onClose} aria-label={closeAriaLabel}>×</button>
+      </div>
+      <div className="sg-cal-event-popover-body">
+        {events.length === 0 ? (
+          <div className="sg-cal-event-popover-empty">{noEventsLabel}</div>
+        ) : events.map(evt => (
+          <div key={evt.id} className="sg-cal-event-popover-item">
+            <div className="sg-cal-event-popover-item-heading">
+              <span className="sg-cal-dot" style={{ background: eventColor(evt.colorId) }} aria-hidden="true"/>
+              <span className="sg-cal-event-popover-item-title">{evt.summary}</span>
+            </div>
+            <div className="sg-cal-event-popover-item-time">{formatTimeBlock(evt, allDayLabel)}</div>
+            {evt.location && (
+              <div className="sg-cal-event-popover-item-field">
+                <span className="sg-cal-event-popover-item-label">{locationLabel}:</span> {evt.location}
+              </div>
+            )}
+            {evt.description && (
+              <div className="sg-cal-event-popover-item-field">
+                <span className="sg-cal-event-popover-item-label">{descriptionLabel}:</span> {evt.description}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 // ── Monthly grid ──────────────────────────────────────────────────────────────
 
-function MonthlyCalendar({ events, showAllDay, locale, prevMonthLabel, nextMonthLabel }: { events: CalendarEvent[]; showAllDay: boolean; locale: string; prevMonthLabel: string; nextMonthLabel: string }) {
+function MonthlyCalendar({ events, showAllDay, locale, prevMonthLabel, nextMonthLabel, allDayLabel, noEventsLabel, closeAriaLabel, locationLabel, descriptionLabel }: { events: CalendarEvent[]; showAllDay: boolean; locale: string; prevMonthLabel: string; nextMonthLabel: string; allDayLabel: string; noEventsLabel: string; closeAriaLabel: string; locationLabel: string; descriptionLabel: string }) {
   const [display, setDisplay] = useState(() => { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d; });
+  const [selected, setSelected] = useState<SelectedDay | null>(null);
   const dowLabels = getDowLabels(locale);
   const monthLabel = new Intl.DateTimeFormat(locale, { month: 'short' }).format(display);
   const year = display.getFullYear(), month = display.getMonth();
@@ -200,7 +289,13 @@ function MonthlyCalendar({ events, showAllDay, locale, prevMonthLabel, nextMonth
           const key = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
           const dayEvts = eventsByDay.get(key) ?? [];
           return (
-            <div key={key} className={`sg-cal-monthly-cell${key===today?' sg-cal-monthly-cell--today':''}`}>
+            <div
+              key={key}
+              className={`sg-cal-monthly-cell${key===today?' sg-cal-monthly-cell--today':''}`}
+              onClick={e => setSelected({ dateKey: key, anchor: e.currentTarget.getBoundingClientRect() })}
+              role="button"
+              tabIndex={0}
+            >
               <span className="sg-cal-monthly-day-num">{day}</span>
               {dayEvts.length > 0 && (
                 <div className="sg-cal-monthly-dots">
@@ -212,6 +307,19 @@ function MonthlyCalendar({ events, showAllDay, locale, prevMonthLabel, nextMonth
           );
         })}
       </div>
+      {selected && (
+        <EventDetailsPopover
+          selected={selected}
+          events={eventsByDay.get(selected.dateKey) ?? []}
+          locale={locale}
+          allDayLabel={allDayLabel}
+          noEventsLabel={noEventsLabel}
+          closeAriaLabel={closeAriaLabel}
+          locationLabel={locationLabel}
+          descriptionLabel={descriptionLabel}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
   );
 }
@@ -337,6 +445,11 @@ export default function Calendar({ data, onUpdateData: _onUpdateData }: Props) {
             locale={locale}
             prevMonthLabel={t('widget.calendar.prevMonth')}
             nextMonthLabel={t('widget.calendar.nextMonth')}
+            allDayLabel={t('widget.calendar.allDay')}
+            noEventsLabel={t('widget.calendar.noEventsForDay')}
+            closeAriaLabel={t('widget.calendar.closeAria')}
+            locationLabel={t('widget.calendar.location')}
+            descriptionLabel={t('widget.calendar.description')}
           />
         ) : (() => {
           const groups = groupEventsByDay(events, maxDays, showAllDay);

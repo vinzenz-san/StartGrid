@@ -281,6 +281,10 @@ export const en = {
   'widget.calendar.refreshAria':      'Refresh calendar',
   'widget.calendar.prevMonth':        'Previous month',
   'widget.calendar.nextMonth':        'Next month',
+  'widget.calendar.noEventsForDay':   'No events for this day',
+  'widget.calendar.closeAria':        'Close event details',
+  'widget.calendar.location':         'Location',
+  'widget.calendar.description':      'Description',
 } as const;
 
 export type TranslationKey = keyof typeof en;

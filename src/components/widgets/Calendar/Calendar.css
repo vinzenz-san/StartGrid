@@ -464,6 +464,12 @@
   border-radius: 4px;
   min-height: 0;
   overflow: hidden;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.sg-cal-monthly-cell:not(.sg-cal-monthly-cell--empty):hover {
+  background: rgba(128, 128, 128, 0.12);
 }
 
 .sg-cal-monthly-cell--empty {
@@ -508,4 +514,111 @@
   font-size: 8px;
   opacity: 0.5;
   line-height: 1;
+}
+
+/* ── Event details popover (Monthly View) ─────────────────────────────────────
+   Anchored, non-blocking, non-blurred — positioned via inline style next to
+   the clicked day cell (see EventDetailsPopover in Calendar.tsx). No backdrop:
+   dismissed by an outside pointerdown/Escape listener instead. ─────────────── */
+
+.sg-cal-event-popover {
+  position: fixed;
+  z-index: 21000;
+  width: 260px;
+  max-width: calc(100vw - 16px);
+  max-height: min(360px, calc(100vh - 16px));
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sg-cal-event-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sg-cal-event-popover-date {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sg-cal-event-popover-close {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.sg-cal-event-popover-close:hover { background: var(--surface-hover); color: var(--text); }
+
+.sg-cal-event-popover-body {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sg-cal-event-popover-empty {
+  font-size: 11.5px;
+  opacity: 0.5;
+  text-align: center;
+  padding: 10px 0;
+}
+
+.sg-cal-event-popover-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.12);
+}
+
+.sg-cal-event-popover-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+.sg-cal-event-popover-item-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sg-cal-event-popover-item-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sg-cal-event-popover-item-time {
+  font-size: 10.5px;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+  padding-left: 13px;
+}
+
+.sg-cal-event-popover-item-field {
+  font-size: 11px;
+  opacity: 0.75;
+  line-height: 1.4;
+  padding-left: 13px;
+}
+
+.sg-cal-event-popover-item-label {
+  font-weight: 600;
+  opacity: 0.85;
 }
