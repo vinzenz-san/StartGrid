@@ -14,9 +14,14 @@ interface Props<T extends string> {
   onChange: (value: T) => void;
   disabled?: boolean;
   className?: string;
+  /** 'match-trigger' (default) locks the popover width to the trigger's own
+   *  width — the norm for full-width sidebar rows. 'auto' instead sizes the
+   *  popover to its content (min-width + no wrap) for triggers that sit in a
+   *  narrow column but list long, non-wrapping option labels. */
+  menuWidth?: 'match-trigger' | 'auto';
 }
 
-export default function Dropdown<T extends string>({ options, value, onChange, disabled = false, className }: Props<T>) {
+export default function Dropdown<T extends string>({ options, value, onChange, disabled = false, className, menuWidth = 'match-trigger' }: Props<T>) {
   const [open, setOpen] = useState(false);
   const current = options.find(o => o.value === value);
 
@@ -26,11 +31,17 @@ export default function Dropdown<T extends string>({ options, value, onChange, d
       offset(4),
       flip(),
       shift({ padding: 8 }),
-      size({
-        apply({ rects, elements }) {
-          Object.assign(elements.floating.style, { width: `${rects.reference.width}px` });
-        },
-      }),
+      menuWidth === 'match-trigger'
+        ? size({
+            apply({ rects, elements }) {
+              Object.assign(elements.floating.style, { width: `${rects.reference.width}px`, minWidth: '' });
+            },
+          })
+        : size({
+            apply({ availableWidth, elements }) {
+              Object.assign(elements.floating.style, { width: '', maxWidth: `${Math.min(availableWidth, 320)}px` });
+            },
+          }),
     ],
     whileElementsMounted: autoUpdate,
   });
@@ -68,7 +79,7 @@ export default function Dropdown<T extends string>({ options, value, onChange, d
         <div
           ref={refs.setFloating}
           style={floatingStyles}
-          className="sg-dropdown-menu"
+          className={`sg-dropdown-menu${menuWidth === 'auto' ? ' sg-dropdown-menu--auto' : ''}`}
           role="listbox"
         >
           {options.map(o => (

@@ -91,7 +91,11 @@ export default function WidgetContainer({ widget }: Props) {
     if (!settingsOpen) return;
     const handler = (e: PointerEvent) => {
       const target = e.target as Element;
-      if (target.closest('.ccp-panel')) return;
+      // Both are portaled to document.body, outside this panel's own DOM
+      // subtree — without this exemption, a pointerdown on either one reads
+      // as "outside click" and closes the whole panel before the picker's/
+      // dropdown's own click handler (which fires after pointerdown) can run.
+      if (target.closest('.ccp-panel') || target.closest('.sg-dropdown-menu')) return;
       if (!elRef.current?.contains(target) && !refs.floating.current?.contains(target))
         setSettingsOpen(false);
     };

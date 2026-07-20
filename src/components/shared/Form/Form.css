@@ -5,6 +5,7 @@
   justify-content: space-between;
   gap: 8px;
   padding: 4px 0;
+  width: 100%;
 }
 
 .sg-form-label {
@@ -56,7 +57,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 5px 0;
+  padding: 2px 0;
 }
 
 .sg-settings-slider-header {
@@ -108,15 +109,13 @@
 .sg-settings-slider input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 24px;
-  height: 24px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background-color: var(--accent);
-  background-clip: content-box;
-  border: 6px solid transparent;
-  box-sizing: border-box;
-  margin-top: -10px;  /* center 24px thumb over 4px track: (4 - 24) / 2 = -10 */
+  border: none;
   cursor: pointer;
+  margin-top: -4px;  /* center 12px thumb over 4px track: (4 - 12) / 2 = -4 */
   transition: background-color 0.1s;
 }
 
@@ -324,8 +323,17 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  max-height: 400px;
-  overflow-y: visible;
+  max-height: min(280px, 60vh);
+  overflow-y: auto;
+}
+
+/* 'auto' menuWidth — content-sized rather than locked to the (narrow) trigger
+   width, so long option labels (e.g. "New York (GMT-4)") stay on one line. */
+.sg-dropdown-menu--auto {
+  min-width: 220px;
+}
+.sg-dropdown-menu--auto .sg-dropdown-item {
+  white-space: nowrap;
 }
 
 .sg-dropdown-item {
