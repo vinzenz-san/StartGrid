@@ -225,6 +225,9 @@
    matches Quicklinks' .sg-ql-icon--favicon exactly. */
 .sg-bf-item-icon--favicon { background: transparent; }
 
+/* Matches Quicklinks' .sg-ql-icon--white-badge exactly. */
+.sg-bf-item-icon--white-badge { background: #ffffff; }
+
 .sg-bf-icon-emoji    { font-size: 16px; line-height: 1; }
 .sg-bf-icon-fallback { font-size: 12px; font-weight: 600; opacity: 0.7; }
 
@@ -299,6 +302,111 @@
   opacity: 0.4;
   line-height: 1.5;
 }
+
+/* ── Icon-override editor (mirrors Quicklinks' sg-ql-link-* / sg-ql-upload-* /
+   sg-ql-action-btn — see Quicklinks.css) ─────────────────────────────────── */
+
+.sg-bf-io-list {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 4px;
+  width: 100%;
+}
+
+.sg-bf-io-row {
+  border-radius: 6px;
+  background: rgba(128, 128, 128, 0.08);
+  overflow: hidden;
+}
+
+.sg-bf-io-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  gap: 8px;
+}
+
+.sg-bf-io-name {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.85;
+  min-width: 0;
+}
+
+.sg-bf-io-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+}
+
+.sg-bf-io-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 4px 8px;
+  border-radius: 5px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  background: rgba(128, 128, 128, 0.1);
+  color: inherit;
+  font-size: 12px;
+  outline: none;
+}
+
+.sg-bf-io-input:focus { border-color: rgba(128, 128, 128, 0.6); }
+
+.sg-bf-io-action-btn {
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.1s;
+}
+
+.sg-bf-io-action-btn:hover { background: rgba(128, 128, 128, 0.2); }
+
+.sg-bf-io-action-btn.danger:hover {
+  background: rgba(220, 60, 60, 0.25);
+  border-color: rgba(220, 60, 60, 0.5);
+  color: #e04040;
+}
+
+.sg-bf-io-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.sg-bf-io-upload-preview {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: rgba(128, 128, 128, 0.1);
+  flex-shrink: 0;
+}
+
+.sg-bf-io-upload-label {
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.1s;
+  white-space: nowrap;
+}
+
+.sg-bf-io-upload-label:hover { background: rgba(128, 128, 128, 0.2); }
 
 /* ── Folder picker tree ───────────────────────────────────────────────────── */
 
