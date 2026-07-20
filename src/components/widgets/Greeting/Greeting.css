@@ -20,12 +20,6 @@
 .sg-greeting--align-center { justify-content: center;     text-align: center; }
 .sg-greeting--align-right  { justify-content: flex-end;   text-align: right; }
 
-/* ── Size modifiers ───────────────────────────────── */
-.sg-greeting-text--size-s  { font-size: 16px; }
-.sg-greeting-text--size-m  { font-size: 22px; }
-.sg-greeting-text--size-l  { font-size: 28px; }
-.sg-greeting-text--size-xl { font-size: 36px; }
-
 /* Wrapper is layout-neutral so rows flow into the float panel */
 .sg-greeting-settings {
   display: contents;

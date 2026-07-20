@@ -1,14 +1,39 @@
+/** Shared rich-text styling block — TablissNG-parity "Font Settings" panel,
+ *  reusable across any widget by giving that widget's data type an optional
+ *  `fontSettings?: FontSettings` field. Resolved into CSS via
+ *  lib/fontStyle.ts's resolveFontStyle(). */
+export interface FontSettings {
+  fontFamily?:       string;
+  fontWeight?:        number;  // undefined = Default/inherit
+  italic?:             boolean;
+  underline?:          boolean;
+  color?:              string;
+  useAccentColor?:     boolean; // when true, color follows the app's live accent color instead of `color`
+  textOutline?:        boolean;
+  textOutlineStyle?:   'basic' | 'advanced'; // basic = fixed-size text-shadow; advanced = -webkit-text-stroke
+  textOutlineColor?:   string;
+  textOutlineSize?:    number;  // advanced only
+}
+
+/** Shared TablissNG-parity "Display Settings" — Font Size / Scale / Rotation
+ *  (Position and Custom CSS Class are deliberately not part of this app's
+ *  version). Reusable the same way as FontSettings: any widget data type
+ *  adds `displaySettings?: DisplaySettings`. Resolved via
+ *  lib/displayStyle.ts's resolveDisplayStyle(). */
+export interface DisplaySettings {
+  fontSize?: number; // px, default 42 — the widget's primary text size
+  scale?:    number; // default 1
+  rotation?: number; // degrees, default 0
+}
+
 export interface ClockData {
   format: '24h' | '12h';
   showSeconds: boolean;
   showDate: boolean;
-  fontSize?: 'S' | 'M' | 'L' | 'XL';
-  dateFontSize?: 'S' | 'M' | 'L';
-  isBold?: boolean;
-  boldDate?: boolean;
-  fontColor?: string;
   /** IANA timezone id (e.g. 'Europe/Berlin'), or 'local' for the system timezone. Default 'local'. */
   timezone?: string;
+  fontSettings?: FontSettings;
+  displaySettings?: DisplaySettings;
 }
 
 export interface QuickLink {
@@ -85,8 +110,9 @@ export interface GreetingData {
   userName?: string;
   useCustomQuote?: boolean;
   customQuote?: string;
-  textSize?: 'S' | 'M' | 'L' | 'XL';
   alignment?: WidgetAlignment; // default 'left'
+  fontSettings?: FontSettings;
+  displaySettings?: DisplaySettings;
 }
 
 export interface WeatherData {

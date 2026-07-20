@@ -6,3 +6,5 @@ export { default as ActionButton }    from './ActionButton';
 export { default as DirectionPicker } from './DirectionPicker';
 export { default as IconButton }      from './IconButton';
 export { default as Dropdown }        from './Dropdown';
+export { default as FontSettingsPanel } from './FontSettingsPanel';
+export { default as DisplaySettingsPanel } from './DisplaySettingsPanel';

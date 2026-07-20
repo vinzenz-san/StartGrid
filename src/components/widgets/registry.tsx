@@ -131,7 +131,7 @@ const _registry = {
     label:         'Greeting',
     icon:          '👋',
     defaultSize:   { w: 2, h: 1 },
-    defaultData:   { textSize: 'M', alignment: 'left' } satisfies GreetingData,
+    defaultData:   { alignment: 'left' } satisfies GreetingData,
     titleBehavior: 'none',
     renderComponent: (data, onUpdateData) => <Greeting data={data} onUpdateData={onUpdateData} />,
     renderSettings:  (data, onUpdateData) => <GreetingSettings data={data} onUpdateData={onUpdateData} />,

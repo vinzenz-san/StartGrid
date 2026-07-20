@@ -1,10 +1,11 @@
-import { useRef, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import type { ClockData } from '../../../types/widget';
-import { SettingsRow, SegmentedControl, SettingsSwitch, Dropdown } from '../../shared/Form';
+import { SettingsRow, SegmentedControl, SettingsSwitch, Dropdown, FontSettingsPanel, DisplaySettingsPanel } from '../../shared/Form';
 import { DetailedSettings } from '../../Layout/DetailedSettings';
-import CustomColorPicker from '../../shared/CustomColorPicker';
 import { useSettings } from '../../../contexts/SettingsContext';
 import { LOCALES } from '../../../i18n';
+import { resolveFontStyle } from '../../../lib/fontStyle';
+import { resolveDisplayStyle } from '../../../lib/displayStyle';
 import './Clock.css';
 
 // undefined timeZone (the Intl default) means "use the system/local timezone".
@@ -83,11 +84,7 @@ interface SettingsProps {
 export function ClockSettings({ data, onUpdateData }: SettingsProps) {
   const { t } = useSettings();
   const { format = '24h', showSeconds = true, showDate = true,
-          fontSize = 'M', dateFontSize = 'M', isBold = false, boldDate = false, fontColor,
           timezone = 'local' } = data;
-  const colorBtnRef = useRef<HTMLButtonElement>(null);
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const pickerValue = fontColor ?? '#ffffff';
 
   const TIMEZONE_OPTIONS: { value: string; label: string }[] = [
     { value: 'local', label: `${t('widget.clock.tzLocal')} (${gmtOffsetLabel(undefined)})` },
@@ -120,56 +117,21 @@ export function ClockSettings({ data, onUpdateData }: SettingsProps) {
         <SettingsRow label={t('widget.clock.showDate')}>
           <SettingsSwitch checked={showDate} onChange={v => onUpdateData({ showDate: v })} />
         </SettingsRow>
-        <SettingsRow label={t('widget.clock.timeSize')}>
-          <SegmentedControl
-            options={[
-              { value: 'S',  label: 'S'  },
-              { value: 'M',  label: 'M'  },
-              { value: 'L',  label: 'L'  },
-              { value: 'XL', label: 'XL' },
-            ]}
-            value={fontSize}
-            onChange={v => onUpdateData({ fontSize: v as ClockData['fontSize'] })}
-          />
-        </SettingsRow>
-        <SettingsRow label={t('widget.clock.dateSize')}>
-          <SegmentedControl
-            options={[
-              { value: 'S', label: 'S' },
-              { value: 'M', label: 'M' },
-              { value: 'L', label: 'L' },
-            ]}
-            value={dateFontSize}
-            onChange={v => onUpdateData({ dateFontSize: v as ClockData['dateFontSize'] })}
-          />
-        </SettingsRow>
-        <SettingsRow label={t('widget.clock.boldTime')}>
-          <SettingsSwitch checked={isBold} onChange={v => onUpdateData({ isBold: v })} />
-        </SettingsRow>
-        <SettingsRow label={t('widget.clock.boldDate')}>
-          <SettingsSwitch checked={boldDate} onChange={v => onUpdateData({ boldDate: v })} />
-        </SettingsRow>
-        <SettingsRow label={t('widget.clock.fontColor')}>
-          <button
-            ref={colorBtnRef}
-            className="sg-clock-color-btn"
-            style={{ background: pickerValue }}
-            title={t('widget.clock.pickFontColor')}
-            onClick={() => setPickerOpen(o => !o)}
-            onPointerDown={e => e.stopPropagation()}
-          />
-        </SettingsRow>
       </DetailedSettings>
 
-      <CustomColorPicker
-        value={pickerValue}
-        onChange={color => onUpdateData({ fontColor: color })}
-        anchorRef={colorBtnRef}
-        open={pickerOpen}
-        onClose={() => setPickerOpen(false)}
-        onReset={() => onUpdateData({ fontColor: undefined })}
-        isDefault={fontColor === undefined}
-      />
+      <DetailedSettings title={t('widget.displaySettings.title')}>
+        <DisplaySettingsPanel
+          value={data.displaySettings}
+          onChange={patch => onUpdateData({ displaySettings: { ...data.displaySettings, ...patch } })}
+        />
+      </DetailedSettings>
+
+      <DetailedSettings title={t('widget.fontSettings.title')}>
+        <FontSettingsPanel
+          value={data.fontSettings}
+          onChange={patch => onUpdateData({ fontSettings: { ...data.fontSettings, ...patch } })}
+        />
+      </DetailedSettings>
     </div>
   );
 }
@@ -184,7 +146,6 @@ interface Props {
 export default function Clock({ data }: Props) {
   const { language } = useSettings();
   const { format = '24h', showSeconds = true, showDate = true,
-          fontSize = 'M', dateFontSize = 'M', isBold = false, boldDate = false, fontColor,
           timezone = 'local' } = data;
   const [now, setNow] = useState(() => new Date());
 
@@ -197,14 +158,16 @@ export default function Clock({ data }: Props) {
     weekday: 'long', month: 'long', day: 'numeric', timeZone: resolveTimeZone(timezone),
   }).format(now);
 
-  const style = {
-    ...(fontColor ? { '--clock-color': fontColor } as React.CSSProperties : {}),
-  };
+  // Applied directly to the text elements, not the wrapper: .sg-clock-time /
+  // .sg-clock-date each carry their own explicit color/font-weight CSS, which
+  // would silently win over anything merely inherited from a parent style.
+  const fontStyle = resolveFontStyle(data.fontSettings);
+  const { wrapper, fontSize: timeFontSize, dateFontSize } = resolveDisplayStyle(data.displaySettings);
 
   return (
-    <div className="sg-clock" style={style}>
-      <div className={`sg-clock-time sg-clock-time--size-${fontSize.toLowerCase()}${isBold ? ' sg-clock-time--bold' : ''}`}>{formatTime(now, format, showSeconds, timezone)}</div>
-      {showDate && <div className={`sg-clock-date sg-clock-date--size-${dateFontSize.toLowerCase()}${boldDate ? ' sg-clock-date--bold' : ''}`}>{dateStr}</div>}
+    <div className="sg-clock" style={wrapper}>
+      <div className="sg-clock-time" style={{ ...fontStyle, fontSize: timeFontSize }}>{formatTime(now, format, showSeconds, timezone)}</div>
+      {showDate && <div className="sg-clock-date" style={{ ...fontStyle, fontSize: dateFontSize }}>{dateStr}</div>}
     </div>
   );
 }

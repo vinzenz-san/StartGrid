@@ -24,7 +24,7 @@ const DEFAULT_WIDGETS: Widget[] = [
       format: '24h',
       showSeconds: false,
       showDate: true,
-      isBold: true,
+      fontSettings: { fontWeight: 700 },
     },
   },
   {
