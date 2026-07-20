@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import type { QuickLink, QuicklinksData } from '../../../types/widget';
-import { SettingsRow, SegmentedControl, SettingsSwitch } from '../../shared/Form';
+import { SettingsRow, SegmentedControl, SettingsSwitch, Dropdown } from '../../shared/Form';
 import { useSettings } from '../../../contexts/SettingsContext';
 import type { TranslationKey } from '../../../i18n';
 import './Quicklinks.css';
@@ -151,6 +151,15 @@ export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
   const showTitles = data.showTitles ?? true;
   const layout     = data.layout     ?? 'grid';
   const textSize   = data.textSize   ?? 'M';
+  const alignment  = data.alignment  ?? 'left';
+
+  const ALIGNMENT_OPTIONS = [
+    { value: 'left',   label: t('widget.quicklinks.align.left') },
+    { value: 'center', label: t('widget.quicklinks.align.center') },
+    { value: 'right',  label: t('widget.quicklinks.align.right') },
+    { value: 'top',    label: t('widget.quicklinks.align.top') },
+    { value: 'bottom', label: t('widget.quicklinks.align.bottom') },
+  ];
 
   const updateLink = (id: string, patch: Partial<QuickLink>) =>
     onUpdateData({ links: data.links.map(l => l.id === id ? { ...l, ...patch } : l) });
@@ -197,11 +206,7 @@ export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
       </SettingsRow>
 
       <SettingsRow label={t('widget.quicklinks.showTitles')}>
-        <SegmentedControl
-          options={[{ value: 'on', label: t('widget.quicklinks.on') }, { value: 'off', label: t('widget.quicklinks.off') }]}
-          value={showTitles ? 'on' : 'off'}
-          onChange={v => onUpdateData({ showTitles: v === 'on' })}
-        />
+        <SettingsSwitch checked={showTitles} onChange={v => onUpdateData({ showTitles: v })} />
       </SettingsRow>
 
       <SettingsRow label={t('widget.quicklinks.textSize')}>
@@ -209,6 +214,14 @@ export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
           options={[{ value: 'S', label: 'S' }, { value: 'M', label: 'M' }, { value: 'L', label: 'L' }]}
           value={textSize}
           onChange={v => onUpdateData({ textSize: v as 'S' | 'M' | 'L' })}
+        />
+      </SettingsRow>
+
+      <SettingsRow label={t('widget.quicklinks.alignment')}>
+        <Dropdown
+          options={ALIGNMENT_OPTIONS}
+          value={alignment}
+          onChange={v => onUpdateData({ alignment: v as QuicklinksData['alignment'] })}
         />
       </SettingsRow>
 
@@ -312,6 +325,7 @@ export default function Quicklinks({ data, onUpdateData }: Props) {
   const iconSize    = data.iconSize   ?? 'medium';
   const showTitles  = data.showTitles ?? true;
   const textSize    = data.textSize   ?? 'M';
+  const alignment   = data.alignment  ?? 'left';
 
   const containerRef                    = useRef<HTMLDivElement>(null);
   const [compact,   setCompact]         = useState(false);
@@ -412,7 +426,7 @@ export default function Quicklinks({ data, onUpdateData }: Props) {
           <span className="sg-ql-empty">{t('widget.quicklinks.emptyState')}</span>
         </div>
       ) : (
-        <div className={`sg-ql-links sg-ql-links--${effectiveLayout}`}>
+        <div className={`sg-ql-links sg-ql-links--${effectiveLayout} sg-ql-links--align-${alignment}`}>
           {links.map((link, idx) => (
             <div
               key={link.id}

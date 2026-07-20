@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { BookmarksData as BookmarkFolderData, BookmarkSortMode } from '../../../types/widget';
-import { SettingsRow, SettingsSwitch } from '../../shared/Form';
+import { SettingsRow, SegmentedControl, SettingsSwitch, Dropdown } from '../../shared/Form';
 import { useBookmarkFolder } from './useBookmarkFolder';
 import type { BmNode } from './bookmarks.mock';
 import { useSettings } from '../../../contexts/SettingsContext';
@@ -118,11 +118,53 @@ export function BookmarkFolderSettings({ data, onUpdateData }: SettingsProps) {
 
   return (
     <div className="sg-bf-settings" onClick={e => e.stopPropagation()}>
-      <SettingsRow label={t('widget.bookmarkFolder.showIcons')}>
-        <SettingsSwitch checked={data.showIcons} onChange={v => onUpdateData({ showIcons: v })} />
+      <SettingsRow label={t('widget.quicklinks.iconSize')}>
+        <SegmentedControl
+          options={[
+            { value: 'small',  label: 'S' },
+            { value: 'medium', label: 'M' },
+            { value: 'large',  label: 'L' },
+          ]}
+          value={data.iconSize ?? 'medium'}
+          onChange={v => onUpdateData({ iconSize: v as BookmarkFolderData['iconSize'] })}
+        />
       </SettingsRow>
-      <SettingsRow label={t('widget.bookmarkFolder.compactMode')}>
-        <SettingsSwitch checked={data.compactMode} onChange={v => onUpdateData({ compactMode: v })} />
+      <SettingsRow label={t('widget.quicklinks.showTitles')}>
+        <SettingsSwitch checked={data.showTitles ?? true} onChange={v => onUpdateData({ showTitles: v })} />
+      </SettingsRow>
+      <SettingsRow label={t('widget.quicklinks.textSize')}>
+        <SegmentedControl
+          options={[
+            { value: 'S', label: 'S' },
+            { value: 'M', label: 'M' },
+            { value: 'L', label: 'L' },
+          ]}
+          value={data.textSize ?? 'M'}
+          onChange={v => onUpdateData({ textSize: v as BookmarkFolderData['textSize'] })}
+        />
+      </SettingsRow>
+      <SettingsRow label={t('widget.quicklinks.layout')}>
+        <SegmentedControl
+          options={[
+            { value: 'grid', label: t('widget.quicklinks.layoutGrid') },
+            { value: 'list', label: t('widget.quicklinks.layoutList') },
+          ]}
+          value={data.layout ?? 'list'}
+          onChange={v => onUpdateData({ layout: v as BookmarkFolderData['layout'] })}
+        />
+      </SettingsRow>
+      <SettingsRow label={t('widget.quicklinks.alignment')}>
+        <Dropdown
+          options={[
+            { value: 'left',   label: t('widget.quicklinks.align.left') },
+            { value: 'center', label: t('widget.quicklinks.align.center') },
+            { value: 'right',  label: t('widget.quicklinks.align.right') },
+            { value: 'top',    label: t('widget.quicklinks.align.top') },
+            { value: 'bottom', label: t('widget.quicklinks.align.bottom') },
+          ]}
+          value={data.alignment ?? 'left'}
+          onChange={v => onUpdateData({ alignment: v as BookmarkFolderData['alignment'] })}
+        />
       </SettingsRow>
       <SettingsRow label={t('widget.bookmarkFolder.sortOrder')}>
         <select
@@ -166,38 +208,38 @@ export function BookmarkFolderSettings({ data, onUpdateData }: SettingsProps) {
 
 interface ItemRowProps {
   node:          BmNode;
-  showIcons:     boolean;
-  compact:       boolean;
+  iconSize:      'small' | 'medium' | 'large';
+  showTitle:     boolean;
+  textSize:      'S' | 'M' | 'L';
   onFolderClick: (node: BmNode) => void;
 }
 
-function ItemRow({ node, showIcons, compact, onFolderClick }: ItemRowProps) {
+function ItemRow({ node, iconSize, showTitle, textSize, onFolderClick }: ItemRowProps) {
   const { t } = useSettings();
   const [iconError, setIconError] = useState(false);
   const isFolder  = !node.url;
   const hostname  = node.url ? hostnameOf(node.url) : '';
   const favicon   = hostname ? faviconUrl(hostname) : null;
   const initial   = (node.title || node.url || '?').charAt(0).toUpperCase();
-  const cls       = `sg-bf-item${compact ? ' sg-bf-item--compact' : ''}${isFolder ? ' sg-bf-item--folder' : ''}`;
+  const cls       = `sg-bf-item sg-bf-item--${iconSize}${isFolder ? ' sg-bf-item--folder' : ''}`;
+  const iconCls   = `sg-bf-item-icon sg-bf-item-icon--${iconSize}`;
+  const titleCls  = `sg-bf-item-title sg-bf-text--${textSize.toLowerCase()}`;
 
   const icon = isFolder ? (
-    <span className="sg-bf-item-icon sg-bf-item-icon--folder">📁</span>
-  ) : showIcons && favicon && !iconError ? (
-    <img
-      className="sg-bf-item-icon sg-bf-item-icon--favicon"
-      src={favicon}
-      alt=""
-      onError={() => setIconError(true)}
-    />
+    <span className={iconCls}><span className="sg-bf-icon-emoji">📁</span></span>
+  ) : favicon && !iconError ? (
+    <span className={`${iconCls} sg-bf-item-icon--favicon`}>
+      <img src={favicon} alt="" onError={() => setIconError(true)} />
+    </span>
   ) : (
-    <span className="sg-bf-item-icon sg-bf-item-icon--initial">{initial}</span>
+    <span className={`${iconCls} sg-bf-item-icon--initial`}><span className="sg-bf-icon-fallback">{initial}</span></span>
   );
 
   if (isFolder) {
     return (
       <div className={cls} title={node.title} onClick={() => onFolderClick(node)}>
         {icon}
-        <span className="sg-bf-item-title">{node.title || t('widget.bookmarkFolder.unnamedFolder')}</span>
+        {showTitle && <span className={titleCls}>{node.title || t('widget.bookmarkFolder.unnamedFolder')}</span>}
         <span className="sg-bf-item-chevron">›</span>
       </div>
     );
@@ -206,7 +248,7 @@ function ItemRow({ node, showIcons, compact, onFolderClick }: ItemRowProps) {
   return (
     <a className={cls} href={node.url} title={node.title}>
       {icon}
-      <span className="sg-bf-item-title">{node.title || hostname || node.url}</span>
+      {showTitle && <span className={titleCls}>{node.title || hostname || node.url}</span>}
     </a>
   );
 }
@@ -263,6 +305,10 @@ export default function BookmarkFolder({ data, onUpdateData }: Props) {
 
   const breadcrumbs  = [{ id: rootFolderId, name: rootName }, ...navStack];
   const displayItems = applySorting(items, data?.sortingMode ?? 'original');
+  const iconSize      = data.iconSize ?? 'medium';
+  const showTitles    = data.showTitles ?? true;
+  const textSize      = data.textSize ?? 'M';
+  const alignment     = data.alignment ?? 'left';
 
   return (
     <div className="sg-bf">
@@ -297,13 +343,14 @@ export default function BookmarkFolder({ data, onUpdateData }: Props) {
             <span className="sg-bf-empty-text">{t('widget.bookmarkFolder.folderEmpty')}</span>
           </div>
         ) : (
-          <div className="sg-bf-list">
+          <div className={`sg-bf-list${data.layout === 'grid' ? ' sg-bf-list--grid' : ''} sg-bf-list--align-${alignment}`}>
             {displayItems.map(item => (
               <ItemRow
                 key={item.id}
                 node={item}
-                showIcons={data.showIcons}
-                compact={data.compactMode}
+                iconSize={iconSize}
+                showTitle={showTitles}
+                textSize={textSize}
                 onFolderClick={enterFolder}
               />
             ))}

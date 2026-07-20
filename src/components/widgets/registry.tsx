@@ -74,7 +74,7 @@ const _registry = {
     label:                 'Bookmark Folder',
     icon:                  '🔖',
     defaultSize:           { w: 2, h: 3 },
-    defaultData:           { showIcons: true, compactMode: false, sortingMode: 'original' } satisfies BookmarksData,
+    defaultData:           { sortingMode: 'original' } satisfies BookmarksData,
     titleBehavior:         'optional',
     defaultTitle:          'Bookmarks',
     defaultShowCustomTitle: false,
