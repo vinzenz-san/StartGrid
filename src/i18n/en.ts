@@ -273,6 +273,9 @@ export const en = {
   'widget.bookmarkFolder.defaultRootName':  'Bookmarks',
   'widget.bookmarkFolder.folderEmpty':      'Folder is empty',
   'widget.bookmarkFolder.folderFallback':   '(Folder)',
+  'widget.bookmarkFolder.iconOverrides':    'Icon overrides',
+  'widget.bookmarkFolder.iconOverridesNote':'Applies only to bookmarks directly inside the selected root folder. Cleared if you pick a different root folder.',
+  'widget.bookmarkFolder.noOverridableItems':'No bookmarks in this folder yet.',
 
   // ── Quicklinks widget ────────────────────────────────────────────────────
   'widget.quicklinks.layout':               'Layout',

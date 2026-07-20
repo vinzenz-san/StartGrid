@@ -34,6 +34,12 @@ export interface QuicklinksData {
 
 export type BookmarkSortMode = 'original' | 'foldersFirst' | 'alphabetical';
 
+export interface BookmarkIconOverride {
+  iconSource?:     'auto' | 'custom-url' | 'upload';
+  customIcon?:     string;
+  showWhiteBadge?: boolean;
+}
+
 export interface BookmarksData {
   rootFolderId?: string;
   folderTitle?:  string;
@@ -43,6 +49,11 @@ export interface BookmarksData {
   layout?:       'list' | 'grid';               // default 'list'
   alignment?:    WidgetAlignment;                // default 'left'
   sortingMode?:  BookmarkSortMode;
+  /** Per-bookmark icon overrides, keyed by bookmark id. Scoped to the direct
+   *  children of rootFolderId only — cleared whenever rootFolderId changes,
+   *  and self-pruned of stale ids whenever the root folder's children are
+   *  fetched and a previously-overridden id is no longer present. */
+  iconOverrides?: Record<string, BookmarkIconOverride>;
 }
 
 export interface BookmarkSearchData {

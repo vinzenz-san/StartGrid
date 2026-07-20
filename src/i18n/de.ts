@@ -275,6 +275,9 @@ export const de: Record<TranslationKey, string> = {
   'widget.bookmarkFolder.defaultRootName':  'Lesezeichen',
   'widget.bookmarkFolder.folderEmpty':      'Ordner ist leer',
   'widget.bookmarkFolder.folderFallback':   '(Ordner)',
+  'widget.bookmarkFolder.iconOverrides':    'Icon-Überschreibungen',
+  'widget.bookmarkFolder.iconOverridesNote':'Gilt nur für Lesezeichen direkt im ausgewählten Stammordner. Wird zurückgesetzt, wenn ein anderer Stammordner gewählt wird.',
+  'widget.bookmarkFolder.noOverridableItems':'Noch keine Lesezeichen in diesem Ordner.',
 
   // ── Quicklinks widget ────────────────────────────────────────────────────
   'widget.quicklinks.layout':               'Layout',
