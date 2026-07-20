@@ -18,6 +18,15 @@ export interface AppSettings {
   enableCustomContextMenu: boolean;
   settingsPinned:          boolean;
   elementInspectorEnabled: boolean;
+  /** Default false (effect ON). When true, the hover-preview grid glow
+   *  overlay (Grid settings section hover / edit mode) never shows. */
+  disableGridGlow:         boolean;
+  /** Default false (effect ON). When true, neither the Widgets-section
+   *  hover-glow nor a per-widget settings-open glow is ever applied. */
+  disableWidgetGlow:       boolean;
+  /** Default false (effect ON). When true, hovering the Background section
+   *  never blurs the widget grid. */
+  disableBackgroundBlur:   boolean;
 }
 
 export const SETTINGS_DEFAULTS = {
@@ -29,6 +38,9 @@ export const SETTINGS_DEFAULTS = {
   enableCustomContextMenu: false,
   settingsPinned:          false,
   elementInspectorEnabled: false,
+  disableGridGlow:         false,
+  disableWidgetGlow:       false,
+  disableBackgroundBlur:   false,
 } as const satisfies AppSettings;
 
 
@@ -55,6 +67,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     enableCustomContextMenu: (settings ?? SETTINGS_DEFAULTS).enableCustomContextMenu ?? SETTINGS_DEFAULTS.enableCustomContextMenu,
     settingsPinned:          (settings ?? SETTINGS_DEFAULTS).settingsPinned          ?? SETTINGS_DEFAULTS.settingsPinned,
     elementInspectorEnabled: (settings ?? SETTINGS_DEFAULTS).elementInspectorEnabled ?? SETTINGS_DEFAULTS.elementInspectorEnabled,
+    disableGridGlow:         (settings ?? SETTINGS_DEFAULTS).disableGridGlow         ?? SETTINGS_DEFAULTS.disableGridGlow,
+    disableWidgetGlow:       (settings ?? SETTINGS_DEFAULTS).disableWidgetGlow       ?? SETTINGS_DEFAULTS.disableWidgetGlow,
+    disableBackgroundBlur:   (settings ?? SETTINGS_DEFAULTS).disableBackgroundBlur   ?? SETTINGS_DEFAULTS.disableBackgroundBlur,
   };
 
   // Inject --accent / --accent-hover CSS variables globally

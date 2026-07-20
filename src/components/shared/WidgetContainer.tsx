@@ -24,7 +24,7 @@ export default function WidgetContainer({ widget }: Props) {
   const { removeWidget, updateWidget } = useWidgets();
   const { gridConfig } = useGridConfig();
   const { globalColor, globalColorScheme, globalOpacity, globalDim, globalGradientIntensity, globalPresetId, widgetShadowOpacity } = useTheme();
-  const { colorScheme, enableCustomContextMenu, t } = useSettings();
+  const { colorScheme, enableCustomContextMenu, disableWidgetGlow, t } = useSettings();
   const elRef = useRef<HTMLDivElement>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [resizePreview, setResizePreview] = useState<{ w: number; h: number } | null>(null);
@@ -376,7 +376,7 @@ export default function WidgetContainer({ widget }: Props) {
           'sg-widget',
           isEditMode   ? 'sg-widget--edit'            : '',
           settingsOpen ? 'sg-widget--settings-active' : '',
-          settingsOpen ? 'sg-widget--glow'             : '',
+          settingsOpen && !disableWidgetGlow ? 'sg-widget--glow' : '',
         ].filter(Boolean).join(' ')}
         data-theme={overrideEnabled ? widget.localColorScheme : undefined}
         draggable={isEditMode && !resizePreview}

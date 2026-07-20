@@ -237,6 +237,7 @@ html.sg-glow-all-widgets .sg-widget {
 
 .sg-grid {
   display: grid;
+  position: relative; /* anchors .sg-grid-glow-overlay below */
   /* Column count + cell size are user-configurable (GridConfigContext) —
      --grid-cols/--cell-w/--cell-h/--gap are injected as runtime custom
      properties there, with static fallbacks in index.css for pre-hydration. */
@@ -245,9 +246,27 @@ html.sg-glow-all-widgets .sg-widget {
   gap: var(--gap);
   padding: var(--gap);
   align-content: start;
-  min-height: 100%;
+  /* Strictly content-driven height (Grid.tsx computes --content-rows —
+     exactly the bottom-most occupied widget row when idle, +5 rows of
+     headroom while editing or mid-drag) — no min-height: 100% floor. That
+     floor used to keep the box artificially tall regardless of actual
+     content, which both wasted scroll space below the last row and made
+     the "breathing room" below the last row look wildly larger than the
+     equal-gap padding on the other 3 sides. The box now snaps back down the
+     moment widgets are moved up or edit mode is turned off. */
+  height: calc(var(--content-rows, 0) * var(--cell-h) + (var(--content-rows, 0) + 1) * var(--gap));
   width: calc(var(--grid-cols) * var(--cell-w) + (var(--grid-cols) + 1) * var(--gap));
   flex-shrink: 0;
+  /* .sg-grid-wrapper's own justify-content: center already centers this box
+     horizontally when it's narrower than the wrapper; margin: 0 auto is a
+     second, independent centering mechanism on the box itself so it stays
+     centered regardless of how the wrapper's layout mode is set up. Only
+     the horizontal margins matter here (vertical margin: 0 is a no-op,
+     .sg-grid-wrapper's flex already top-aligns rows via align-content:
+     start above). .sg-grid-glow-clip/-overlay are absolutely positioned
+     children of this element (Grid.tsx), so they track wherever it ends up
+     centered to automatically — no separate alignment needed for them. */
+  margin: 0 auto;
 }
 
 /* Edit-mode: dot-grid background */
@@ -255,6 +274,108 @@ html.sg-glow-all-widgets .sg-widget {
   background-image: radial-gradient(circle, rgba(99,102,241,0.2) 1px, transparent 1px);
   background-size: calc((100% - var(--gap)) / var(--grid-cols)) calc(var(--cell-h) + var(--gap));
   background-position: calc(var(--gap) + (100% - var(--gap)) / (var(--grid-cols) * 2)) calc(var(--gap) + var(--cell-h) / 2);
+}
+
+/* ── Grid glow overlay ─────────────────────────────
+   Glowing lines along cell boundaries, built from two repeating linear
+   gradients (one per axis) sized to the live cell-width/height + gap, so it
+   always tracks GridConfig exactly. Sits as .sg-grid's first child (see
+   Grid.tsx) — since neither it nor .sg-widget sets a z-index, plain DOM
+   order means it paints behind every widget automatically, no z-index
+   tuning needed. Shown while editing (isEditMode — the same moment the
+   dot-grid background above appears) or while hovering the Grid settings
+   section (.sg-grid-glow-hover, toggled in SettingsPanel.tsx); rendered at
+   all only when the "Disable Grid Glow" setting is off (Grid.tsx).
+
+   Two-layer structure (clip wrapper + overlay), not a single element:
+   - .sg-grid-glow-clip's height reads --content-rows, inherited straight
+     from .sg-grid (Grid.tsx sets it there; CSS custom properties inherit by
+     default, so this wrapper needs no --content-rows of its own) — the same
+     edit-mode-aware row count driving .sg-grid's own real height (snug when
+     idle, +5 rows of headroom while editing/dragging — see Grid.tsx), so
+     the glow never disagrees with the box it's laid over.
+   - overflow: hidden on that same wrapper contains the inner overlay's
+     drop-shadow glow to exactly .sg-grid's true left/top/right edge (the
+     clip wrapper is positioned identically to .sg-grid's own box on those
+     three sides) — without this, the drop-shadow filter (which, unlike
+     box-shadow, isn't confined to its element's own box) could bleed a
+     sliver of glow past the grid's actual boundary, readable as a "phantom"
+     extra column/row at the edge. This clip is scoped to this wrapper only,
+     deliberately NOT applied to .sg-grid itself, since .sg-widget's own
+     accent glow (WidgetContainer.css) intentionally bleeds past a widget's
+     box the same way and must not be clipped for widgets flush against the
+     grid's edge. */
+.sg-grid-glow-clip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--content-rows, 0) * var(--cell-h) + (var(--content-rows, 0) + 1) * var(--gap));
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sg-grid-glow-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  /* Own padding matching .sg-grid's exactly, so background-origin:
+     content-box below can anchor the gradient's (0,0) at the real
+     inside-the-padding cell area — i.e. column 1 / row 1's true edge —
+     without any manual pixel-offset arithmetic to keep in sync with
+     .sg-grid's own padding value. */
+  padding: var(--gap);
+  box-sizing: border-box;
+  background-origin: content-box;
+  background-repeat: repeat;
+  /* Explicit, not "auto" — pinning background-size to the exact same
+     calc() expression used for each gradient's own repeat period removes
+     any chance of the engine computing a slightly different fractional
+     value for "auto" sizing vs. the gradient's internal stops, which is
+     the kind of divergence that shows up as dropped/misaligned boundary
+     lines at non-100% browser zoom (fractional device pixel ratios). */
+  background-size: calc(var(--cell-w) + var(--gap)) calc(var(--cell-h) + var(--gap));
+  /* Line stroke is 2px, not 1px: at non-100% browser zoom the whole page is
+     rendered at a fractional device-pixel scale, and a 1px-wide gradient
+     stop can land squarely between two physical pixels, anti-aliasing it
+     down to near-invisible (or fully dropped) at levels like 70%/110%. 2px
+     always straddles at least one full physical pixel regardless of zoom,
+     so the line survives. */
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      color-mix(in srgb, var(--accent) 60%, transparent) 0,
+      color-mix(in srgb, var(--accent) 60%, transparent) 2px,
+      transparent 2px,
+      transparent calc(var(--cell-w) + var(--gap))
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--accent) 60%, transparent) 0,
+      color-mix(in srgb, var(--accent) 60%, transparent) 2px,
+      transparent 2px,
+      transparent calc(var(--cell-h) + var(--gap))
+    );
+  /* -1px on each axis, on top of the content-box origin above: with origin
+     at (0,0) exactly on column 1 / row 1's real edge, the *last* repeat's
+     boundary line lands exactly on the content box's own far edge — a 1px
+     line sitting exactly ON a clip boundary renders as fully clipped
+     (invisible) rather than half-visible, which is the "right/bottom edge
+     doesn't close" bug, and is also what makes a hairline boundary vanish
+     at certain browser zoom levels (sub-pixel rounding pushes it just past
+     the edge). Shifting 1px inward keeps every internal boundary line
+     visually indistinguishable from its unshifted position while
+     guaranteeing the final line always has a full pixel to render inside
+     the true edge instead of exactly on it. */
+  background-position: -1px -1px;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 55%, transparent));
+}
+
+.sg-root--edit .sg-grid-glow-overlay,
+html.sg-grid-glow-hover .sg-grid-glow-overlay {
+  opacity: 1;
 }
 
 

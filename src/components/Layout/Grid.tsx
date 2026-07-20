@@ -21,7 +21,7 @@ export default function Grid() {
   const { isEditMode, toggleEditMode } = useEditMode();
   const { widgets, updateWidget, loaded } = useWidgets();
   const { gridConfig } = useGridConfig();
-  const { developerOptionsEnabled, settingsButtonPosition, settingsPinned, elementInspectorEnabled, t } = useSettings();
+  const { developerOptionsEnabled, settingsButtonPosition, settingsPinned, elementInspectorEnabled, disableGridGlow, t } = useSettings();
   const gridRef = useRef<HTMLDivElement>(null);
   const gearBtnRef = useRef<HTMLButtonElement>(null);
   const [dropTarget,        setDropTarget]        = useState<DropTarget | null>(null);
@@ -68,6 +68,22 @@ export default function Grid() {
   const handleDragLeave = (e: React.DragEvent) => {
     if (!gridRef.current?.contains(e.relatedTarget as Node)) setDropTarget(null);
   };
+
+  // Total rows the grid container (and its glow overlay, which inherits the
+  // same --content-rows custom property — see Grid.css) needs to cover.
+  // Outside of editing/dragging, this is strictly the bottom-most occupied
+  // widget row — no buffer — so the container snaps snugly to content and
+  // never shows an idle empty-scroll tail. While editing (or mid-drag),
+  // +5 extra rows are added past whichever is lower, the real content or
+  // the live drag-ghost's own row, so there's immediate headroom to move a
+  // widget further down without the grid resizing under the user's cursor.
+  const widgetsBottomRow = Math.max(0, ...widgets.map(w => w.row + w.h - 1));
+  const dragBottomRow    = dropTarget ? dropTarget.row + dropTarget.h - 1 : 0;
+  const isDragging       = dropTarget !== null;
+
+  const contentRows = (isEditMode || isDragging)
+    ? Math.max(widgetsBottomRow, dragBottomRow) + 5
+    : widgetsBottomRow;
 
   return (
     <ElementInspectorProvider enabled={developerOptionsEnabled && elementInspectorEnabled}>
@@ -130,10 +146,29 @@ export default function Grid() {
         <div
           ref={gridRef}
           className="sg-grid"
+          style={{ '--content-rows': contentRows } as React.CSSProperties}
           onDragOver={isEditMode ? handleDragOver : undefined}
           onDrop={isEditMode ? handleDrop : undefined}
           onDragLeave={isEditMode ? handleDragLeave : undefined}
         >
+          {/* Grid glow overlay — glowing lines along cell boundaries. Shown
+              while editing (see .sg-root--edit rule in Grid.css) or while
+              hovering the Grid settings section (sg-grid-glow-hover class,
+              toggled in SettingsPanel.tsx). Not rendered at all when the
+              user has disabled the effect, rather than just hidden, since
+              this is a persistent preference rather than a transient state.
+              The outer .sg-grid-glow-clip's height formula (Grid.css) reads
+              --content-rows inherited straight from .sg-grid above (CSS
+              custom properties inherit by default) — same row count driving
+              .sg-grid's own real height, so the glow never disagrees with
+              the container it's laid over. It also clips the inner
+              overlay's drop-shadow glow to that exact box so it can never
+              bleed past the grid's true left/right/bottom edges. */}
+          {!disableGridGlow && (
+            <div className="sg-grid-glow-clip">
+              <div className="sg-grid-glow-overlay" />
+            </div>
+          )}
           {loaded && (widgets ?? []).map(widget => <WidgetContainer key={widget.id} widget={widget} />)}
           {isEditMode && dropTarget && (
             <div
