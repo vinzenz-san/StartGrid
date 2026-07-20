@@ -112,14 +112,19 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 4px 0;
 }
 
 .sg-bf-list {
   display: flex;
   flex-direction: column;
-  /* No explicit width on items needed — a column flex container's default
-     align-items: stretch already gives every row full width. */
+  height: 100%;
+  padding: 6px;
+  box-sizing: border-box;
+  /* height: 100% (not just content-sized) so align-content/justify-content
+     can actually push tiles to the bottom/center of the card — matches
+     .sg-ql-links's height: 100% in Quicklinks.css. No explicit width on
+     items needed — a column flex container's default align-items: stretch
+     already gives every row full width. */
 }
 
 /* ── Grid view — pixel-for-pixel mirrors Quicklinks' tile layout (see
@@ -149,25 +154,33 @@
 .sg-bf-list--grid .sg-bf-item--large  { width: 70px; flex-shrink: 0; }
 
 .sg-bf-list--grid .sg-bf-item-title {
-  white-space: normal;
-  text-align: center;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
-  flex: none;
+  text-overflow: ellipsis;
   max-width: 100%;
+  text-align: center;
+  flex: none;
 }
 
 .sg-bf-list--grid .sg-bf-item-chevron { display: none; }
 
 /* ── Alignment (applied alongside list/grid above) ───────────────────────────── */
 
-.sg-bf-list--align-left   { justify-content: flex-start; align-content: flex-start; }
-.sg-bf-list--align-center { justify-content: center;     align-content: center; }
-.sg-bf-list--align-right  { justify-content: flex-end;   align-content: flex-end; }
-.sg-bf-list--align-top    { align-items: flex-start;     justify-content: flex-start; }
-.sg-bf-list--align-bottom { align-items: flex-end;       justify-content: flex-end; }
+.sg-bf-list--align-left   { justify-content: flex-start; align-content: flex-start; align-items: flex-start; }
+.sg-bf-list--align-center { justify-content: center;     align-content: center;     align-items: center; }
+.sg-bf-list--align-right  { justify-content: flex-end;   align-content: flex-start; align-items: flex-start; }
+.sg-bf-list--align-top    { justify-content: center;     align-content: flex-start; align-items: flex-start; }
+.sg-bf-list--align-bottom { justify-content: center;     align-content: flex-end;   align-items: flex-end; }
+
+/* Grid mode's base rule sets align-items/align-content: flex-start — these
+   combined-selector overrides guarantee the alignment setting still wins
+   (higher specificity than either rule alone) instead of silently falling
+   back to top alignment in grid mode. */
+.sg-bf-list--grid.sg-bf-list--align-left   { justify-content: flex-start; align-content: flex-start; align-items: flex-start; }
+.sg-bf-list--grid.sg-bf-list--align-center { justify-content: center;     align-content: center;     align-items: center; }
+.sg-bf-list--grid.sg-bf-list--align-right  { justify-content: flex-end;   align-content: flex-start; align-items: flex-start; }
+.sg-bf-list--grid.sg-bf-list--align-top    { justify-content: center;     align-content: flex-start; align-items: flex-start; }
+.sg-bf-list--grid.sg-bf-list--align-bottom { justify-content: center;     align-content: flex-end;   align-items: flex-end; }
 
 /* ── Item rows ────────────────────────────────────────────────────────────── */
 
