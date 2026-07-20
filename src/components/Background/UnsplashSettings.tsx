@@ -217,6 +217,36 @@ export default function UnsplashSettings() {
           />
         </div>
 
+        <SettingsRow label={t('background.autoDimNight')}>
+          <SettingsSwitch
+            checked={uc.autoDimNight ?? false}
+            onChange={v => update({ autoDimNight: v })}
+          />
+        </SettingsRow>
+
+        {uc.autoDimNight && (
+          <div className="bg-night-time-row">
+            <div className="bg-night-time-field">
+              <span className="bg-night-time-label">{t('background.nightStartsAt')}</span>
+              <input
+                type="time"
+                className="bg-night-time-input"
+                value={uc.nightStart || '22:00'}
+                onChange={e => update({ nightStart: e.target.value || '22:00' })}
+              />
+            </div>
+            <div className="bg-night-time-field">
+              <span className="bg-night-time-label">{t('background.nightEndsAt')}</span>
+              <input
+                type="time"
+                className="bg-night-time-input"
+                value={uc.nightEnd || '05:00'}
+                onChange={e => update({ nightEnd: e.target.value || '05:00' })}
+              />
+            </div>
+          </div>
+        )}
+
         <SettingsRow label={t('background.unsplash.showNewPhoto')}>
           <Dropdown
             options={INTERVAL_OPTIONS}

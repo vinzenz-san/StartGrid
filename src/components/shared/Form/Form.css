@@ -197,10 +197,17 @@
 
 /* Ghost variant — instant, non-destructive actions (toggles, one-shot
    triggers). Flat/transparent at rest; optional accent-tinted .active state
-   for toggle buttons like Lock/Unlock. */
+   for toggle buttons like Lock/Unlock. Resting border uses --border-strong,
+   not --border — in light mode, --border is also the exact background color
+   .sg-panel-section cards use (see PanelSection.css), so a --border-colored
+   button border rendered on top of one of those cards was literally
+   invisible (identical color-on-color). --border-strong is the token this
+   codebase already reserves for structural contrast against --border
+   surfaces (see SettingsPanel.css's sidebar edge). In dark mode the two
+   tokens are equal, so this is a light-mode-only visual change. */
 .sg-action-btn--ghost {
   background: transparent;
-  border-color: var(--border);
+  border-color: var(--border-strong);
   color: var(--text-muted);
   font-weight: 500;
 }

@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { useBackground } from '../../contexts/BackgroundContext';
 import { useSettings } from '../../contexts/SettingsContext';
-import { BackgroundMode, BackgroundPanel, BackgroundPosition, UnsplashConfig } from '../../types/background';
+import { BackgroundMode, BackgroundPanel, BackgroundPosition, UnsplashConfig, OnlineImageConfig } from '../../types/background';
 import { COLOR_PRESETS } from '../../lib/presets';
 import { getAdaptiveColor } from '../../lib/colorUtils';
 import { BACKGROUND_PROVIDERS } from './providers';
@@ -100,6 +100,14 @@ export default function BackgroundEditor() {
     if (config.mode === 'unsplash') lastUnsplashConfig.current = config as UnsplashConfig;
   }, [config]);
 
+  // Same tab-switch persistence pattern as Unsplash above — without this, the
+  // user-entered URL (and any display-control tweaks) is discarded every time
+  // they switch away from the Online Image tab and back.
+  const lastOnlineConfig = useRef<OnlineImageConfig>({ mode: 'online', value: '' });
+  useEffect(() => {
+    if (config.mode === 'online') lastOnlineConfig.current = config as OnlineImageConfig;
+  }, [config]);
+
   const switchTab = (tab: EditorTab) => {
     if (tab === activeTab) return;
     if (tab === 'colors')   { setConfig({ ...config, mode: 'preset', value: COLOR_PRESETS[0].id }); return; }
@@ -107,7 +115,7 @@ export default function BackgroundEditor() {
     if (tab === 'unsplash') { setConfig(lastUnsplashConfig.current); return; }
     if (tab === 'bing')     { setConfig({ mode: 'bing', value: '' }); return; }
     if (tab === 'gradient') { setConfig({ mode: 'colourGradient', value: '' }); return; }
-    if (tab === 'online')   { setConfig({ mode: 'online', value: '' }); return; }
+    if (tab === 'online')   { setConfig(lastOnlineConfig.current); return; }
     // 'astronomy' / 'wikimedia' — resolve the mode from the registry rather
     // than hardcoding one branch per provider.
     const provider = Object.values(BACKGROUND_PROVIDERS).find(def => def.panel === tab);
@@ -196,6 +204,36 @@ export default function BackgroundEditor() {
                 onClick={() => setPickerOpen(true)}
               />
             </SettingsRow>
+
+            <SettingsRow label={t('background.autoDimNight')}>
+              <SettingsSwitch
+                checked={config.autoDimNight ?? false}
+                onChange={v => setConfig({ ...config, autoDimNight: v })}
+              />
+            </SettingsRow>
+
+            {config.autoDimNight && (
+              <div className="bg-night-time-row">
+                <div className="bg-night-time-field">
+                  <span className="bg-night-time-label">{t('background.nightStartsAt')}</span>
+                  <input
+                    type="time"
+                    className="bg-night-time-input"
+                    value={config.nightStart || '22:00'}
+                    onChange={e => setConfig({ ...config, nightStart: e.target.value || '22:00' })}
+                  />
+                </div>
+                <div className="bg-night-time-field">
+                  <span className="bg-night-time-label">{t('background.nightEndsAt')}</span>
+                  <input
+                    type="time"
+                    className="bg-night-time-input"
+                    value={config.nightEnd || '05:00'}
+                    onChange={e => setConfig({ ...config, nightEnd: e.target.value || '05:00' })}
+                  />
+                </div>
+              </div>
+            )}
           </section>
         </>
       )}
@@ -595,6 +633,36 @@ export default function BackgroundEditor() {
               step={1}
               valueFormatter={v => `${v}°`}
             />
+          )}
+
+          <SettingsRow label={t('background.autoDimNight')}>
+            <SettingsSwitch
+              checked={grad.autoDimNight ?? false}
+              onChange={v => setConfig({ ...grad, autoDimNight: v })}
+            />
+          </SettingsRow>
+
+          {grad.autoDimNight && (
+            <div className="bg-night-time-row">
+              <div className="bg-night-time-field">
+                <span className="bg-night-time-label">{t('background.nightStartsAt')}</span>
+                <input
+                  type="time"
+                  className="bg-night-time-input"
+                  value={grad.nightStart || '22:00'}
+                  onChange={e => setConfig({ ...grad, nightStart: e.target.value || '22:00' })}
+                />
+              </div>
+              <div className="bg-night-time-field">
+                <span className="bg-night-time-label">{t('background.nightEndsAt')}</span>
+                <input
+                  type="time"
+                  className="bg-night-time-input"
+                  value={grad.nightEnd || '05:00'}
+                  onChange={e => setConfig({ ...grad, nightEnd: e.target.value || '05:00' })}
+                />
+              </div>
+            </div>
           )}
         </section>
       )}
