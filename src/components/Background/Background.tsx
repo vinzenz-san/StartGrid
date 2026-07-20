@@ -123,10 +123,13 @@ export default function Background() {
   const luminosity   = config.luminosity ?? 100;
   const scaleToFit   = config.scaleToFit ?? true;
 
-  // Only 'custom' has a letterbox fill color of its own — every other mode's
-  // "contain" mode just shows the page's own dark background behind the image.
-  const isFit       = config.mode === 'custom' && scaleToFit;
-  const letterboxBg = config.mode === 'custom' ? (config.letterboxColor ?? '#000000') : '#000000';
+  // Every image-backed provider shares the same letterbox fill color for the
+  // empty space around a "contain"-fitted image — solid/gradient modes never
+  // render a letterbox div at all.
+  const isImageMode = config.mode === 'custom' || config.mode === 'online' || config.mode === 'bing'
+    || config.mode === 'astronomy' || config.mode === 'wikimedia' || config.mode === 'unsplash';
+  const isFit       = isImageMode && scaleToFit;
+  const letterboxBg = config.letterboxColor ?? '#000000';
   const position     = config.position ?? 'center';
   const autoDimNight = config.autoDimNight ?? false;
   const nightStart   = config.nightStart ?? '22:00';
