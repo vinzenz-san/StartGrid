@@ -5,6 +5,9 @@ import './DetailedSettings.css';
 
 interface Props {
   children: ReactNode;
+  /** Section name substituted into "Open/Close {name} Settings", e.g. 'Formatting'.
+   *  Omit for the generic "Open/Close Display Settings" wording. */
+  title?: string;
 }
 
 /**
@@ -16,7 +19,7 @@ interface Props {
  * again on every subsequent reopen, without remounting (and re-hydrating
  * from storage) the surrounding PanelSections.
  */
-export function DetailedSettings({ children }: Props) {
+export function DetailedSettings({ children, title }: Props) {
   const sidebarOpen = useSettingsPanelOpen();
   const { t } = useSettings();
   const [isOpen, setIsOpen] = useState(false);
@@ -26,6 +29,9 @@ export function DetailedSettings({ children }: Props) {
     if (sidebarOpen) setIsOpen(false);
   }, [sidebarOpen]);
 
+  const openLabel  = title ? t('detailedSettings.openNamed', { name: title })  : t('detailedSettings.open');
+  const closeLabel = title ? t('detailedSettings.closeNamed', { name: title }) : t('detailedSettings.close');
+
   return (
     <div className="sg-detailed-settings">
       <div className="sg-detailed-settings-header">
@@ -34,7 +40,7 @@ export function DetailedSettings({ children }: Props) {
           onClick={toggle}
           title={isOpen ? t('detailedSettings.hide') : t('detailedSettings.show')}
         >
-          {isOpen ? t('detailedSettings.close') : t('detailedSettings.open')}
+          {isOpen ? closeLabel : openLabel}
         </button>
       </div>
       <div className={`sg-detailed-settings-collapse${isOpen ? ' sg-detailed-settings-collapse--expanded' : ''}`}>
