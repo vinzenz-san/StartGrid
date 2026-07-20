@@ -1,18 +1,36 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useBackground } from '../../contexts/BackgroundContext';
 import { useSettings } from '../../contexts/SettingsContext';
-import { UnsplashConfig } from '../../types/background';
-import { SettingsRow, SettingsSwitch } from '../shared/Form';
+import { extractCollectionId } from '../../hooks/useUnsplash';
+import { BackgroundPosition, UnsplashConfig } from '../../types/background';
+import { SettingsRow, SettingsSlider, SettingsSwitch, Dropdown } from '../shared/Form';
 import { DetailedSettings } from '../Layout/DetailedSettings';
+import CustomColorPicker from '../shared/CustomColorPicker';
 import './UnsplashSettings.css';
+
+const noLabel = () => '';
 
 export default function UnsplashSettings() {
   const { config, setConfig, unsplash } = useBackground();
   const { t } = useSettings();
   const [apiKeyVisible, setApiKeyVisible] = useState(false);
+  const [lbPickerOpen, setLbPickerOpen] = useState(false);
+  const letterboxBtnRef = useRef<HTMLButtonElement>(null);
 
   if (config.mode !== 'unsplash') return null;
   const uc = config as UnsplashConfig;
+
+  const POSITION_OPTIONS: { value: BackgroundPosition; label: string }[] = [
+    { value: 'center',       label: t('background.pos.center') },
+    { value: 'top',          label: t('background.pos.top') },
+    { value: 'bottom',       label: t('background.pos.bottom') },
+    { value: 'left',         label: t('background.pos.left') },
+    { value: 'right',        label: t('background.pos.right') },
+    { value: 'top-left',     label: t('background.pos.topLeft') },
+    { value: 'top-right',    label: t('background.pos.topRight') },
+    { value: 'bottom-left',  label: t('background.pos.bottomLeft') },
+    { value: 'bottom-right', label: t('background.pos.bottomRight') },
+  ];
 
   const TOPIC_CHIPS = [
     { label: t('background.unsplash.topic.nature'),       id: '6sMVjTLSkeQ' },
@@ -24,27 +42,28 @@ export default function UnsplashSettings() {
     { label: t('background.unsplash.topic.wallpapers'),   id: 'bo8jQKTaE0Y' },
   ];
 
-  const INTERVAL_OPTIONS = [
-    { label: t('background.unsplash.interval.15min'),   value: 900   },
-    { label: t('background.unsplash.interval.30min'),   value: 1800  },
-    { label: t('background.unsplash.interval.1hour'),   value: 3600  },
-    { label: t('background.unsplash.interval.4hours'),  value: 14400 },
-    { label: t('background.unsplash.interval.12hours'), value: 43200 },
-    { label: t('background.unsplash.interval.24hours'), value: 86400 },
+  const INTERVAL_OPTIONS: { label: string; value: string }[] = [
+    { label: t('background.unsplash.interval.newTab'), value: '0' },
+    { label: t('background.unsplash.interval.5min'),   value: '300' },
+    { label: t('background.unsplash.interval.15min'),  value: '900' },
+    { label: t('background.unsplash.interval.1hour'),  value: '3600' },
+    { label: t('background.unsplash.interval.day'),    value: '86400' },
+    { label: t('background.unsplash.interval.week'),   value: '604800' },
   ];
 
-  const SOURCE_TABS: { label: string; value: UnsplashConfig['source'] }[] = [
-    { label: t('background.unsplash.sourceTopics'), value: 'topics' },
-    { label: t('background.unsplash.sourceSearch'), value: 'search' },
-    { label: t('background.unsplash.sourceRandom'), value: 'random' },
+  const SOURCE_TABS: { label: string; value: NonNullable<UnsplashConfig['source']> }[] = [
+    { label: t('background.unsplash.sourceOfficial'),   value: 'official' },
+    { label: t('background.unsplash.sourceTopics'),     value: 'topics' },
+    { label: t('background.unsplash.sourceSearch'),     value: 'search' },
+    { label: t('background.unsplash.sourceCollection'), value: 'collection' },
   ];
 
   const update = (patch: Partial<UnsplashConfig>) =>
     setConfig({ ...uc, ...patch });
 
-  const source    = uc.source ?? 'topics';
+  const source    = uc.source ?? 'official';
   const topics    = uc.topics ?? [];
-  const interval  = uc.rotationInterval ?? 900;
+  const interval  = String(uc.rotationInterval ?? 900);
   const showAttr  = uc.showAttribution ?? true;
 
   const toggleTopic = (id: string) => {
@@ -97,6 +116,12 @@ export default function UnsplashSettings() {
           ))}
         </div>
 
+        {source === 'official' && (
+          <p className="bg-sync-warning" style={{ marginTop: 6 }}>
+            {t('background.unsplash.officialNote')}
+          </p>
+        )}
+
         {source === 'topics' && (
           <div className="sg-usp-chips">
             {TOPIC_CHIPS.map(chip => (
@@ -121,44 +146,91 @@ export default function UnsplashSettings() {
           />
         )}
 
-        {source === 'random' && (
-          <p className="bg-sync-warning" style={{ marginTop: 6 }}>
-            {t('background.unsplash.randomNote')}
-          </p>
+        {source === 'collection' && (
+          <input
+            className="sg-usp-input sg-usp-input--search"
+            type="text"
+            placeholder={t('background.unsplash.collectionIdPlaceholder')}
+            value={uc.collectionId ?? ''}
+            onChange={e => update({ collectionId: e.target.value.trim() })}
+            onPaste={e => {
+              const pasted = e.clipboardData.getData('text');
+              if (pasted && /\/(collections|kollektionen)\//i.test(pasted)) {
+                e.preventDefault();
+                update({ collectionId: extractCollectionId(pasted) });
+              }
+            }}
+          />
         )}
+
+        <SettingsRow label={t('background.showTitle')}>
+          <SettingsSwitch checked={showAttr} onChange={v => update({ showAttribution: v })} />
+        </SettingsRow>
       </section>
 
-      {/* Luminosity is rendered by BackgroundEditor for all modes */}
+      <SettingsRow label={t('background.backgroundColor')}>
+        <button
+          ref={letterboxBtnRef}
+          className="bg-color-swatch"
+          style={{ background: uc.letterboxColor ?? '#000000' }}
+          onClick={() => setLbPickerOpen(true)}
+        />
+      </SettingsRow>
 
       {/* Rotation interval + attribution — advanced */}
       <DetailedSettings>
-        <section className="settings-section">
-          <div className="settings-section-label">{t('background.unsplash.changePhotoEvery')}</div>
-          <div className="sg-usp-interval-row">
-            {INTERVAL_OPTIONS.map(opt => (
-              <button
-                key={opt.value}
-                className={`sg-usp-interval-btn${interval === opt.value ? ' sg-usp-interval-btn--active' : ''}`}
-                onClick={() => update({ rotationInterval: opt.value })}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </section>
+        <SettingsSlider
+          label={t('background.blur')}
+          value={uc.blur ?? 0}
+          onChange={v => update({ blur: v })}
+          min={0}
+          max={100}
+          step={1}
+          valueFormatter={noLabel}
+        />
 
-        <section className="settings-section">
-          <SettingsRow label={t('background.unsplash.showAttribution')}>
-            <SettingsSwitch checked={showAttr} onChange={v => update({ showAttribution: v })} />
-          </SettingsRow>
+        <div className="bg-luminosity-slider-wrap">
+          <SettingsSlider
+            label={t('background.luminosity')}
+            value={uc.luminosity ?? 100}
+            onChange={v => update({ luminosity: v })}
+            min={0}
+            max={200}
+            step={5}
+            valueFormatter={noLabel}
+          />
+        </div>
 
-          {/* Current attribution preview */}
-          {unsplash.attribution && (
-            <p className="sg-usp-attr-preview">
-              {t('background.unsplash.currentAttributionPrefix')} <em>{unsplash.attribution.photographerName}</em> {t('background.unsplash.currentAttributionSuffix')}
-            </p>
-          )}
-        </section>
+        <SettingsRow label={t('background.scaleToFit')}>
+          <SettingsSwitch
+            checked={uc.scaleToFit ?? true}
+            onChange={v => update({ scaleToFit: v })}
+          />
+        </SettingsRow>
+
+        <div className="bg-position-row">
+          <span className="sg-form-label">{t('background.position')}</span>
+          <Dropdown
+            options={POSITION_OPTIONS}
+            value={uc.position ?? 'center'}
+            onChange={v => update({ position: v })}
+          />
+        </div>
+
+        <SettingsRow label={t('background.unsplash.showNewPhoto')}>
+          <Dropdown
+            options={INTERVAL_OPTIONS}
+            value={interval}
+            onChange={v => update({ rotationInterval: Number(v) })}
+          />
+        </SettingsRow>
+
+        {/* Current attribution preview */}
+        {unsplash.attribution && (
+          <p className="sg-usp-attr-preview">
+            {t('background.unsplash.currentAttributionPrefix')} <em>{unsplash.attribution.photographerName}</em> {t('background.unsplash.currentAttributionSuffix')}
+          </p>
+        )}
       </DetailedSettings>
 
       {/* Fetch controls */}
@@ -179,6 +251,14 @@ export default function UnsplashSettings() {
           <p className="sg-usp-error">{t('background.unsplash.enterApiKey')}</p>
         )}
       </section>
+
+      <CustomColorPicker
+        value={uc.letterboxColor ?? '#000000'}
+        onChange={hex => update({ letterboxColor: hex })}
+        anchorRef={letterboxBtnRef}
+        open={lbPickerOpen}
+        onClose={() => setLbPickerOpen(false)}
+      />
 
     </div>
   );
