@@ -15,7 +15,7 @@
   font-size: 42px;
   font-weight: 200;
   letter-spacing: 0.04em;
-  color: var(--clock-color, var(--text));
+  color: var(--text);
   font-variant-numeric: tabular-nums;
   line-height: 1;
   transition: font-size 0.15s, font-weight 0.15s, color 0.15s;
@@ -23,42 +23,13 @@
 
 .sg-clock-date {
   font-size: 15px;
-  color: var(--clock-color, var(--text-muted));
+  color: var(--text-muted);
   font-weight: 400;
   letter-spacing: 0.01em;
 }
 
-/* ── Size modifiers ──────────────────────────────── */
-.sg-clock-time--size-s { font-size: 28px; }
-.sg-clock-time--size-m { font-size: 42px; }
-.sg-clock-time--size-l  { font-size: 56px; }
-.sg-clock-time--size-xl { font-size: 72px; }
-
-.sg-clock-date--size-s { font-size: 12px; }
-.sg-clock-date--size-m { font-size: 15px; }
-.sg-clock-date--size-l { font-size: 18px; }
-
-/* ── Weight modifiers ────────────────────────────── */
-.sg-clock-time--bold { font-weight: 700; }
-.sg-clock-date--bold { font-weight: 600; }
-
 /* Wrapper is layout-neutral so rows flow into the float panel */
 .sg-clock-settings {
   display: contents;
-}
-
-/* ── Font color controls ─────────────────────────── */
-.sg-clock-color-btn {
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: border-color 0.12s;
-}
-
-.sg-clock-color-btn:hover {
-  border-color: var(--accent);
 }
 

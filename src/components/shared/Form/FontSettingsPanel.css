@@ -1,0 +1,39 @@
+.sg-fs-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.sg-fs-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 4px 8px;
+  border-radius: 5px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  background: rgba(128, 128, 128, 0.1);
+  color: inherit;
+  font-size: 12px;
+  outline: none;
+}
+
+.sg-fs-input:focus { border-color: rgba(128, 128, 128, 0.6); }
+
+.sg-fs-color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sg-fs-color-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.12s;
+}
+
+.sg-fs-color-btn:hover:not(:disabled) { border-color: var(--accent); }
+.sg-fs-color-btn:disabled { cursor: default; }

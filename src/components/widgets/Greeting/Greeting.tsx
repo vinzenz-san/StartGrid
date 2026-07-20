@@ -1,9 +1,16 @@
 import { useEffect, useState } from 'react';
 import type { GreetingData, WidgetAlignment } from '../../../types/widget';
-import { SettingsRow, SegmentedControl, SettingsSwitch, Dropdown } from '../../shared/Form';
+import { SettingsRow, SettingsSwitch, Dropdown, FontSettingsPanel, DisplaySettingsPanel } from '../../shared/Form';
+import { DetailedSettings } from '../../Layout/DetailedSettings';
 import { useSettings } from '../../../contexts/SettingsContext';
 import { interpolate, type TranslationKey } from '../../../i18n';
+import { resolveFontStyle } from '../../../lib/fontStyle';
+import { resolveDisplayStyle } from '../../../lib/displayStyle';
 import './Greeting.css';
+
+// Greeting's old "M" text-size tier was 22px — used as the Display Settings
+// Font Size slider's resting default so migrating widgets don't visually jump.
+const DEFAULT_FONT_SIZE = 22;
 
 type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
 
@@ -33,7 +40,6 @@ export function GreetingSettings({ data, onUpdateData }: SettingsProps) {
   const userName       = data.userName ?? '';
   const useCustomQuote = data.useCustomQuote ?? false;
   const customQuote    = data.customQuote ?? '';
-  const textSize       = data.textSize ?? 'M';
   const alignment      = data.alignment ?? 'left';
 
   const ALIGNMENT_OPTIONS: { value: WidgetAlignment; label: string }[] = [
@@ -74,19 +80,6 @@ export function GreetingSettings({ data, onUpdateData }: SettingsProps) {
         </SettingsRow>
       )}
 
-      <SettingsRow label={t('widget.greeting.textSize')}>
-        <SegmentedControl
-          options={[
-            { value: 'S',  label: 'S'  },
-            { value: 'M',  label: 'M'  },
-            { value: 'L',  label: 'L'  },
-            { value: 'XL', label: 'XL' },
-          ]}
-          value={textSize}
-          onChange={v => onUpdateData({ textSize: v as GreetingData['textSize'] })}
-        />
-      </SettingsRow>
-
       <SettingsRow label={t('widget.greeting.alignment')}>
         <Dropdown
           options={ALIGNMENT_OPTIONS}
@@ -94,6 +87,21 @@ export function GreetingSettings({ data, onUpdateData }: SettingsProps) {
           onChange={v => onUpdateData({ alignment: v })}
         />
       </SettingsRow>
+
+      <DetailedSettings title={t('widget.displaySettings.title')}>
+        <DisplaySettingsPanel
+          value={data.displaySettings}
+          defaultFontSize={DEFAULT_FONT_SIZE}
+          onChange={patch => onUpdateData({ displaySettings: { ...data.displaySettings, ...patch } })}
+        />
+      </DetailedSettings>
+
+      <DetailedSettings title={t('widget.fontSettings.title')}>
+        <FontSettingsPanel
+          value={data.fontSettings}
+          onChange={patch => onUpdateData({ fontSettings: { ...data.fontSettings, ...patch } })}
+        />
+      </DetailedSettings>
     </div>
   );
 }
@@ -110,7 +118,6 @@ export default function Greeting({ data }: Props) {
   const userName       = data.userName;
   const useCustomQuote = data.useCustomQuote ?? false;
   const customQuote    = data.customQuote;
-  const textSize       = data.textSize ?? 'M';
   const alignment      = data.alignment ?? 'left';
 
   const [hour, setHour] = useState(() => new Date().getHours());
@@ -128,9 +135,12 @@ export default function Greeting({ data }: Props) {
     text = userName ? t(keys.named, { name: userName }) : t(keys.plain);
   }
 
+  const fontStyle = resolveFontStyle(data.fontSettings);
+  const { wrapper, fontSize } = resolveDisplayStyle(data.displaySettings, DEFAULT_FONT_SIZE);
+
   return (
-    <div className={`sg-greeting sg-greeting--align-${alignment}`}>
-      <span className={`sg-greeting-text sg-greeting-text--size-${textSize.toLowerCase()}`}>{text}</span>
+    <div className={`sg-greeting sg-greeting--align-${alignment}`} style={wrapper}>
+      <span className="sg-greeting-text" style={{ ...fontStyle, fontSize }}>{text}</span>
     </div>
   );
 }
