@@ -70,6 +70,24 @@ export interface PlaceholderData {
   title?: string;
 }
 
+export interface GreetingData {
+  userName?: string;
+  useCustomQuote?: boolean;
+  customQuote?: string;
+  textSize?: 'S' | 'M' | 'L' | 'XL';
+  alignment?: WidgetAlignment; // default 'left'
+}
+
+export interface WeatherData {
+  locationName?: string;
+  latitude?: number;
+  longitude?: number;
+  timezone?: string;
+  units?: 'metric' | 'imperial'; // default 'metric'
+  showFeelsLike?: boolean;       // default true
+  showLocationName?: boolean;    // default true
+}
+
 // Maps each widget type string to its strongly-typed data interface.
 export interface WidgetDataMap {
   clock:          ClockData;
@@ -79,6 +97,8 @@ export interface WidgetDataMap {
   gmail:          GmailData;
   calendar:       CalendarData;
   notes:          NotesData;
+  greeting:       GreetingData;
+  weather:        WeatherData;
   placeholder:    PlaceholderData;
 }
 
@@ -115,4 +135,6 @@ export type Widget =
   | (WidgetBase & { type: 'gmail';          data: GmailData })
   | (WidgetBase & { type: 'calendar';       data: CalendarData })
   | (WidgetBase & { type: 'notes';          data: NotesData })
+  | (WidgetBase & { type: 'greeting';       data: GreetingData })
+  | (WidgetBase & { type: 'weather';        data: WeatherData })
   | (WidgetBase & { type: 'placeholder';    data: PlaceholderData });

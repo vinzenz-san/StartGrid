@@ -23,7 +23,9 @@
     "https://bing.npanuhin.me/*",
     "https://*.nasa.gov/*",
     "https://*.unsplash.com/*",
-    "https://*.bing.com/*"
+    "https://*.bing.com/*",
+    "https://api.open-meteo.com/*",
+    "https://geocoding-api.open-meteo.com/*"
   ],
   "oauth2": {
     "client_id": "__REPLACE_WITH_CHROME_OAUTH_CLIENT_ID__",
