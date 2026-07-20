@@ -16,7 +16,7 @@
   align-items: center;
   gap: 6px;
   width: 100%;
-  background: rgba(128, 128, 128, 0.1);
+  background: var(--sg-search-bg, var(--surface-hover, #2a2a2a));
   border-radius: 6px;
   padding: 5px 8px;
 }
