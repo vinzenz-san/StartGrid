@@ -49,11 +49,20 @@
 
 /* ── Alignment (applied alongside the layout variant above) ── */
 
-.sg-ql-links--align-left   { justify-content: flex-start; align-content: flex-start; }
-.sg-ql-links--align-center { justify-content: center;     align-content: center; }
-.sg-ql-links--align-right  { justify-content: flex-end;   align-content: flex-end; }
-.sg-ql-links--align-top    { align-items: flex-start;     justify-content: flex-start; }
-.sg-ql-links--align-bottom { align-items: flex-end;       justify-content: flex-end; }
+.sg-ql-links--align-left   { justify-content: flex-start; align-content: flex-start; align-items: flex-start; }
+.sg-ql-links--align-center { justify-content: center;     align-content: center;     align-items: center; }
+.sg-ql-links--align-right  { justify-content: flex-end;   align-content: flex-start; align-items: flex-start; }
+.sg-ql-links--align-top    { justify-content: center;     align-content: flex-start; align-items: flex-start; }
+.sg-ql-links--align-bottom { justify-content: center;     align-content: flex-end;   align-items: flex-end; }
+
+/* Combined-selector overrides (higher specificity than either rule alone) so
+   the alignment setting always wins over the grid variant's own defaults —
+   mirrors the equivalent guarantee in BookmarkFolder.css. */
+.sg-ql-links--grid.sg-ql-links--align-left   { justify-content: flex-start; align-content: flex-start; align-items: flex-start; }
+.sg-ql-links--grid.sg-ql-links--align-center { justify-content: center;     align-content: center;     align-items: center; }
+.sg-ql-links--grid.sg-ql-links--align-right  { justify-content: flex-end;   align-content: flex-start; align-items: flex-start; }
+.sg-ql-links--grid.sg-ql-links--align-top    { justify-content: center;     align-content: flex-start; align-items: flex-start; }
+.sg-ql-links--grid.sg-ql-links--align-bottom { justify-content: center;     align-content: flex-end;   align-items: flex-end; }
 
 /* ── Link item ── */
 
