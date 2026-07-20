@@ -43,6 +43,10 @@ interface WidgetContextType {
   updateWidget: (id: string, updates: Partial<Widget>) => void;
   removeWidget: (id: string) => void;
   addWidget: (widget: Omit<Widget, 'id'>) => Widget;
+  /** Bulk replace — used by the grid-rescale flow (useApplyGridConfig) to
+   *  commit a whole recalculated layout in one write, rather than patching
+   *  widgets one at a time. */
+  replaceAllWidgets: (next: Widget[]) => void;
   loaded: boolean;
 }
 
@@ -65,8 +69,10 @@ export function WidgetProvider({ children }: { children: ReactNode }) {
     return newWidget;
   };
 
+  const replaceAllWidgets = (next: Widget[]) => setWidgets(next);
+
   return (
-    <WidgetContext.Provider value={{ widgets, updateWidget, removeWidget, addWidget, loaded }}>
+    <WidgetContext.Provider value={{ widgets, updateWidget, removeWidget, addWidget, replaceAllWidgets, loaded }}>
       {children}
     </WidgetContext.Provider>
   );

@@ -16,11 +16,14 @@ import { useBackground } from '../../contexts/BackgroundContext';
 import { useEditMode } from '../../contexts/EditModeContext';
 import ThemeToggle from '../shared/ThemeToggle';
 import { useWidgets } from '../../contexts/WidgetContext';
+import { useGridConfig } from '../../contexts/GridConfigContext';
+import { useApplyGridConfig } from '../../hooks/useApplyGridConfig';
 import { WIDGET_REGISTRY, WIDGET_MENU_TYPES, WIDGET_TYPE_LABEL_KEYS } from '../widgets/registry';
 import { findFreePosition } from '../../lib/gridUtils';
 import { DEFAULT_BG } from '../../types/background';
 import type { Language, SettingsButtonPosition } from '../../contexts/SettingsContext';
 import type { WidgetType } from '../../types/widget';
+import type { GridConfig } from '../../types/grid';
 import './SettingsPanel.css';
 
 const APP_NAME = 'Startgrid';
@@ -60,10 +63,17 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
   const { config, setConfig } = useBackground();
   const { isEditMode, toggleEditMode } = useEditMode();
   const { widgets, addWidget, updateWidget } = useWidgets();
+  const { gridConfig } = useGridConfig();
+  const { applyGridConfig } = useApplyGridConfig();
   const [devConfirmOpen,   setDevConfirmOpen]   = useState(false);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const [pickerOpen,       setPickerOpen]       = useState(false);
   const [addMenuOpen,      setAddMenuOpen]      = useState(false);
+  // Draft grid geometry — sliders edit this local copy so dragging doesn't
+  // trigger a rescale/repack on every tick; the user commits explicitly via
+  // the confirm dialog below.
+  const [draftGrid,        setDraftGrid]        = useState<GridConfig>(gridConfig);
+  const [gridConfirmOpen,  setGridConfirmOpen]  = useState(false);
   const accentSwatchRef = useRef<HTMLButtonElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -92,9 +102,19 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
 
   const handleAddWidget = (type: WidgetType) => {
     const { defaultSize, defaultData } = WIDGET_REGISTRY[type];
-    const { col, row } = findFreePosition(widgets, defaultSize.w, defaultSize.h);
+    const { col, row } = findFreePosition(widgets, gridConfig.columns, defaultSize.w, defaultSize.h);
     addWidget({ type, col, row, w: defaultSize.w, h: defaultSize.h, data: defaultData });
     setAddMenuOpen(false);
+  };
+
+  const gridDraftDirty = draftGrid.columns !== gridConfig.columns
+    || draftGrid.cellWidth !== gridConfig.cellWidth
+    || draftGrid.cellHeight !== gridConfig.cellHeight
+    || draftGrid.gap !== gridConfig.gap;
+
+  const confirmApplyGrid = () => {
+    applyGridConfig(draftGrid);
+    setGridConfirmOpen(false);
   };
 
   const transparencyPct = 100 - Math.round(globalOpacity * 100);
@@ -287,7 +307,51 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
           </PanelSection>
           </div>
 
-          {/* ══ 4. SETTINGS ══ */}
+          {/* ══ 4. GRID ══ */}
+          <PanelSection title={t('grid.sectionTitle')} collapsible persistenceKey="grid">
+            <SettingsSlider
+              label={t('grid.columns')}
+              value={draftGrid.columns}
+              onChange={v => setDraftGrid(g => ({ ...g, columns: v }))}
+              min={2}
+              max={24}
+              step={1}
+              valueFormatter={v => String(v)}
+            />
+            <SettingsSlider
+              label={t('grid.cellWidth')}
+              value={draftGrid.cellWidth}
+              onChange={v => setDraftGrid(g => ({ ...g, cellWidth: v }))}
+              min={40}
+              max={240}
+              step={5}
+              valueFormatter={v => `${v}px`}
+            />
+            <SettingsSlider
+              label={t('grid.cellHeight')}
+              value={draftGrid.cellHeight}
+              onChange={v => setDraftGrid(g => ({ ...g, cellHeight: v }))}
+              min={40}
+              max={240}
+              step={5}
+              valueFormatter={v => `${v}px`}
+            />
+            <SettingsSlider
+              label={t('grid.gap')}
+              value={draftGrid.gap}
+              onChange={v => setDraftGrid(g => ({ ...g, gap: v }))}
+              min={0}
+              max={40}
+              step={1}
+              valueFormatter={v => `${v}px`}
+            />
+            <p className="bg-sync-warning">{t('grid.note')}</p>
+            <ActionButton variant="ghost" disabled={!gridDraftDirty} onClick={() => setGridConfirmOpen(true)}>
+              {t('grid.apply')}
+            </ActionButton>
+          </PanelSection>
+
+          {/* ══ 5. SETTINGS ══ */}
           <PanelSection title={t('settings.sectionTitle')} collapsible persistenceKey="settings" defaultOpen>
             <SettingsRow label={t('settings.language')}>
               <Dropdown<Language>
@@ -347,7 +411,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
             </ActionButton>
           </PanelSection>
 
-          {/* ══ 5. DEVELOPER OPTIONS ══ */}
+          {/* ══ 6. DEVELOPER OPTIONS ══ */}
           <PanelSection title={t('dev.sectionTitle')} collapsible persistenceKey="developerOptions">
             <SettingsRow label={t('dev.enableDevMode')}>
               <SettingsSwitch
@@ -388,6 +452,15 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
         title={t('dev.confirm.title')}
         body={t('dev.confirm.body')}
         confirmLabel={t('dev.confirm.confirm')}
+      />
+
+      <ConfirmDialog
+        open={gridConfirmOpen}
+        onClose={() => setGridConfirmOpen(false)}
+        onConfirm={confirmApplyGrid}
+        title={t('grid.confirm.title')}
+        body={t('grid.confirm.body')}
+        confirmLabel={t('grid.confirm.confirm')}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useEditMode } from '../../contexts/EditModeContext';
 import { useWidgets } from '../../contexts/WidgetContext';
+import { useGridConfig } from '../../contexts/GridConfigContext';
 import { useSettings } from '../../contexts/SettingsContext';
 import { dragState } from '../../lib/dragState';
 import { isPositionFree } from '../../lib/gridUtils';
@@ -14,16 +15,12 @@ import { ElementInspectorProvider } from '../../contexts/ElementInspectorContext
 import { useBackgroundContrast } from '../../hooks/useBackgroundContrast';
 import './Grid.css';
 
-const COLS    = 8;
-const GAP     = 12;
-const CELL_H  = 120;
-const PADDING = 12;
-
 interface DropTarget { col: number; row: number; w: number; h: number; valid: boolean; }
 
 export default function Grid() {
   const { isEditMode, toggleEditMode } = useEditMode();
   const { widgets, updateWidget, loaded } = useWidgets();
+  const { gridConfig } = useGridConfig();
   const { developerOptionsEnabled, settingsButtonPosition, settingsPinned, elementInspectorEnabled, t } = useSettings();
   const gridRef = useRef<HTMLDivElement>(null);
   const gearBtnRef = useRef<HTMLButtonElement>(null);
@@ -32,12 +29,20 @@ export default function Grid() {
   const [devPanelPos,       setDevPanelPos]       = useState<DevPanelPos | null>(null);
   const gearDarkVariant = useBackgroundContrast(gearBtnRef);
 
+  // .sg-grid's own padding is var(--gap) (Grid.css), so the drag-math padding
+  // constant is just gridConfig.gap — not a separate value to keep in sync.
+  // cellWidth itself isn't needed here: column width is always derived from
+  // the container's actual rendered width / columns (responsive), the same
+  // way it worked before gridConfig existed — only row height (cellHeight)
+  // is a fixed value pulled directly from config.
+  const { columns, cellHeight, gap } = gridConfig;
+
   const cellFromPoint = (clientX: number, clientY: number) => {
     const rect = gridRef.current!.getBoundingClientRect();
-    const colW = (rect.width - PADDING * 2 - GAP * (COLS - 1)) / COLS;
+    const colW = (rect.width - gap * 2 - gap * (columns - 1)) / columns;
     return {
-      col: Math.max(1, Math.floor((clientX - rect.left  - PADDING) / (colW   + GAP)) + 1),
-      row: Math.max(1, Math.floor((clientY - rect.top   - PADDING) / (CELL_H + GAP)) + 1),
+      col: Math.max(1, Math.floor((clientX - rect.left  - gap) / (colW       + gap)) + 1),
+      row: Math.max(1, Math.floor((clientY - rect.top   - gap) / (cellHeight + gap)) + 1),
     };
   };
 
@@ -46,7 +51,7 @@ export default function Grid() {
     const widget = widgets.find(w => w.id === dragState.widgetId);
     if (!widget) return;
     const { col, row } = cellFromPoint(e.clientX, e.clientY);
-    const targetCol = Math.max(1, Math.min(COLS - widget.w + 1, col - dragState.offCol));
+    const targetCol = Math.max(1, Math.min(columns - widget.w + 1, col - dragState.offCol));
     const targetRow = Math.max(1, row - dragState.offRow);
     const valid = isPositionFree(widgets, widget.id, targetCol, targetRow, widget.w, widget.h);
     e.dataTransfer.dropEffect = valid ? 'move' : 'none';

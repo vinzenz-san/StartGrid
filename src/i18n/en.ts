@@ -42,6 +42,17 @@ export const en = {
   'widgets.matchGlobalColor':    '⬡ Match global widget color',
   'widgets.resetToGlobal':       '↺ Reset to Global',
 
+  'grid.sectionTitle': 'Grid',
+  'grid.columns':      'Columns',
+  'grid.cellWidth':    'Cell Width',
+  'grid.cellHeight':   'Cell Height',
+  'grid.gap':          'Gap',
+  'grid.note':         'Changing grid dimensions repositions and resizes widgets to preserve their on-screen size as closely as possible.',
+  'grid.apply':        'Apply Grid Changes',
+  'grid.confirm.title':   'Apply Grid Changes?',
+  'grid.confirm.body':    'Your widgets will be rescaled and, where necessary, nudged apart to avoid overlaps. This does not delete anything.',
+  'grid.confirm.confirm': 'Apply',
+
   'dev.sectionTitle': 'Developer Options',
   'dev.enableDevMode': 'Enable Dev Mode',
   'dev.confirm.title':   'Enable Developer Options?',

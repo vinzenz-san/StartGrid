@@ -237,22 +237,24 @@ html.sg-glow-all-widgets .sg-widget {
 
 .sg-grid {
   display: grid;
-  /* Fixed 8-column layout: 8 cells + 7 inner gaps + 2 side paddings */
-  grid-template-columns: repeat(8, var(--cell));
-  grid-auto-rows: var(--cell);
+  /* Column count + cell size are user-configurable (GridConfigContext) —
+     --grid-cols/--cell-w/--cell-h/--gap are injected as runtime custom
+     properties there, with static fallbacks in index.css for pre-hydration. */
+  grid-template-columns: repeat(var(--grid-cols), var(--cell-w));
+  grid-auto-rows: var(--cell-h);
   gap: var(--gap);
   padding: var(--gap);
   align-content: start;
   min-height: 100%;
-  width: calc(8 * var(--cell) + 9 * var(--gap));
+  width: calc(var(--grid-cols) * var(--cell-w) + (var(--grid-cols) + 1) * var(--gap));
   flex-shrink: 0;
 }
 
 /* Edit-mode: dot-grid background */
 .sg-root--edit .sg-grid {
   background-image: radial-gradient(circle, rgba(99,102,241,0.2) 1px, transparent 1px);
-  background-size: calc((100% - 12px) / 8) calc(var(--cell) + var(--gap));
-  background-position: calc(12px + (100% - 12px) / 16) calc(12px + var(--cell) / 2);
+  background-size: calc((100% - var(--gap)) / var(--grid-cols)) calc(var(--cell-h) + var(--gap));
+  background-position: calc(var(--gap) + (100% - var(--gap)) / (var(--grid-cols) * 2)) calc(var(--gap) + var(--cell-h) / 2);
 }
 
 

@@ -1,6 +1,14 @@
 :root {
   --gap: 12px;
   --cell: 120px;
+  /* Grid geometry — overridden at runtime by GridConfigContext. Static
+     fallbacks here match DEFAULT_GRID_CONFIG (src/types/grid.ts) exactly, so
+     there's no pre-hydration flash. --cell/--gap above remain in place until
+     Grid.css is migrated to consume these (Phase 6); once that lands they
+     become the sole source for grid sizing. */
+  --grid-cols: 8;
+  --cell-w: 120px;
+  --cell-h: 120px;
   --bg: #0f1117;
   --surface: #1a1d2e;
   --surface-hover: #232741;
