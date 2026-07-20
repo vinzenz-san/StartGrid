@@ -238,16 +238,14 @@ export default function BackgroundEditor() {
           <p className="bg-sync-warning">{t('background.mediaNoSyncWarning')}</p>
           {customImageUrl && customCfg && (
             <>
-              {(customCfg.scaleToFit ?? true) && (
-                <SettingsRow label={t('background.backgroundColor')}>
-                  <button
-                    ref={letterboxBtnRef}
-                    className="bg-color-swatch"
-                    style={{ background: customCfg.letterboxColor ?? '#000000' }}
-                    onClick={() => setLbPickerOpen(true)}
-                  />
-                </SettingsRow>
-              )}
+              <SettingsRow label={t('background.backgroundColor')}>
+                <button
+                  ref={letterboxBtnRef}
+                  className="bg-color-swatch"
+                  style={{ background: customCfg.letterboxColor ?? '#000000' }}
+                  onClick={() => setLbPickerOpen(true)}
+                />
+              </SettingsRow>
 
               <DetailedSettings>
                 <SettingsSlider
@@ -360,6 +358,15 @@ export default function BackgroundEditor() {
             />
           </SettingsRow>
 
+          <SettingsRow label={t('background.backgroundColor')}>
+            <button
+              ref={letterboxBtnRef}
+              className="bg-color-swatch"
+              style={{ background: bingCfg.letterboxColor ?? '#000000' }}
+              onClick={() => setLbPickerOpen(true)}
+            />
+          </SettingsRow>
+
           <DetailedSettings>
             <SettingsSlider
               label={t('background.blur')}
@@ -463,6 +470,15 @@ export default function BackgroundEditor() {
             <SettingsSwitch
               checked={astro.showApodTitle ?? false}
               onChange={v => setConfig({ ...astro, showApodTitle: v })}
+            />
+          </SettingsRow>
+
+          <SettingsRow label={t('background.backgroundColor')}>
+            <button
+              ref={letterboxBtnRef}
+              className="bg-color-swatch"
+              style={{ background: astro.letterboxColor ?? '#000000' }}
+              onClick={() => setLbPickerOpen(true)}
             />
           </SettingsRow>
 
@@ -599,16 +615,14 @@ export default function BackgroundEditor() {
 
           {onlineCfg.value && (
             <>
-              {(onlineCfg.scaleToFit ?? true) && (
-                <SettingsRow label={t('background.backgroundColor')}>
-                  <button
-                    ref={letterboxBtnRef}
-                    className="bg-color-swatch"
-                    style={{ background: onlineCfg.letterboxColor ?? '#000000' }}
-                    onClick={() => setLbPickerOpen(true)}
-                  />
-                </SettingsRow>
-              )}
+              <SettingsRow label={t('background.backgroundColor')}>
+                <button
+                  ref={letterboxBtnRef}
+                  className="bg-color-swatch"
+                  style={{ background: onlineCfg.letterboxColor ?? '#000000' }}
+                  onClick={() => setLbPickerOpen(true)}
+                />
+              </SettingsRow>
 
               <DetailedSettings>
                 <SettingsSlider
@@ -715,6 +729,15 @@ export default function BackgroundEditor() {
             <SettingsSwitch
               checked={wikiCfg.showTitle ?? false}
               onChange={v => setConfig({ ...wikiCfg, showTitle: v })}
+            />
+          </SettingsRow>
+
+          <SettingsRow label={t('background.backgroundColor')}>
+            <button
+              ref={letterboxBtnRef}
+              className="bg-color-swatch"
+              style={{ background: wikiCfg.letterboxColor ?? '#000000' }}
+              onClick={() => setLbPickerOpen(true)}
             />
           </SettingsRow>
 

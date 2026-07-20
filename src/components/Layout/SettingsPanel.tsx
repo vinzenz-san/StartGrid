@@ -132,7 +132,12 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
         setGlobalPresetId(undefined);
         break;
       }
-      case 'custom':
+      case 'colourGradient':
+        // A 2-color gradient has no single flat hex — button is disabled for this mode.
+        break;
+      default:
+        // Every remaining image-backed provider (custom, online, bing, astronomy,
+        // wikimedia, unsplash) shares the same letterboxColor fallback.
         setGlobalColor(config.letterboxColor ?? '#000000', 'dark');
         setGlobalPresetId(undefined);
         break;
@@ -247,10 +252,16 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
               onSelectCustom={(hex, scheme) => { setGlobalColor(hex, scheme); setGlobalPresetId(undefined); }}
               variant="large"
             />
-            <ActionButton variant="ghost" onClick={handleMatchBackground}>
+            <ActionButton variant="ghost" onClick={handleMatchBackground} disabled={config.mode === 'colourGradient'}>
               {t('widgets.matchBackground')}
             </ActionButton>
             <p className="bg-sync-warning">{t('widgets.globalStyleNote')}</p>
+            <SettingsRow label={t('widgets.contextMenus')}>
+              <SettingsSwitch
+                checked={enableCustomContextMenu}
+                onChange={v => updateSettings({ enableCustomContextMenu: v })}
+              />
+            </SettingsRow>
             <DetailedSettings>
               <SettingsSlider
                 label={t('widgets.transparency')}
@@ -272,12 +283,6 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
                 value={Math.round(globalDim)}
                 onChange={v => setGlobalDim(v)}
               />
-              <SettingsRow label={t('widgets.contextMenus')}>
-                <SettingsSwitch
-                  checked={enableCustomContextMenu}
-                  onChange={v => updateSettings({ enableCustomContextMenu: v })}
-                />
-              </SettingsRow>
             </DetailedSettings>
           </PanelSection>
           </div>
