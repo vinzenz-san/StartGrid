@@ -3,6 +3,17 @@
   flex-direction: column;
 }
 
+/* Sub-section headers ("Unsplash API Key", "Source") read as a secondary
+   label here, not a top-level BACKGROUND/WIDGETS-style heading — match the
+   slider label rhythm instead of the bold 0.8rem major-heading size. */
+.sg-usp .settings-section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
 /* API key row */
 .sg-usp-key-row {
   display: flex;
@@ -93,31 +104,6 @@
   color: var(--text);
 }
 .sg-usp-chip:hover { border-color: var(--accent); color: var(--text); }
-
-/* Interval buttons */
-.sg-usp-interval-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.sg-usp-interval-btn {
-  padding: 4px 8px;
-  font-size: 11px;
-  border-radius: 5px;
-  border: 1px solid var(--border);
-  background: var(--surface-hover);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
-  white-space: nowrap;
-}
-.sg-usp-interval-btn--active {
-  background: color-mix(in srgb, var(--accent) 25%, transparent);
-  border-color: var(--accent);
-  color: var(--text);
-}
-.sg-usp-interval-btn:hover { border-color: var(--accent); color: var(--text); }
 
 .sg-usp-attr-preview {
   font-size: 10px;
