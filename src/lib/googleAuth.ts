@@ -231,8 +231,14 @@ export async function connectGoogle(): Promise<string> {
 export async function disconnectGoogle(): Promise<void> {
   const stored = await readStoredAuth();
   if (stored) {
-    // Best-effort revoke; don't throw if it fails (e.g. already revoked)
-    fetch(`${REVOKE_ENDPOINT}?token=${encodeURIComponent(stored.accessToken)}`).catch(() => {});
+    // Best-effort revoke; don't throw if it fails (e.g. already revoked).
+    // Google's /revoke endpoint requires POST with the token in the body —
+    // a GET with it as a query param 404s instead of revoking anything.
+    fetch(REVOKE_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ token: stored.accessToken }),
+    }).catch(() => {});
   }
   await clearStoredAuth();
 }
