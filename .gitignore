@@ -18,6 +18,11 @@ dist.zip
 .env
 .env.local
 
+# Chrome extension signing key — the private half must never be committed;
+# manifest.chrome.json only holds the public key derived from it
+startgrid-chrome-key.pem
+startgrid-chrome-key.pub.b64.txt
+
 # Claude specific folder
 .claude/
 
