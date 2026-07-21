@@ -178,7 +178,7 @@ export default function Background() {
       <div className={`sg-bg-layer${active === 0 ? ' sg-bg-layer--active' : ''}`} style={{ ...layer0Style, ...layerStyle }} />
       <div className={`sg-bg-layer${active === 1 ? ' sg-bg-layer--active' : ''}`} style={{ ...layer1Style, ...layerStyle }} />
       {showAttribution && unsplash.attribution && (
-        <div className="sg-bg-attribution">
+        <div className="sg-bg-attribution sg-apod-title-active">
           Photo by{' '}
           <a
             href={unsplash.attribution.photographerUrl}
