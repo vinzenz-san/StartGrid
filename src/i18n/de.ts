@@ -134,11 +134,6 @@ export const de: Record<TranslationKey, string> = {
   'background.onlineUrlPlaceholder': 'https://beispiel.de/bild.jpg',
   'background.comingSoon':           'Demnächst verfügbar.',
 
-  'background.unsplash.apiKeyLabel':       'Unsplash-API-Schlüssel',
-  'background.unsplash.apiKeyPlaceholder': 'Access Key einfügen…',
-  'background.unsplash.hide':              'Verbergen',
-  'background.unsplash.show':              'Anzeigen',
-  'background.unsplash.apiKeyHelp':        'Kostenlosen Schlüssel unter unsplash.com/developers erhalten — App registrieren, Access Key kopieren.',
   'background.unsplash.source':            'Quelle',
   'background.unsplash.sourceOfficial':    'Offizielle Sammlung',
   'background.unsplash.sourceTopics':      'Thema',
@@ -153,7 +148,6 @@ export const de: Record<TranslationKey, string> = {
   'background.unsplash.currentAttributionSuffix': 'auf Unsplash',
   'background.unsplash.loading':           'Wird geladen…',
   'background.unsplash.nextPhoto':         'Nächstes Foto ↺',
-  'background.unsplash.enterApiKey':       'Gib oben einen API-Schlüssel ein, um zu starten.',
 
   'background.unsplash.topic.nature':       'Natur',
   'background.unsplash.topic.architecture': 'Architektur',

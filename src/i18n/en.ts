@@ -132,11 +132,6 @@ export const en = {
   'background.onlineUrlPlaceholder': 'https://example.com/image.jpg',
   'background.comingSoon':           'Coming soon.',
 
-  'background.unsplash.apiKeyLabel':       'Unsplash API Key',
-  'background.unsplash.apiKeyPlaceholder': 'Paste your Access Key…',
-  'background.unsplash.hide':              'Hide',
-  'background.unsplash.show':              'Show',
-  'background.unsplash.apiKeyHelp':        'Get a free key at unsplash.com/developers — register an app, copy the Access Key.',
   'background.unsplash.source':            'Source',
   'background.unsplash.sourceOfficial':    'Official Collection',
   'background.unsplash.sourceTopics':      'Topic',
@@ -151,7 +146,6 @@ export const en = {
   'background.unsplash.currentAttributionSuffix': 'on Unsplash',
   'background.unsplash.loading':           'Loading…',
   'background.unsplash.nextPhoto':         'Next photo ↺',
-  'background.unsplash.enterApiKey':       'Enter an API key above to start.',
 
   'background.unsplash.topic.nature':       'Nature',
   'background.unsplash.topic.architecture': 'Architecture',

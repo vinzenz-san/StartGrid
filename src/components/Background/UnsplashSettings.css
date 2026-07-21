@@ -14,13 +14,6 @@
   color: var(--text-muted);
 }
 
-/* API key row */
-.sg-usp-key-row {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
 .sg-usp-input {
   flex: 1;
   font-size: 12px;
@@ -41,19 +34,6 @@
   width: 100%;
   box-sizing: border-box;
 }
-
-.sg-usp-eye {
-  flex-shrink: 0;
-  padding: 4px 6px;
-  font-size: 13px;
-  border-radius: 5px;
-  border: 1px solid var(--border);
-  background: var(--surface-hover);
-  color: var(--text-muted);
-  cursor: pointer;
-  line-height: 1;
-}
-.sg-usp-eye:hover { border-color: var(--accent); }
 
 /* Source tabs */
 .sg-usp-tabs {

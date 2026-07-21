@@ -13,7 +13,6 @@ const noLabel = () => '';
 export default function UnsplashSettings() {
   const { config, setConfig, unsplash } = useBackground();
   const { t } = useSettings();
-  const [apiKeyVisible, setApiKeyVisible] = useState(false);
   const [lbPickerOpen, setLbPickerOpen] = useState(false);
   const letterboxBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -75,31 +74,6 @@ export default function UnsplashSettings() {
 
   return (
     <div className="sg-usp">
-
-      {/* API Key */}
-      <section className="settings-section">
-        <div className="settings-section-label">{t('background.unsplash.apiKeyLabel')}</div>
-        <div className="sg-usp-key-row">
-          <input
-            className="sg-usp-input"
-            type={apiKeyVisible ? 'text' : 'password'}
-            placeholder={t('background.unsplash.apiKeyPlaceholder')}
-            value={uc.apiKey ?? ''}
-            onChange={e => update({ apiKey: e.target.value.trim() })}
-            spellCheck={false}
-          />
-          <button
-            className="sg-usp-eye"
-            onClick={() => setApiKeyVisible(v => !v)}
-            title={apiKeyVisible ? t('background.unsplash.hide') : t('background.unsplash.show')}
-          >
-            {apiKeyVisible ? '🙈' : '👁'}
-          </button>
-        </div>
-        <p className="bg-sync-warning">
-          {t('background.unsplash.apiKeyHelp')}
-        </p>
-      </section>
 
       {/* Source tabs */}
       <section className="settings-section">
@@ -269,16 +243,13 @@ export default function UnsplashSettings() {
           <button
             className="bg-btn sg-usp-fetch-btn"
             onClick={unsplash.fetchNow}
-            disabled={unsplash.isFetching || !uc.apiKey}
+            disabled={unsplash.isFetching}
           >
             {unsplash.isFetching ? t('background.unsplash.loading') : t('background.unsplash.nextPhoto')}
           </button>
         </div>
         {unsplash.error && (
           <p className="sg-usp-error">{unsplash.error}</p>
-        )}
-        {!uc.apiKey && (
-          <p className="sg-usp-error">{t('background.unsplash.enterApiKey')}</p>
         )}
       </section>
 
