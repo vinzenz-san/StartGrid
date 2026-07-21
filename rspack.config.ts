@@ -74,11 +74,11 @@ export default (env: { target?: string } = {}) => {
       // Rspack has no Vite-style automatic import.meta.env — statically inject
       // each key we need at build time instead. Empty string when unset
       // (no .env / .env.local present) so each consumer's own fallback
-      // (astronomy.ts's DEMO_KEY, useUnsplash.ts's user-supplied apiKey)
-      // engages rather than the build crashing on undefined.
+      // (astronomy.ts's DEMO_KEY, useUnsplash.ts's proxyReady gate) engages
+      // rather than the build crashing on undefined.
       new rspack.DefinePlugin({
         'import.meta.env.APP_NASA_API_KEY': JSON.stringify(envVars.APP_NASA_API_KEY || ''),
-        'import.meta.env.APP_UNSPLASH_API_KEY': JSON.stringify(envVars.APP_UNSPLASH_API_KEY || ''),
+        'import.meta.env.APP_UNSPLASH_PROXY_URL': JSON.stringify(envVars.APP_UNSPLASH_PROXY_URL || ''),
       }),
       new rspack.HtmlRspackPlugin({
         template: './src/newtab.html',
