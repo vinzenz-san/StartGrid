@@ -28,12 +28,12 @@ export function extractCollectionId(raw: string): string {
 
 // Statically injected at build time via rspack.config.ts's DefinePlugin
 // (same Rspack/no-Vite pattern as astronomy.ts's NASA key — APP_ prefix,
-// not VITE_, since this project is Rspack-based) — lets a repo maintainer
-// ship a working default via .env without every user having to paste their
-// own key into Settings first. A user-supplied apiKey in Settings always
-// takes priority over this env default.
+// not VITE_, since this project is Rspack-based). All Unsplash requests go
+// through this Cloudflare Worker, which attaches the real Access Key
+// server-side — the key never ships in the extension bundle.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ENV_UNSPLASH_KEY = (import.meta as any).env.APP_UNSPLASH_API_KEY || '';
+const PROXY_URL = ((import.meta as any).env.APP_UNSPLASH_PROXY_URL || '').replace(/\/$/, '');
+const UNSPLASH_API_ORIGIN = 'https://api.unsplash.com';
 
 export function useUnsplash(
   config: BackgroundConfig,
@@ -41,7 +41,7 @@ export function useUnsplash(
 ) {
   const isActive = config.mode === 'unsplash';
   const uc = isActive ? (config as UnsplashConfig) : undefined;
-  const apiKey = uc?.apiKey || ENV_UNSPLASH_KEY;
+  const proxyReady = !!PROXY_URL;
 
   const [attribution, setAttribution] = useState<UnsplashAttribution | null>(null);
   const [isFetching, setIsFetching]   = useState(false);
@@ -51,11 +51,10 @@ export function useUnsplash(
   const fetchRef = useRef<() => Promise<void>>(async () => {});
 
   const fetchImage = useCallback(async () => {
-    if (!apiKey) return;
+    if (!proxyReady) return;
     setIsFetching(true);
     setError(null);
     try {
-      const authHeader = { Authorization: `Client-ID ${apiKey}` };
       const throwForStatus = (res: Response) => {
         if (res.ok) return;
         throw new Error(
@@ -67,14 +66,18 @@ export function useUnsplash(
       };
 
       const source = uc.source ?? 'official';
-      let data: { urls: { regular: string }; user: { name: string; links: { html: string } }; links: { html: string } };
+      let data: {
+        urls: { regular: string };
+        user: { name: string; links: { html: string } };
+        links: { html: string; download_location?: string };
+      };
 
       if (source === 'collection' && uc.collectionId) {
         const collectionId = extractCollectionId(uc.collectionId);
         if (/^\d+$/.test(collectionId)) {
           // Legacy numeric collection ids still resolve via /photos/random.
           const params = new URLSearchParams({ orientation: 'landscape', collections: collectionId });
-          const res = await fetch(`https://api.unsplash.com/photos/random?${params}`, { headers: authHeader });
+          const res = await fetch(`${PROXY_URL}/photos/random?${params}`);
           throwForStatus(res);
           data = await res.json();
         } else {
@@ -85,8 +88,7 @@ export function useUnsplash(
             const params = new URLSearchParams({ per_page: '30' });
             if (withOrientation) params.set('orientation', 'landscape');
             const res = await fetch(
-              `https://api.unsplash.com/collections/${encodeURIComponent(collectionId)}/photos?${params}`,
-              { headers: authHeader },
+              `${PROXY_URL}/collections/${encodeURIComponent(collectionId)}/photos?${params}`,
             );
             throwForStatus(res);
             return res.json();
@@ -112,7 +114,7 @@ export function useUnsplash(
         } else if (source === 'official') {
           params.set('featured', 'true');
         }
-        const res = await fetch(`https://api.unsplash.com/photos/random?${params}`, { headers: authHeader });
+        const res = await fetch(`${PROXY_URL}/photos/random?${params}`);
         throwForStatus(res);
         data = await res.json();
       }
@@ -128,12 +130,20 @@ export function useUnsplash(
       setAttribution(next);
       setImageUrl(next.imageUrl);
       storageLocal.set(CACHE_KEY, next);
+
+      // Unsplash requires a download_location ping whenever a photo is
+      // actually put to use, so photographer download counts stay accurate.
+      // Fire-and-forget through the proxy — never blocks the UI.
+      if (data.links.download_location) {
+        const downloadUrl = data.links.download_location.replace(UNSPLASH_API_ORIGIN, PROXY_URL);
+        fetch(downloadUrl).catch(() => {});
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Fetch failed');
     } finally {
       setIsFetching(false);
     }
-  }, [apiKey, uc?.source, uc?.query, uc?.topics, uc?.collectionId]);
+  }, [proxyReady, uc?.source, uc?.query, uc?.topics, uc?.collectionId]);
 
   // Keep ref current
   useEffect(() => { fetchRef.current = fetchImage; }, [fetchImage]);
@@ -149,7 +159,7 @@ export function useUnsplash(
       }
       // 'every new tab' mode always fetches a fresh photo on load rather than
       // trusting the cache, even if a cached attribution already exists.
-      if (apiKey && (!cached || uc?.rotationInterval === 0)) {
+      if (proxyReady && (!cached || uc?.rotationInterval === 0)) {
         fetchRef.current();
       }
     });
@@ -162,17 +172,17 @@ export function useUnsplash(
   const queryKey = JSON.stringify([uc?.source, uc?.query, uc?.topics, uc?.collectionId]);
   const prevQueryKey = useRef(queryKey);
   useEffect(() => {
-    if (!isActive || !apiKey) return;
+    if (!isActive || !proxyReady) return;
     if (prevQueryKey.current === queryKey) return;
     prevQueryKey.current = queryKey;
     const t = setTimeout(() => fetchRef.current(), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(t);
-  }, [isActive, apiKey, queryKey]);
+  }, [isActive, proxyReady, queryKey]);
 
   // Rotation scheduler — reruns after each successful fetch (attribution dep)
   const fetchedAt = attribution?.fetchedAt ?? 0;
   useEffect(() => {
-    if (!isActive || !apiKey || !fetchedAt) return;
+    if (!isActive || !proxyReady || !fetchedAt) return;
     const rotation = uc.rotationInterval ?? 900;
     // 0 = 'every new tab' — only fetches on (re)mount, never on a recurring timer.
     if (rotation === 0) return;
@@ -181,7 +191,7 @@ export function useUnsplash(
     const t = setTimeout(() => fetchRef.current(), delay);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isActive, apiKey, uc?.rotationInterval, fetchedAt]);
+  }, [isActive, proxyReady, uc?.rotationInterval, fetchedAt]);
 
   return {
     attribution,
