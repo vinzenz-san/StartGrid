@@ -48,7 +48,6 @@ export interface UnsplashConfig extends BackgroundShared {
   source?: 'official' | 'topics' | 'search' | 'collection';
   rotationInterval?: number; // seconds between photo changes; 0 = fetch fresh every new tab, default 900
   showAttribution?: boolean; // default true
-  apiKey?: string;           // stored in sync; user-supplied
   // attribution data cached alongside the image url
   photographerName?: string;
   photographerUrl?: string;
