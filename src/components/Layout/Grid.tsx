@@ -29,20 +29,22 @@ export default function Grid() {
   const [devPanelPos,       setDevPanelPos]       = useState<DevPanelPos | null>(null);
   const gearDarkVariant = useBackgroundContrast(gearBtnRef);
 
-  // .sg-grid's own padding is var(--gap) (Grid.css), so the drag-math padding
-  // constant is just gridConfig.gap — not a separate value to keep in sync.
-  // cellWidth itself isn't needed here: column width is always derived from
-  // the container's actual rendered width / columns (responsive), the same
-  // way it worked before gridConfig existed — only row height (cellHeight)
-  // is a fixed value pulled directly from config.
+  // .sg-grid's own padding is var(--gap) / 2 (Grid.css — gap is applied via
+  // each widget's own margin rather than the grid `gap` property, so the
+  // container's leading padding is only half a gap; see the symmetric-gap
+  // inset work in WidgetContainer.css). cellWidth itself isn't needed here:
+  // column width is always derived from the container's actual rendered
+  // width / columns (responsive), the same way it worked before gridConfig
+  // existed — only row height (cellHeight) is a fixed value pulled directly
+  // from config.
   const { columns, cellHeight, gap } = gridConfig;
 
   const cellFromPoint = (clientX: number, clientY: number) => {
     const rect = gridRef.current!.getBoundingClientRect();
     const colW = (rect.width - gap * 2 - gap * (columns - 1)) / columns;
     return {
-      col: Math.max(1, Math.floor((clientX - rect.left  - gap) / (colW       + gap)) + 1),
-      row: Math.max(1, Math.floor((clientY - rect.top   - gap) / (cellHeight + gap)) + 1),
+      col: Math.max(1, Math.floor((clientX - rect.left  - gap / 2) / (colW       + gap)) + 1),
+      row: Math.max(1, Math.floor((clientY - rect.top   - gap / 2) / (cellHeight + gap)) + 1),
     };
   };
 
