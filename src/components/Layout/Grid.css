@@ -240,11 +240,16 @@ html.sg-glow-all-widgets .sg-widget {
   position: relative; /* anchors .sg-grid-glow-overlay below */
   /* Column count + cell size are user-configurable (GridConfigContext) —
      --grid-cols/--cell-w/--cell-h/--gap are injected as runtime custom
-     properties there, with static fallbacks in index.css for pre-hydration. */
-  grid-template-columns: repeat(var(--grid-cols), var(--cell-w));
-  grid-auto-rows: var(--cell-h);
-  gap: var(--gap);
-  padding: var(--gap);
+     properties there, with static fallbacks in index.css for pre-hydration.
+     Track size is cell + gap (the "pitch" between column/row starts) rather
+     than a bare cell size — gap is applied via each widget's own margin
+     (see .sg-widget) instead of the grid `gap` property, so every widget
+     gets an equal inset on all 4 sides instead of CSS Grid's `gap` only
+     ever showing up on the trailing (right/bottom) side of each cell. */
+  grid-template-columns: repeat(var(--grid-cols), calc(var(--cell-w) + var(--gap)));
+  grid-auto-rows: calc(var(--cell-h) + var(--gap));
+  gap: 0;
+  padding: calc(var(--gap) / 2);
   align-content: start;
   /* Strictly content-driven height (Grid.tsx computes --content-rows —
      exactly the bottom-most occupied widget row when idle, +5 rows of
@@ -326,7 +331,7 @@ html.sg-glow-all-widgets .sg-widget {
      inside-the-padding cell area — i.e. column 1 / row 1's true edge —
      without any manual pixel-offset arithmetic to keep in sync with
      .sg-grid's own padding value. */
-  padding: var(--gap);
+  padding: calc(var(--gap) / 2);
   box-sizing: border-box;
   background-origin: content-box;
   background-repeat: repeat;
@@ -386,6 +391,9 @@ html.sg-grid-glow-hover .sg-grid-glow-overlay {
   border: 2px dashed var(--accent);
   pointer-events: none;
   transition: grid-column 0.05s, grid-row 0.05s;
+  /* Match .sg-widget's own symmetric gap-inset margin so the drop preview
+     lines up with where the real widget will actually render. */
+  margin: calc(var(--gap) / 2);
 }
 
 .sg-drop-ghost--invalid {

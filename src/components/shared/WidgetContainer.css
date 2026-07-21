@@ -5,6 +5,11 @@
   background: none;
   border-radius: var(--radius);
   overflow: hidden;
+  /* Grid track size is cell + gap (see .sg-grid) — this margin eats the gap
+     back on all 4 sides, so widgets get a symmetric inset instead of CSS
+     Grid's `gap` property, which only ever shows up trailing (right/bottom)
+     a cell, never leading (left/top). */
+  margin: calc(var(--gap) / 2);
   border: 1px solid rgba(255, 255, 255, calc(0.06 * var(--widget-bg-opacity, 1)));
   box-shadow: 0 4px 20px rgba(0, 0, 0, calc(var(--widget-shadow-opacity, 75) / 100 * var(--widget-bg-opacity, 1) * 0.40)),
               0 1px 6px  rgba(0, 0, 0, calc(var(--widget-shadow-opacity, 75) / 100 * var(--widget-bg-opacity, 1) * 0.24)),
