@@ -1,10 +1,10 @@
-# Abhängigkeiten
+# Dependencies
 node_modules/
 
-# Build-Ergebnis
+# Build output
 dist/
 
-# System-Dateien
+# System files
 .DS_Store
 *.log
 .vscode/
@@ -17,3 +17,9 @@ dist.zip
 # Environment variables (API keys) — never commit, .env.example is the template
 .env
 .env.local
+
+# Claude specific folder
+.claude/
+
+# Local Windows helper scripts
+*.bat

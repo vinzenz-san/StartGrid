@@ -23,11 +23,11 @@ function localDateKey(d: Date): string {
 // Narrow weekday initials (Su/Mo/Tu/…) for the monthly grid header, derived
 // from a known-Sunday-start week rather than a hardcoded array — follows the
 // active locale's own weekday naming.
-function getDowLabels(locale: string): string[] {
+function getDowLabels(locale: string, firstDayOfWeek: 0 | 1 = 0): string[] {
   const sunday = new Date(2023, 0, 1); // a Sunday
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(sunday);
-    d.setDate(sunday.getDate() + i);
+    d.setDate(sunday.getDate() + firstDayOfWeek + i);
     return new Intl.DateTimeFormat(locale, { weekday: 'narrow' }).format(d);
   });
 }
@@ -252,13 +252,13 @@ function EventDetailsPopover({
 
 // ── Monthly grid ──────────────────────────────────────────────────────────────
 
-function MonthlyCalendar({ events, showAllDay, locale, prevMonthLabel, nextMonthLabel, allDayLabel, noEventsLabel, closeAriaLabel, locationLabel, descriptionLabel }: { events: CalendarEvent[]; showAllDay: boolean; locale: string; prevMonthLabel: string; nextMonthLabel: string; allDayLabel: string; noEventsLabel: string; closeAriaLabel: string; locationLabel: string; descriptionLabel: string }) {
+function MonthlyCalendar({ events, showAllDay, locale, firstDayOfWeek, prevMonthLabel, nextMonthLabel, allDayLabel, noEventsLabel, closeAriaLabel, locationLabel, descriptionLabel }: { events: CalendarEvent[]; showAllDay: boolean; locale: string; firstDayOfWeek: 0 | 1; prevMonthLabel: string; nextMonthLabel: string; allDayLabel: string; noEventsLabel: string; closeAriaLabel: string; locationLabel: string; descriptionLabel: string }) {
   const [display, setDisplay] = useState(() => { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d; });
   const [selected, setSelected] = useState<SelectedDay | null>(null);
-  const dowLabels = getDowLabels(locale);
+  const dowLabels = getDowLabels(locale, firstDayOfWeek);
   const monthLabel = new Intl.DateTimeFormat(locale, { month: 'short' }).format(display);
   const year = display.getFullYear(), month = display.getMonth();
-  const firstDow = new Date(year, month, 1).getDay();
+  const firstDow = (new Date(year, month, 1).getDay() - firstDayOfWeek + 7) % 7;
   const daysInMonth = new Date(year, month+1, 0).getDate();
   const today = localDateKey(new Date());
 
@@ -336,6 +336,7 @@ export function CalendarSettings({ data, onUpdateData }: SettingsProps) {
   const maxDays    = data.maxDays    ?? 3;
   const showAllDay = data.showAllDay ?? true;
   const viewMode   = data.viewMode   ?? 'agenda';
+  const firstDayOfWeek = data.firstDayOfWeek ?? 0;
   const { isConnected, isConnecting, email, error, connect, disconnect } = useGoogleAuth();
 
   return (
@@ -347,6 +348,16 @@ export function CalendarSettings({ data, onUpdateData }: SettingsProps) {
           onChange={v => onUpdateData({ viewMode: v })}
         />
       </SettingsRow>
+
+      {viewMode === 'monthly' && (
+        <SettingsRow label={t('widget.calendar.firstDayOfWeek')}>
+          <SegmentedControl
+            options={[{ value: 'sunday', label: t('widget.calendar.firstDaySunday') }, { value: 'monday', label: t('widget.calendar.firstDayMonday') }]}
+            value={firstDayOfWeek === 1 ? 'monday' : 'sunday'}
+            onChange={v => onUpdateData({ firstDayOfWeek: v === 'monday' ? 1 : 0 })}
+          />
+        </SettingsRow>
+      )}
 
       {viewMode === 'agenda' && (
         <SettingsRow label={t('widget.calendar.daysAhead')}>
@@ -403,6 +414,7 @@ export default function Calendar({ data, onUpdateData: _onUpdateData }: Props) {
   const maxDays    = data.maxDays    ?? 3;
   const showAllDay = data.showAllDay ?? true;
   const viewMode   = data.viewMode   ?? 'agenda';
+  const firstDayOfWeek = data.firstDayOfWeek ?? 0;
 
   useEffect(() => { refresh(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { refresh(); }, [isConnected]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -443,6 +455,7 @@ export default function Calendar({ data, onUpdateData: _onUpdateData }: Props) {
             events={events}
             showAllDay={showAllDay}
             locale={locale}
+            firstDayOfWeek={firstDayOfWeek}
             prevMonthLabel={t('widget.calendar.prevMonth')}
             nextMonthLabel={t('widget.calendar.nextMonth')}
             allDayLabel={t('widget.calendar.allDay')}

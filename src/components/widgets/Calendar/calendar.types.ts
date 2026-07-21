@@ -4,6 +4,7 @@ export interface CalendarData {
   maxDays: number;               // 1–28, default 3
   showAllDay: boolean;           // include all-day events, default true
   viewMode?: 'agenda' | 'monthly'; // default 'agenda'
+  firstDayOfWeek?: 0 | 1;         // 0=Sunday, 1=Monday; monthly view only, default 0
 }
 
 // ── API-mirroring types (matches Google Calendar REST API event resource) ──────
