@@ -54,6 +54,23 @@
   gap: 7px;
 }
 
+/* White regardless of theme — the logo is a solid dark mark and needs a
+   fixed light backdrop to stay visible against both light and dark panels. */
+.sg-settings-brand-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.sg-settings-brand-badge img {
+  display: block;
+}
+
 .sg-settings-title {
   font-size: 14px;
   font-weight: 700;

@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 4747;
-const DIST = path.join(__dirname, 'dist');
+const DIST = path.join(__dirname, 'dist', 'chrome');
 
 const MIME = {
   '.html': 'text/html',
