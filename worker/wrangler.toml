@@ -1,0 +1,6 @@
+name = "startgrid-unsplash-proxy"
+main = "unsplash-proxy.ts"
+compatibility_date = "2024-01-01"
+
+# Set the secret via: wrangler secret put UNSPLASH_ACCESS_KEY
+# Optionally restrict CORS via: wrangler secret put ALLOWED_ORIGIN
