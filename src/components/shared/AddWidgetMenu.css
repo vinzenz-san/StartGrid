@@ -1,0 +1,101 @@
+/* ── Add Widget menu — shared base (sidebar layout) ───────────────────────── */
+.sg-widget-add-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.sg-widget-add-toggle {
+  width: 100%;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--accent-hover);
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  background: rgba(99, 102, 241, 0.10);
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.12s, border-color 0.12s;
+}
+.sg-widget-add-toggle:hover,
+.sg-widget-add-toggle.active { background: rgba(99, 102, 241, 0.22); }
+
+.sg-widget-add-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0;
+}
+
+.sg-widget-add-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.12s;
+  text-align: left;
+  width: 100%;
+  border: none;
+  background: transparent;
+}
+.sg-widget-add-item:hover { background: var(--surface-hover); }
+
+.sg-widget-add-icon { font-size: 15px; }
+
+/* ── Floating variant (Grid.tsx, top-centered edit-mode button) ───────────
+   The floating instance sits directly on the dashboard with no panel card
+   behind it, so — unlike the sidebar instance, which inherits its card from
+   .sg-panel-section — it needs its own background/border/shadow on the
+   dropdown, matching the existing .sg-widget-float-panel convention
+   (WidgetContainer.css) for visual consistency with other floating panels. */
+.sg-add-widget-floating {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9000;
+  width: auto;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.sg-root--edit .sg-add-widget-floating {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sg-add-widget-floating .sg-widget-add-toggle {
+  width: auto;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 20px;
+  border-radius: 999px;
+  background: rgba(15, 17, 23, 0.85);
+  border: 1px solid var(--accent);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+}
+.sg-add-widget-floating .sg-widget-add-toggle:hover,
+.sg-add-widget-floating .sg-widget-add-toggle.active {
+  background: rgba(99, 102, 241, 0.28);
+}
+
+.sg-add-widget-floating .sg-widget-add-list {
+  margin-top: 8px;
+  min-width: 200px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+}

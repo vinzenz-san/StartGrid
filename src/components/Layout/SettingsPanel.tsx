@@ -18,11 +18,10 @@ import ThemeToggle from '../shared/ThemeToggle';
 import { useWidgets } from '../../contexts/WidgetContext';
 import { useGridConfig } from '../../contexts/GridConfigContext';
 import { useApplyGridConfig } from '../../hooks/useApplyGridConfig';
-import { WIDGET_REGISTRY, WIDGET_MENU_TYPES, WIDGET_TYPE_LABEL_KEYS } from '../widgets/registry';
-import { findFreePosition, compactWidgets } from '../../lib/gridUtils';
+import { compactWidgets } from '../../lib/gridUtils';
 import { DEFAULT_BG } from '../../types/background';
+import AddWidgetMenu from '../shared/AddWidgetMenu';
 import type { Language, SettingsButtonPosition } from '../../contexts/SettingsContext';
-import type { WidgetType } from '../../types/widget';
 import { DEFAULT_GRID_CONFIG, type GridConfig } from '../../types/grid';
 import './SettingsPanel.css';
 
@@ -63,13 +62,12 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
   const panelRef = useRef<HTMLDivElement>(null);
   const { config, setConfig } = useBackground();
   const { isEditMode, toggleEditMode } = useEditMode();
-  const { widgets, addWidget, updateWidget, replaceAllWidgets } = useWidgets();
+  const { widgets, updateWidget, replaceAllWidgets } = useWidgets();
   const { gridConfig } = useGridConfig();
   const { applyGridConfig } = useApplyGridConfig();
   const [devConfirmOpen,   setDevConfirmOpen]   = useState(false);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const [pickerOpen,       setPickerOpen]       = useState(false);
-  const [addMenuOpen,      setAddMenuOpen]      = useState(false);
   // Draft grid geometry — sliders edit this local copy so dragging doesn't
   // trigger a rescale/repack on every tick; the user commits explicitly via
   // the confirm dialog below.
@@ -112,13 +110,6 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
       });
     e.target.value = '';
   }
-
-  const handleAddWidget = (type: WidgetType) => {
-    const { defaultSize, defaultData } = WIDGET_REGISTRY[type];
-    const { col, row } = findFreePosition(widgets, gridConfig.columns, defaultSize.w, defaultSize.h);
-    addWidget({ type, col, row, w: defaultSize.w, h: defaultSize.h, data: defaultData });
-    setAddMenuOpen(false);
-  };
 
   const gridDraftDirty = draftGrid.columns !== gridConfig.columns
     || draftGrid.cellWidth !== gridConfig.cellWidth
@@ -261,29 +252,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
             </SettingsRow>
 
             {/* Add Widget */}
-            <div className="sg-widget-add-section">
-              <button
-                className={`sg-widget-add-toggle${addMenuOpen ? ' active' : ''}`}
-                onClick={() => setAddMenuOpen(o => !o)}
-              >
-                {t('widgets.addWidget')}
-              </button>
-              {addMenuOpen && (
-                <div className="sg-widget-add-list">
-                  {WIDGET_MENU_TYPES
-                    .filter(type => !WIDGET_REGISTRY[type].devOnly || developerOptionsEnabled)
-                    .map(type => {
-                      const { icon } = WIDGET_REGISTRY[type];
-                      return (
-                        <button key={type} className="sg-widget-add-item" onClick={() => handleAddWidget(type)}>
-                          <span className="sg-widget-add-icon">{icon}</span>
-                          {t(WIDGET_TYPE_LABEL_KEYS[type])}
-                        </button>
-                      );
-                    })}
-                </div>
-              )}
-            </div>
+            <AddWidgetMenu />
 
             <SwatchPicker
               isDark={isDark}
