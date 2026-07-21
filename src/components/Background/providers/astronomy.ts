@@ -1,17 +1,24 @@
 import { AstronomyConfig, BackgroundProviderDef } from '../../../types/background';
 
-// NASA APOD API — DEMO_KEY is heavily rate-limited (30 req/hr, 50/day) but
-// requires no signup. Set APP_NASA_API_KEY in .env (see .env.example) for a
-// real key with much higher limits; statically injected at build time via
-// rspack.config.ts's DefinePlugin (Rspack has no Vite-style import.meta.env
-// of its own — APP_ prefix, not VITE_, since this project is Rspack-based).
-// Falls back to DEMO_KEY — with a console notice — so a fresh clone with no
-// .env still builds and runs.
+// NASA APOD API. When APP_MEDIA_PROXY_URL is set (see .env.example), requests
+// go through the Cloudflare Worker in worker/api-proxy.ts, which attaches the
+// real key server-side — nothing NASA-related ships in the extension bundle.
+// Without a proxy configured (e.g. local dev on a fresh clone), falls back to
+// calling NASA directly with APP_NASA_API_KEY, or NASA's heavily rate-limited
+// DEMO_KEY (30 req/hr, 50/day) if that's unset either — with a console notice.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const MEDIA_PROXY_URL = ((import.meta as any).env.APP_MEDIA_PROXY_URL || '').replace(/\/$/, '');
 const NASA_API_KEY = (import.meta as any).env.APP_NASA_API_KEY || ''; // eslint-disable-line @typescript-eslint/no-explicit-any
-if (!NASA_API_KEY) {
-  console.info('[astronomy] APP_NASA_API_KEY not set — falling back to NASA\'s heavily rate-limited DEMO_KEY. See .env.example.');
+
+let APOD_BASE: string;
+if (MEDIA_PROXY_URL) {
+  APOD_BASE = `${MEDIA_PROXY_URL}/nasa/planetary/apod`;
+} else {
+  if (!NASA_API_KEY) {
+    console.info('[astronomy] Neither APP_MEDIA_PROXY_URL nor APP_NASA_API_KEY set — falling back to NASA\'s heavily rate-limited DEMO_KEY. See .env.example.');
+  }
+  APOD_BASE = `https://api.nasa.gov/planetary/apod?api_key=${NASA_API_KEY || 'DEMO_KEY'}`;
 }
-const APOD_BASE = `https://api.nasa.gov/planetary/apod?api_key=${NASA_API_KEY || 'DEMO_KEY'}`;
 
 // Dark space-themed fallback — used when NASA's Picture of the Day is a
 // video (media_type !== 'image') or the fetch fails outright.
@@ -36,7 +43,8 @@ interface ApodResponse {
 // callers know to fall back to FALLBACK_CSS instead of treating it as an error.
 // Pass a YYYY-MM-DD `date` to fetch a specific day's APOD instead of today's.
 export async function fetchApodImage(date?: string): Promise<ApodImageResult | null> {
-  const endpoint = date ? `${APOD_BASE}&date=${date}` : APOD_BASE;
+  const joiner = APOD_BASE.includes('?') ? '&' : '?';
+  const endpoint = date ? `${APOD_BASE}${joiner}date=${date}` : APOD_BASE;
   const res = await fetch(endpoint);
   if (!res.ok) throw new Error(`Error ${res.status}`);
   const data = await res.json() as ApodResponse;

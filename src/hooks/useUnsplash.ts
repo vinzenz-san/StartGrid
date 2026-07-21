@@ -27,12 +27,12 @@ export function extractCollectionId(raw: string): string {
 }
 
 // Statically injected at build time via rspack.config.ts's DefinePlugin
-// (same Rspack/no-Vite pattern as astronomy.ts's NASA key — APP_ prefix,
-// not VITE_, since this project is Rspack-based). All Unsplash requests go
-// through this Cloudflare Worker, which attaches the real Access Key
-// server-side — the key never ships in the extension bundle.
+// (Rspack has no Vite-style import.meta.env of its own — APP_ prefix, not
+// VITE_). All Unsplash requests go through this Cloudflare Worker (shared
+// with astronomy.ts's NASA calls — see worker/api-proxy.ts), which attaches
+// the real Access Key server-side — the key never ships in the extension bundle.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const PROXY_URL = ((import.meta as any).env.APP_UNSPLASH_PROXY_URL || '').replace(/\/$/, '');
+const PROXY_URL = ((import.meta as any).env.APP_MEDIA_PROXY_URL || '').replace(/\/$/, '');
 const UNSPLASH_API_ORIGIN = 'https://api.unsplash.com';
 
 export function useUnsplash(
