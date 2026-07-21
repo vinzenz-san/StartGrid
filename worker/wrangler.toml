@@ -1,6 +1,11 @@
+# Service name kept as-is (already deployed) even though this Worker now
+# proxies both Unsplash and NASA — renaming would mint a new .workers.dev
+# URL and orphan the deployed one.
 name = "startgrid-unsplash-proxy"
-main = "unsplash-proxy.ts"
+main = "api-proxy.ts"
 compatibility_date = "2024-01-01"
 
-# Set the secret via: wrangler secret put UNSPLASH_ACCESS_KEY
+# Set secrets via:
+#   wrangler secret put UNSPLASH_ACCESS_KEY
+#   wrangler secret put NASA_API_KEY
 # Optionally restrict CORS via: wrangler secret put ALLOWED_ORIGIN

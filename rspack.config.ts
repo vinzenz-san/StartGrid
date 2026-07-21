@@ -78,7 +78,7 @@ export default (env: { target?: string } = {}) => {
       // rather than the build crashing on undefined.
       new rspack.DefinePlugin({
         'import.meta.env.APP_NASA_API_KEY': JSON.stringify(envVars.APP_NASA_API_KEY || ''),
-        'import.meta.env.APP_UNSPLASH_PROXY_URL': JSON.stringify(envVars.APP_UNSPLASH_PROXY_URL || ''),
+        'import.meta.env.APP_MEDIA_PROXY_URL': JSON.stringify(envVars.APP_MEDIA_PROXY_URL || ''),
       }),
       new rspack.HtmlRspackPlugin({
         template: './src/newtab.html',
