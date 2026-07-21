@@ -6,6 +6,7 @@ import { useSettings } from '../../contexts/SettingsContext';
 import { dragState } from '../../lib/dragState';
 import { isPositionFree } from '../../lib/gridUtils';
 import WidgetContainer from '../shared/WidgetContainer';
+import AddWidgetMenu from '../shared/AddWidgetMenu';
 import ThemeToggle from '../shared/ThemeToggle';
 import GearIcon from '../shared/icons/GearIcon';
 import SettingsPanel from './SettingsPanel';
@@ -90,6 +91,12 @@ export default function Grid() {
   return (
     <ElementInspectorProvider enabled={developerOptionsEnabled && elementInspectorEnabled}>
     <div className={`sg-root${isEditMode ? ' sg-root--edit' : ''}`}>
+
+      {/* Top-centered, edit-mode-only shortcut to the same Add Widget menu
+          that lives in the Settings Sidebar — always rendered, opacity/
+          pointer-events gated by .sg-root--edit so it fades in/out with the
+          rest of edit mode's chrome rather than popping in abruptly. */}
+      <AddWidgetMenu className="sg-add-widget-floating" />
 
       {/* ── Floating control cluster ── */}
       {(() => {
