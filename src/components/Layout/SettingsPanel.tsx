@@ -196,21 +196,9 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
             title={settingsPinned ? t('settings.unpinPanel') : t('settings.pinPanel')}
           />
           <div className="sg-settings-brand">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="M12 2L20.66 7V17L12 22L3.34 17V7L12 2Z"
-                fill="var(--accent)"
-                fillOpacity="0.2"
-                stroke="var(--accent)"
-                strokeWidth="1.5"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M12 7L16.33 9.5V14.5L12 17L7.67 14.5V9.5L12 7Z"
-                fill="var(--accent)"
-                fillOpacity="0.5"
-              />
-            </svg>
+            <span className="sg-settings-brand-badge">
+              <img src="icons/icon-48.png" width="14" height="14" alt="" aria-hidden="true" />
+            </span>
             <span className="sg-settings-title">{APP_NAME}</span>
           </div>
         </div>
