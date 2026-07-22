@@ -46,6 +46,8 @@ export function GreetingSettings({ data, onUpdateData }: SettingsProps) {
     { value: 'left',   label: t('widget.quicklinks.align.left') },
     { value: 'center', label: t('widget.quicklinks.align.center') },
     { value: 'right',  label: t('widget.quicklinks.align.right') },
+    { value: 'top',    label: t('widget.quicklinks.align.top') },
+    { value: 'bottom', label: t('widget.quicklinks.align.bottom') },
   ];
 
   return (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { ClockData } from '../../../types/widget';
+import type { ClockData, WidgetAlignment } from '../../../types/widget';
 import { SettingsRow, SegmentedControl, SettingsSwitch, Dropdown, FontSettingsPanel, DisplaySettingsPanel } from '../../shared/Form';
 import { DetailedSettings } from '../../Layout/DetailedSettings';
 import { useSettings } from '../../../contexts/SettingsContext';
@@ -84,12 +84,20 @@ interface SettingsProps {
 export function ClockSettings({ data, onUpdateData }: SettingsProps) {
   const { t } = useSettings();
   const { format = '24h', showSeconds = true, showDate = true,
-          timezone = 'local' } = data;
+          timezone = 'local', alignment = 'center' } = data;
 
   const TIMEZONE_OPTIONS: { value: string; label: string }[] = [
     { value: 'local', label: `${t('widget.clock.tzLocal')} (${gmtOffsetLabel(undefined)})` },
     { value: 'UTC',   label: `${t('widget.clock.tzUtc')} (${gmtOffsetLabel('UTC')})` },
     ...TIMEZONE_IDS.map(id => ({ value: id as string, label: `${TIMEZONE_CITY_LABELS[id]} (${gmtOffsetLabel(id)})` })),
+  ];
+
+  const ALIGNMENT_OPTIONS: { value: WidgetAlignment; label: string }[] = [
+    { value: 'left',   label: t('widget.quicklinks.align.left') },
+    { value: 'center', label: t('widget.quicklinks.align.center') },
+    { value: 'right',  label: t('widget.quicklinks.align.right') },
+    { value: 'top',    label: t('widget.quicklinks.align.top') },
+    { value: 'bottom', label: t('widget.quicklinks.align.bottom') },
   ];
 
   return (
@@ -107,6 +115,13 @@ export function ClockSettings({ data, onUpdateData }: SettingsProps) {
           value={timezone}
           onChange={v => onUpdateData({ timezone: v })}
           menuWidth="auto"
+        />
+      </SettingsRow>
+      <SettingsRow label={t('widget.greeting.alignment')}>
+        <Dropdown
+          options={ALIGNMENT_OPTIONS}
+          value={alignment}
+          onChange={v => onUpdateData({ alignment: v })}
         />
       </SettingsRow>
 
@@ -146,7 +161,7 @@ interface Props {
 export default function Clock({ data }: Props) {
   const { language } = useSettings();
   const { format = '24h', showSeconds = true, showDate = true,
-          timezone = 'local' } = data;
+          timezone = 'local', alignment = 'center' } = data;
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -165,7 +180,7 @@ export default function Clock({ data }: Props) {
   const { wrapper, fontSize: timeFontSize, dateFontSize } = resolveDisplayStyle(data.displaySettings);
 
   return (
-    <div className="sg-clock" style={wrapper}>
+    <div className={`sg-clock sg-clock--align-${alignment}`} style={wrapper}>
       <div className="sg-clock-time" style={{ ...fontStyle, fontSize: timeFontSize }}>{formatTime(now, format, showSeconds, timezone)}</div>
       {showDate && <div className="sg-clock-date" style={{ ...fontStyle, fontSize: dateFontSize }}>{dateStr}</div>}
     </div>
