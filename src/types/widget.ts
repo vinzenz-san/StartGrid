@@ -32,6 +32,10 @@ export interface ClockData {
   showDate: boolean;
   /** IANA timezone id (e.g. 'Europe/Berlin'), or 'local' for the system timezone. Default 'local'. */
   timezone?: string;
+  /** left/right/center control horizontal placement; top/bottom control
+   *  vertical placement (the widget's flex-direction is column, so these
+   *  map to align-items vs justify-content respectively). Default 'center'. */
+  alignment?: WidgetAlignment;
   fontSettings?: FontSettings;
   displaySettings?: DisplaySettings;
 }

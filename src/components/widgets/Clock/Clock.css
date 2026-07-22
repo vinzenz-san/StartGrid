@@ -9,7 +9,18 @@
   position: relative;
   padding: 12px;
   user-select: none;
+  text-align: center;
 }
+
+/* ── Alignment ──────────────────────────────────────
+   flex-direction is column: left/center/right map to the cross-axis
+   (align-items + text-align), top/bottom map to the main axis
+   (justify-content). Unset dimensions stay at the centered default. */
+.sg-clock--align-left   { align-items: flex-start; text-align: left; }
+.sg-clock--align-center { align-items: center;     text-align: center; }
+.sg-clock--align-right  { align-items: flex-end;   text-align: right; }
+.sg-clock--align-top    { justify-content: flex-start; }
+.sg-clock--align-bottom { justify-content: flex-end; }
 
 .sg-clock-time {
   font-size: 42px;
