@@ -23,7 +23,9 @@ function loadEnvFile(filePath: string): Record<string, string> {
   return result;
 }
 
-export default (env: { target?: string } = {}) => {
+const { version } = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'));
+
+export default (env: { target?: string; production?: boolean } = {}) => {
   const target = (env.target === 'chrome' ? 'chrome' : 'firefox') as 'firefox' | 'chrome';
 
   // .env.local (gitignored, machine-specific) takes precedence over .env (gitignored template-filled copy).
@@ -108,6 +110,11 @@ export default (env: { target?: string } = {}) => {
             to: 'manifest.json',
             force: true,
             priority: 10,
+            transform(content) {
+              const manifest = JSON.parse(content.toString());
+              manifest.version = version;
+              return JSON.stringify(manifest, null, 2);
+            },
           },
         ],
       }),
@@ -118,8 +125,8 @@ export default (env: { target?: string } = {}) => {
     experiments: {
       css: true,
     },
-    mode: 'development',
-    devtool: 'source-map',
+    mode: env.production ? 'production' : 'development',
+    devtool: env.production ? false : 'source-map',
   };
 
   return config;
