@@ -99,6 +99,11 @@ const _registry = {
     icon:          '📅',
     defaultSize:   { w: 2, h: 3 },
     defaultData:   { maxDays: 3, showAllDay: true } satisfies CalendarData,
+    // Hidden from the Add-Widget menu (still reachable via Developer Options)
+    // pending Google OAuth verification of the calendar.readonly scope — see
+    // the comment above SCOPES in googleAuth.ts. Flip this back to unset/false
+    // once verification succeeds, without needing to re-implement anything.
+    devOnly:       true,
     titleBehavior: 'auto',
     renderComponent: (data, onUpdateData) => <Calendar data={data} onUpdateData={onUpdateData} />,
     renderSettings:  (data, onUpdateData) => <CalendarSettings data={data} onUpdateData={onUpdateData} />,

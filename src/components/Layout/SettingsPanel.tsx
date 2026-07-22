@@ -66,6 +66,22 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
   const { gridConfig } = useGridConfig();
   const { applyGridConfig } = useApplyGridConfig();
   const [devConfirmOpen,   setDevConfirmOpen]   = useState(false);
+  // Developer Options stays hidden from the settings list until unlocked by
+  // tapping the app title 7 times within 2s of each other (same pattern as
+  // Android's hidden "build number" unlock) — deliberately undiscoverable
+  // by a casual user, unlike the plainly-labeled toggle this used to be.
+  const [devSectionRevealed, setDevSectionRevealed] = useState(false);
+  const titleTapCountRef = useRef(0);
+  const titleTapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  function handleTitleTap() {
+    titleTapCountRef.current += 1;
+    if (titleTapTimerRef.current) clearTimeout(titleTapTimerRef.current);
+    titleTapTimerRef.current = setTimeout(() => { titleTapCountRef.current = 0; }, 2000);
+    if (titleTapCountRef.current >= 7) {
+      titleTapCountRef.current = 0;
+      setDevSectionRevealed(true);
+    }
+  }
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const [pickerOpen,       setPickerOpen]       = useState(false);
   // Draft grid geometry — sliders edit this local copy so dragging doesn't
@@ -199,7 +215,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
             <span className="sg-settings-brand-badge">
               <img src="icons/icon-48.png" width="14" height="14" alt="" aria-hidden="true" />
             </span>
-            <span className="sg-settings-title">{APP_NAME}</span>
+            <span className="sg-settings-title" onClick={handleTitleTap}>{APP_NAME}</span>
           </div>
         </div>
         {!settingsPinned && (
@@ -419,15 +435,17 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
             </ActionButton>
           </PanelSection>
 
-          {/* ══ 6. DEVELOPER OPTIONS ══ */}
-          <PanelSection title={t('dev.sectionTitle')} collapsible persistenceKey="developerOptions">
-            <SettingsRow label={t('dev.enableDevMode')}>
-              <SettingsSwitch
-                checked={developerOptionsEnabled}
-                onChange={v => { if (v) setDevConfirmOpen(true); else updateSettings({ developerOptionsEnabled: false }); }}
-              />
-            </SettingsRow>
-          </PanelSection>
+          {/* ══ 6. DEVELOPER OPTIONS (hidden until unlocked — see handleTitleTap) ══ */}
+          {(devSectionRevealed || developerOptionsEnabled) && (
+            <PanelSection title={t('dev.sectionTitle')} collapsible persistenceKey="developerOptions">
+              <SettingsRow label={t('dev.enableDevMode')}>
+                <SettingsSwitch
+                  checked={developerOptionsEnabled}
+                  onChange={v => { if (v) setDevConfirmOpen(true); else updateSettings({ developerOptionsEnabled: false }); }}
+                />
+              </SettingsRow>
+            </PanelSection>
+          )}
 
         </PanelSectionList>
         </SettingsPanelOpenContext.Provider>
