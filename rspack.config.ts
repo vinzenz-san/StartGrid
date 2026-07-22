@@ -43,6 +43,14 @@ export default (env: { target?: string; production?: boolean } = {}) => {
       path: path.resolve(__dirname, 'dist', target),
       filename: '[name].js',
       clean: true,
+      // Both target browsers have supported globalThis since 2018 — telling
+      // rspack this lets it skip generating the Function("return this")()
+      // fallback in its runtime helper, which AMO's linter (no-unsanitized)
+      // flags as an eval-equivalent, even though it's unreachable dead code
+      // in a Manifest V3 extension context.
+      environment: {
+        globalThis: true,
+      },
     },
     module: {
       rules: [
@@ -52,6 +60,13 @@ export default (env: { target?: string; production?: boolean } = {}) => {
             loader: 'builtin:swc-loader',
             options: {
               jsc: {
+                // Without an explicit target, swc downlevels async/await into
+                // a generator+Promise "__awaiter" wrapper (calling the inner
+                // fn via .apply()) — AMO's linter flags that .apply() call as
+                // an unsanitized dynamic callable. Both target browsers
+                // (Firefox 109+, current Chrome) support ES2020 natively, so
+                // there's nothing to downlevel here.
+                target: 'es2020',
                 parser: {
                   syntax: 'typescript',
                   tsx: true,

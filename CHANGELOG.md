@@ -1,11 +1,16 @@
 # Changelog
 
-Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer, pre-1.0 (no public release yet — 1.0.0 is reserved for first store release). Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
+Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
-## [Unreleased]
+## [1.0.0] — First public release
 - Build: version now sourced solely from `package.json`, injected into both manifests at build time
 - Build: production builds now minify and drop source maps (`mode` was hardcoded to `development`)
-- Google OAuth verification submitted, pending review
+- Security: Google OAuth switched from implicit flow to authorization code + PKCE with refresh tokens, so Google Sign-In no longer expires hourly; token exchange proxied through the existing Cloudflare Worker (Google's Web application client type requires `client_secret` at exchange, which can't live in extension code)
+- Removed the Gmail widget: `gmail.readonly` is a Google-classified "restricted" scope requiring an annual paid CASA security assessment, not worth it for this project's scale
+- The Calendar widget (Google Sign-In, `calendar.readonly`) is temporarily hidden from the normal Add Widget menu pending OAuth verification — reachable via a hidden Developer Options unlock (tap the app title 7× in Settings) for testing
+- Privacy policy updated to disclose bookmarks/tabs access and the Weather widget's geolocation-to-Open-Meteo data flow, previously undocumented
+- Widgets: Greeting gains top/bottom alignment (5 options total); Clock gains a full 5-option alignment control (previously none)
+- Widgets: new Padding slider in the shared Display Settings panel (Clock, Greeting), 0-48px, default 12px
 
 ## [0.11.0] — Release prep: branding, hosting, OAuth submission
 - GitHub Pages marketing site, branding icons
