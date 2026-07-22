@@ -3,7 +3,7 @@
 // Before this extension can authenticate with Google, you must:
 //
 // 1. Go to https://console.cloud.google.com/ and create a project.
-// 2. Enable the Gmail API and Google Calendar API in "APIs & Services".
+// 2. Enable the Google Calendar API in "APIs & Services".
 // 3. Create OAuth 2.0 credentials: "Web application" type. (Google's
 //    "Desktop app" type does not accept the *.chromiumapp.org / allizom.org
 //    redirect URIs that browser.identity.launchWebAuthFlow requires.)
@@ -34,7 +34,6 @@ const TOKEN_ENDPOINT  = `${MEDIA_PROXY_URL}/google-token`;
 // Request the minimum scopes needed for both widgets.
 // These are read-only — the extension cannot modify any user data.
 const SCOPES = [
-  'https://www.googleapis.com/auth/gmail.readonly',
   'https://www.googleapis.com/auth/calendar.readonly',
   'openid',     // gives us id_token so we can show the user's email
   'email',

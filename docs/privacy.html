@@ -68,29 +68,25 @@
 <body>
   <div class="wrap">
     <h1>Privacy Policy</h1>
-    <p class="updated">Last updated: 2026-07-22</p>
+    <p class="updated">Last updated: 2026-07-22 (Gmail integration removed)</p>
 
-    <p>StartGrid is a browser extension (Firefox &amp; Chrome) that replaces your new tab page with a customizable widget grid. This policy explains what data StartGrid accesses, why, and how it's stored — in particular for the optional Gmail and Google Calendar widgets, which require signing in with your Google Account.</p>
+    <p>StartGrid is a browser extension (Firefox &amp; Chrome) that replaces your new tab page with a customizable widget grid. This policy explains what data StartGrid accesses, why, and how it's stored — in particular for the optional Google Calendar widget, which requires signing in with your Google Account.</p>
 
     <h2>Summary</h2>
     <div class="card">
       <ul>
         <li>StartGrid does not operate a backend server that stores your personal data. All settings, cached widget data, and authentication tokens are stored locally in your browser's extension storage.</li>
-        <li>Google Account access is entirely optional, off by default, and only activates when you click "Connect" inside the Gmail or Calendar widget's settings.</li>
-        <li>All Google data access is read-only. StartGrid never sends, deletes, modifies, or shares your email or calendar data.</li>
+        <li>Google Account access is entirely optional, off by default, and only activates when you click "Connect" inside the Calendar widget's settings.</li>
+        <li>All Google data access is read-only. StartGrid never sends, deletes, modifies, or shares your calendar data.</li>
         <li>StartGrid does not sell, rent, or share your data with third parties or advertisers.</li>
       </ul>
     </div>
 
     <h2>Data accessed via Google Sign-In</h2>
-    <p>When you click "Connect" in the Gmail or Calendar widget, StartGrid opens Google's standard OAuth consent screen. If you approve, StartGrid receives an access token scoped to only the permissions listed below — nothing else in your Google Account is touched.</p>
+    <p>When you click "Connect" in the Calendar widget, StartGrid opens Google's standard OAuth consent screen. If you approve, StartGrid receives an access token scoped to only the permissions listed below — nothing else in your Google Account is touched.</p>
 
     <table>
       <tr><th>Scope</th><th>What it's used for</th></tr>
-      <tr>
-        <td><code>gmail.readonly</code></td>
-        <td>Fetches your inbox message list and metadata only — sender, subject, date, and a short snippet — using the Gmail API's <code>metadata</code> response format. Message bodies and attachments are never retrieved. Used to show an unread-count badge and a short preview list on your new tab page. Clicking an email opens it in Gmail itself; StartGrid never displays or stores the full message.</td>
-      </tr>
       <tr>
         <td><code>calendar.readonly</code></td>
         <td>Fetches upcoming events from your primary calendar — title, start/end time, location, color, and a link back to the event — via a field-restricted Calendar API request. Used to render the Calendar widget. No event is ever created, edited, or deleted.</td>
@@ -102,7 +98,7 @@
     </table>
 
     <h2>Where this data is stored</h2>
-    <p>Your Google access token, refresh token (if issued), and the fetched email/event previews are cached only in your browser's local extension storage (<code>browser.storage.local</code>), on your own device. They are never transmitted to any server operated by StartGrid or its developer. Disconnecting the account (or uninstalling the extension) removes this data immediately.</p>
+    <p>Your Google access token, refresh token (if issued), and the fetched event previews are cached only in your browser's local extension storage (<code>browser.storage.local</code>), on your own device. They are never transmitted to any server operated by StartGrid or its developer. Disconnecting the account (or uninstalling the extension) removes this data immediately.</p>
 
     <h2>Bookmarks and tabs</h2>
     <p>The Bookmark Folder, Bookmark Search, and Quicklinks widgets read your browser's bookmark tree (<code>bookmarks</code> permission) to display and let you navigate your bookmarks from the new tab page. This data is read locally and never transmitted anywhere. Clicking a bookmark or quicklink opens it using the <code>tabs</code> permission (<code>tabs.create</code> / <code>tabs.update</code>) — StartGrid does not otherwise read your open tabs' URLs, titles, or content.</p>

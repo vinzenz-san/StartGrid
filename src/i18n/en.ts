@@ -167,7 +167,6 @@ export const en = {
   'widgets.type.quicklinks':     'Quicklinks',
   'widgets.type.bookmarks':      'Bookmark Folder',
   'widgets.type.bookmarkSearch': 'Bookmark Search',
-  'widgets.type.gmail':          'Gmail',
   'widgets.type.calendar':       'Calendar',
   'widgets.type.notes':          'Notes',
   'widgets.type.placeholder':    'Placeholder',
@@ -332,22 +331,6 @@ export const en = {
   'widget.quicklinks.couldNotReadFile':         'Could not read file.',
   'widget.quicklinks.internalUrlClipboard':     "Firefox security restricts opening 'about:' pages directly. The URL '{{url}}' has been copied to your clipboard.",
 
-  // ── Gmail widget ─────────────────────────────────────────────────────────
-  'widget.gmail.maxEmails':     'Max emails',
-  'widget.gmail.showSnippets':  'Show snippets',
-  'widget.gmail.googleAccount': 'Google Account',
-  'widget.gmail.connecting':    'Connecting…',
-  'widget.gmail.connect':       'Connect Google Account',
-  'widget.gmail.disconnect':    'Disconnect account',
-  'widget.gmail.grantNote':     'Grants read-only access to your Gmail inbox.',
-  'widget.gmail.connectPrompt': 'Connect your Google Account to see your inbox.',
-  'widget.gmail.loadError':     'Could not load emails',
-  'widget.gmail.allCaughtUp':   'All caught up!',
-  'widget.gmail.refresh':       'Refresh',
-  'widget.gmail.refreshAria':   'Refresh emails',
-  'widget.gmail.unreadAria':    'Unread',
-  'widget.gmail.title':         'Gmail',
-  'widget.gmail.relativeNow':   'now',
 
   // ── Calendar widget ──────────────────────────────────────────────────────
   'widget.calendar.view':             'View',

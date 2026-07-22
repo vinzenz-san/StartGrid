@@ -85,11 +85,6 @@ export interface BookmarkSearchData {
   maxResults: number;
 }
 
-export interface GmailData {
-  maxEmails: number;
-  showSnippets: boolean;
-}
-
 export interface CalendarData {
   maxDays: number;
   showAllDay: boolean;
@@ -131,7 +126,6 @@ export interface WidgetDataMap {
   quicklinks:     QuicklinksData;
   bookmarks:      BookmarksData;
   bookmarkSearch: BookmarkSearchData;
-  gmail:          GmailData;
   calendar:       CalendarData;
   notes:          NotesData;
   greeting:       GreetingData;
@@ -169,7 +163,6 @@ export type Widget =
   | (WidgetBase & { type: 'quicklinks';     data: QuicklinksData })
   | (WidgetBase & { type: 'bookmarks';      data: BookmarksData })
   | (WidgetBase & { type: 'bookmarkSearch'; data: BookmarkSearchData })
-  | (WidgetBase & { type: 'gmail';          data: GmailData })
   | (WidgetBase & { type: 'calendar';       data: CalendarData })
   | (WidgetBase & { type: 'notes';          data: NotesData })
   | (WidgetBase & { type: 'greeting';       data: GreetingData })

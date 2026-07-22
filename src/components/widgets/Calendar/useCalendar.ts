@@ -61,7 +61,7 @@ const MOCK_EVENTS: CalendarEvent[] = [
   { id: 'evt_001', summary: 'Morning standup',
     start: { dateTime: daysFromNow(0, 9, 30) }, end: { dateTime: daysFromNow(0, 9, 45) },
     colorId: '7', htmlLink: BASE_LINK },
-  { id: 'evt_002', summary: 'M8 code review — Gmail & Calendar widgets',
+  { id: 'evt_002', summary: 'M8 code review — Calendar widget',
     start: { dateTime: daysFromNow(0, 11, 0) }, end: { dateTime: daysFromNow(0, 12, 0) },
     colorId: '9', htmlLink: BASE_LINK },
   { id: 'evt_003', summary: 'Lunch with Anna',
