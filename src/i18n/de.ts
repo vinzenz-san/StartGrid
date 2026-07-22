@@ -242,6 +242,7 @@ export const de: Record<TranslationKey, string> = {
   'widget.displaySettings.fontSize': 'Schriftgröße',
   'widget.displaySettings.scale':    'Skalierung',
   'widget.displaySettings.rotation': 'Rotation',
+  'widget.displaySettings.padding':  'Innenabstand',
 
   // ── Shared Font Settings panel (Clock, Greeting, …) ─────────────────────
   'widget.fontSettings.title':            'Schrift',

@@ -18,15 +18,20 @@ export interface ResolvedDisplayStyle {
   dateFontSize: number;
 }
 
-/** @param defaultFontSize the widget's own "no override" font size (e.g. Clock's old "M" = 42px, Greeting's old "M" = 22px) — resolveDisplayStyle has no opinion of its own, since that default is a per-widget design choice. */
-export function resolveDisplayStyle(ds: DisplaySettings | undefined, defaultFontSize = 42): ResolvedDisplayStyle {
+/** @param defaultFontSize the widget's own "no override" font size (e.g. Clock's old "M" = 42px, Greeting's old "M" = 22px) — resolveDisplayStyle has no opinion of its own, since that default is a per-widget design choice.
+ *  @param defaultPadding matches the widget's own CSS padding (currently 12px for every widget using this panel) — kept as a param rather than hardcoded so a future widget with a different base padding isn't forced to 12. */
+export function resolveDisplayStyle(ds: DisplaySettings | undefined, defaultFontSize = 42, defaultPadding = 12): ResolvedDisplayStyle {
   const fontSize = ds?.fontSize ?? defaultFontSize;
   const scale    = ds?.scale    ?? 1;
   const rotation = ds?.rotation ?? 0;
+  const padding  = ds?.padding  ?? defaultPadding;
 
-  const wrapper: CSSProperties = (scale !== 1 || rotation !== 0)
-    ? { transform: `scale(${scale}) rotate(${rotation}deg)` }
-    : {};
+  const wrapper: CSSProperties = {
+    padding: `${padding}px`,
+    ...(scale !== 1 || rotation !== 0
+      ? { transform: `scale(${scale}) rotate(${rotation}deg)` }
+      : {}),
+  };
 
   return {
     wrapper,
