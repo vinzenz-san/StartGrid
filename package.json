@@ -1,11 +1,11 @@
 {
   "name": "firefox-addon-startpage",
-  "version": "0.1.0",
+  "version": "0.11.0",
   "private": true,
   "scripts": {
     "dev": "rspack build --watch --env target=firefox",
-    "build:firefox": "rspack build --env target=firefox",
-    "build:chrome": "rspack build --env target=chrome",
+    "build:firefox": "rspack build --env target=firefox --env production=true",
+    "build:chrome": "rspack build --env target=chrome --env production=true",
     "build": "pnpm build:firefox && pnpm build:chrome",
     "preview": "npx serve dist/firefox -p 4747 --no-clipboard"
   },

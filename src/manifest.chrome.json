@@ -1,7 +1,6 @@
 {
   "manifest_version": 3,
   "name": "StartGrid",
-  "version": "0.1.0",
   "description": "Customizable new tab page with widgets",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqWdMnfZ4y0x7GB1t72znw4BNBMEfAbCMIOfqJm0rGeNPB1uoHN/waqRdvihW6MsshZ88Qlyd3q3rZP8/+kBcnDbZmbbLuUHYfLiVv6dduXWSnYvHq+xQpMOMJ74PHzA50rANGhIWcoh+LHZOMH2AJxhevmH6g0UF3xalAkRXhcmwyQMnTttPnadXXGbY0Onzw7iNqMyXTRBSovJise+ZZK/nFcWLjT6M9NZGCbyH7+zDu9l2BHjC7U5YWRkAuLcnvQsbk9ZFJBrzd697ul6cK9moeLghLXNLsBsnEH5Ennr2bgAenyqta0v65MSZicBa0Q13zs//dlkxStAMPFqeRwIDAQAB",
   "icons": {
@@ -32,14 +31,5 @@
     "https://*.bing.com/*",
     "https://api.open-meteo.com/*",
     "https://geocoding-api.open-meteo.com/*"
-  ],
-  "oauth2": {
-    "client_id": "__REPLACE_WITH_CHROME_OAUTH_CLIENT_ID__",
-    "scopes": [
-      "https://www.googleapis.com/auth/gmail.readonly",
-      "https://www.googleapis.com/auth/calendar.readonly",
-      "openid",
-      "email"
-    ]
-  }
+  ]
 }
