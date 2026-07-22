@@ -240,6 +240,7 @@ export const en = {
   'widget.displaySettings.fontSize': 'Font Size',
   'widget.displaySettings.scale':    'Scale',
   'widget.displaySettings.rotation': 'Rotation',
+  'widget.displaySettings.padding':  'Padding',
 
   // ── Shared Font Settings panel (Clock, Greeting, …) ─────────────────────
   'widget.fontSettings.title':            'Font',

@@ -24,6 +24,7 @@ export interface DisplaySettings {
   fontSize?: number; // px, default 42 — the widget's primary text size
   scale?:    number; // default 1
   rotation?: number; // degrees, default 0
+  padding?:  number; // px, default 12 — overrides the widget's own CSS padding
 }
 
 export interface ClockData {
