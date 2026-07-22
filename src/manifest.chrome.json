@@ -23,7 +23,6 @@
   "host_permissions": [
     "https://accounts.google.com/*",
     "https://oauth2.googleapis.com/*",
-    "https://gmail.googleapis.com/*",
     "https://www.googleapis.com/*",
     "https://bing.npanuhin.me/*",
     "https://*.nasa.gov/*",

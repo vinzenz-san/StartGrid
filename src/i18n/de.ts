@@ -169,7 +169,6 @@ export const de: Record<TranslationKey, string> = {
   'widgets.type.quicklinks':     'Schnellzugriffe',
   'widgets.type.bookmarks':      'Lesezeichenordner',
   'widgets.type.bookmarkSearch': 'Lesezeichensuche',
-  'widgets.type.gmail':          'Gmail',
   'widgets.type.calendar':       'Kalender',
   'widgets.type.notes':          'Notizen',
   'widgets.type.placeholder':    'Platzhalter',
@@ -334,22 +333,6 @@ export const de: Record<TranslationKey, string> = {
   'widget.quicklinks.couldNotReadFile':         'Datei konnte nicht gelesen werden.',
   'widget.quicklinks.internalUrlClipboard':     'Firefox verhindert das direkte Öffnen von „about:“-Seiten. Die URL „{{url}}“ wurde in die Zwischenablage kopiert.',
 
-  // ── Gmail widget ─────────────────────────────────────────────────────────
-  'widget.gmail.maxEmails':     'Max. E-Mails',
-  'widget.gmail.showSnippets':  'Vorschautext anzeigen',
-  'widget.gmail.googleAccount': 'Google-Konto',
-  'widget.gmail.connecting':    'Verbinde…',
-  'widget.gmail.connect':       'Google-Konto verbinden',
-  'widget.gmail.disconnect':    'Konto trennen',
-  'widget.gmail.grantNote':     'Gewährt Lesezugriff auf dein Gmail-Postfach.',
-  'widget.gmail.connectPrompt': 'Verbinde dein Google-Konto, um dein Postfach zu sehen.',
-  'widget.gmail.loadError':     'E-Mails konnten nicht geladen werden',
-  'widget.gmail.allCaughtUp':   'Alles erledigt!',
-  'widget.gmail.refresh':       'Aktualisieren',
-  'widget.gmail.refreshAria':   'E-Mails aktualisieren',
-  'widget.gmail.unreadAria':    'Ungelesen',
-  'widget.gmail.title':         'Gmail',
-  'widget.gmail.relativeNow':   'jetzt',
 
   // ── Calendar widget ──────────────────────────────────────────────────────
   'widget.calendar.view':             'Ansicht',
