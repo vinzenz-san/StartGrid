@@ -4,7 +4,9 @@
 //
 // 1. Go to https://console.cloud.google.com/ and create a project.
 // 2. Enable the Gmail API and Google Calendar API in "APIs & Services".
-// 3. Create OAuth 2.0 credentials: "Web application" type.
+// 3. Create OAuth 2.0 credentials: "Web application" type. (Google's
+//    "Desktop app" type does not accept the *.chromiumapp.org / allizom.org
+//    redirect URIs that browser.identity.launchWebAuthFlow requires.)
 // 4. Load the extension in Firefox (about:debugging → Load Temporary Add-on).
 // 5. In the Browser Console run:
 //      chrome.identity.getRedirectURL()   // or browser.identity.getRedirectURL()
@@ -14,14 +16,20 @@
 //
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const GOOGLE_CLIENT_ID = '11878324251-rs30jg690odsp9ie707ji328hiv6t3r0.apps.googleusercontent.com';
+export const GOOGLE_CLIENT_ID = '49189092238-uf3oopq0q7ohvuntjd3j4dvtbljjsmtn.apps.googleusercontent.com';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const STORAGE_KEY    = 'sg_google_auth';
 const AUTH_ENDPOINT  = 'https://accounts.google.com/o/oauth2/v2/auth';
-const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 const REVOKE_ENDPOINT = 'https://oauth2.googleapis.com/revoke';
+
+// Google's "Web application" client type requires client_secret at token
+// exchange even when using PKCE — a secret can't live in extension code, so
+// the exchange is proxied through the same Cloudflare Worker that already
+// guards the Unsplash/NASA keys. See worker/api-proxy.ts's /google-token route.
+const MEDIA_PROXY_URL = ((import.meta as any).env.APP_MEDIA_PROXY_URL || '').replace(/\/$/, '');
+const TOKEN_ENDPOINT  = `${MEDIA_PROXY_URL}/google-token`;
 
 // Request the minimum scopes needed for both widgets.
 // These are read-only — the extension cannot modify any user data.
@@ -185,44 +193,70 @@ export async function connectGoogle(): Promise<string> {
   // CSRF state — verified after redirect
   const state = base64urlEncode(crypto.getRandomValues(new Uint8Array(16)));
 
-  // Implicit flow: response_type=token returns the access token directly in the
-  // redirect fragment. No token exchange step, no client_secret required.
-  // This is compatible with "Web application" OAuth clients in Google Cloud Console.
-  // Downside: no refresh_token — the user must re-authenticate when the token
-  // expires (~1 hour). To get a refresh_token, recreate the GCP client as
-  // "Desktop app" type and switch back to the PKCE authorization_code flow.
+  const codeVerifier  = await generateCodeVerifier();
+  const codeChallenge = await generateCodeChallenge(codeVerifier);
+
+  // Authorization code + PKCE: no client_secret needed (Desktop app client type).
+  // access_type=offline + prompt=consent are required for Google to issue a
+  // refresh_token — without prompt=consent, a returning user who already
+  // granted access won't get one on subsequent logins.
   const authUrl = new URL(AUTH_ENDPOINT);
-  authUrl.searchParams.set('client_id',     GOOGLE_CLIENT_ID);
-  authUrl.searchParams.set('redirect_uri',  redirectUrl);
-  authUrl.searchParams.set('response_type', 'token');
-  authUrl.searchParams.set('scope',         SCOPES.join(' '));
-  authUrl.searchParams.set('state',         state);
+  authUrl.searchParams.set('client_id',             GOOGLE_CLIENT_ID);
+  authUrl.searchParams.set('redirect_uri',          redirectUrl);
+  authUrl.searchParams.set('response_type',         'code');
+  authUrl.searchParams.set('scope',                 SCOPES.join(' '));
+  authUrl.searchParams.set('state',                 state);
+  authUrl.searchParams.set('access_type',           'offline');
+  authUrl.searchParams.set('prompt',                'consent');
+  authUrl.searchParams.set('code_challenge',        codeChallenge);
+  authUrl.searchParams.set('code_challenge_method', 'S256');
 
   const responseUrl = await browser.identity.launchWebAuthFlow({
     url:         authUrl.toString(),
     interactive: true,
   });
 
-  // Token arrives in the URL fragment: #access_token=...&expires_in=3600&...
-  const fragment      = new URLSearchParams(new URL(responseUrl).hash.slice(1));
-  const accessToken   = fragment.get('access_token');
-  const returnedState = fragment.get('state');
-  const error         = fragment.get('error');
+  const query         = new URL(responseUrl).searchParams;
+  const code          = query.get('code');
+  const returnedState = query.get('state');
+  const error         = query.get('error');
 
   if (error)                   throw new Error(`Google auth error: ${error}`);
-  if (!accessToken)            throw new Error('No access token in redirect response');
+  if (!code)                   throw new Error('No authorization code in redirect response');
   if (returnedState !== state) throw new Error('OAuth state mismatch — possible CSRF attack');
 
-  const expiresIn = Number(fragment.get('expires_in') ?? 3600);
+  const tokenRes = await fetch(TOKEN_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type:    'authorization_code',
+      code,
+      client_id:     GOOGLE_CLIENT_ID,
+      redirect_uri:  redirectUrl,
+      code_verifier: codeVerifier,
+    }),
+  });
+
+  if (!tokenRes.ok) {
+    throw new Error(`Token exchange failed: ${tokenRes.status} ${await tokenRes.text()}`);
+  }
+
+  const data = await tokenRes.json() as {
+    access_token: string;
+    refresh_token?: string;
+    expires_in: number;
+    id_token?: string;
+  };
 
   const auth: StoredAuth = {
-    accessToken,
-    expiresAt: Date.now() + expiresIn * 1000 - 60_000,
-    // No refresh_token with implicit flow
+    accessToken:  data.access_token,
+    refreshToken: data.refresh_token,
+    expiresAt:    Date.now() + data.expires_in * 1000 - 60_000,
+    email:        data.id_token ? extractEmailFromIdToken(data.id_token) : undefined,
   };
 
   await writeStoredAuth(auth);
-  return accessToken;
+  return auth.accessToken;
 }
 
 /**
