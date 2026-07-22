@@ -68,7 +68,7 @@
 <body>
   <div class="wrap">
     <h1>Privacy Policy</h1>
-    <p class="updated">Last updated: 2026-07-21</p>
+    <p class="updated">Last updated: 2026-07-22</p>
 
     <p>StartGrid is a browser extension (Firefox &amp; Chrome) that replaces your new tab page with a customizable widget grid. This policy explains what data StartGrid accesses, why, and how it's stored — in particular for the optional Gmail and Google Calendar widgets, which require signing in with your Google Account.</p>
 
@@ -103,6 +103,12 @@
 
     <h2>Where this data is stored</h2>
     <p>Your Google access token, refresh token (if issued), and the fetched email/event previews are cached only in your browser's local extension storage (<code>browser.storage.local</code>), on your own device. They are never transmitted to any server operated by StartGrid or its developer. Disconnecting the account (or uninstalling the extension) removes this data immediately.</p>
+
+    <h2>Bookmarks and tabs</h2>
+    <p>The Bookmark Folder, Bookmark Search, and Quicklinks widgets read your browser's bookmark tree (<code>bookmarks</code> permission) to display and let you navigate your bookmarks from the new tab page. This data is read locally and never transmitted anywhere. Clicking a bookmark or quicklink opens it using the <code>tabs</code> permission (<code>tabs.create</code> / <code>tabs.update</code>) — StartGrid does not otherwise read your open tabs' URLs, titles, or content.</p>
+
+    <h2>Location (Weather widget)</h2>
+    <p>The optional Weather widget, if you enable it and grant permission, uses your browser's geolocation API to get your device's coordinates. These coordinates are sent directly from your browser to the third-party weather provider <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> to fetch local weather data — StartGrid's developer never receives or stores this location data. You can alternatively search for a location by name instead of sharing your device's position, and you can deny or revoke the location permission at any time via your browser's site permissions for this extension.</p>
 
     <h2>Other data StartGrid accesses</h2>
     <p>Optional background-image widgets (Unsplash, NASA Astronomy Picture of the Day, Bing, Wikimedia) fetch a public photo URL and its attribution text from each provider's API — no personal or Google Account data is involved in these requests. Some requests are routed through a Cloudflare Worker that StartGrid's developer operates solely to keep third-party API keys out of the extension's source code; this Worker does not log, store, or inspect request contents beyond what's needed to forward the call.</p>
