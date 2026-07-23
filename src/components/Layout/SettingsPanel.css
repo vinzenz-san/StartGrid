@@ -111,6 +111,19 @@
   .sg-settings-content::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 }
 
+.sg-support-link {
+  display: block;
+  margin-top: 8px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.sg-support-link:hover {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
 /* Accent color swatch now reuses .bg-color-swatch (BackgroundEditor.css) for
    exact structural parity with the Color Gradient panel's From/To swatches —
    see SettingsRow usage in the SETTINGS section below. */

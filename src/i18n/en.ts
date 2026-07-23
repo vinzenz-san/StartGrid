@@ -15,6 +15,7 @@ export const en = {
   'settings.resetWidgetStyles':    'Reset all widget styles',
   'settings.resetAppearance':      'Reset Appearance',
   'settings.factoryReset':         'Factory Reset',
+  'settings.support':              'Support StartGrid',
   'settings.factoryReset.title':   'Factory Reset',
   'settings.factoryReset.body':    'Are you sure? All configuration will be permanently deleted and the page will reload.',
   'settings.factoryReset.confirm': 'Delete Everything',

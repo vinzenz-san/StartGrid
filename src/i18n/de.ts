@@ -17,6 +17,7 @@ export const de: Record<TranslationKey, string> = {
   'settings.resetWidgetStyles':    'Alle Widget-Stile zurücksetzen',
   'settings.resetAppearance':      'Erscheinungsbild zurücksetzen',
   'settings.factoryReset':         'Werkseinstellungen',
+  'settings.support':              'StartGrid unterstützen',
   'settings.factoryReset.title':   'Werkseinstellungen',
   'settings.factoryReset.body':    'Bist du sicher? Alle Einstellungen werden dauerhaft gelöscht und die Seite wird neu geladen.',
   'settings.factoryReset.confirm': 'Alles löschen',
