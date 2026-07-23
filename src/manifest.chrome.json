@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "StartGrid",
+  "name": "StartGrid - A New Tab",
   "description": "Customizable new tab page with widgets",
   "icons": {
     "16": "icons/icon-16.png",
