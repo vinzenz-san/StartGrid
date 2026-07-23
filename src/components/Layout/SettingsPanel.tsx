@@ -433,6 +433,15 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
             <ActionButton variant="danger" cooldownTime={3} onClick={() => setResetConfirmOpen(true)}>
               {t('settings.factoryReset')}
             </ActionButton>
+
+            <a
+              className="sg-support-link"
+              href="https://buymeacoffee.com/vinzenz.san"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              ☕ {t('settings.support')}
+            </a>
           </PanelSection>
 
           {/* ══ 6. DEVELOPER OPTIONS (hidden until unlocked — see handleTitleTap) ══ */}
