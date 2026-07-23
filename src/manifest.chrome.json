@@ -2,7 +2,6 @@
   "manifest_version": 3,
   "name": "StartGrid",
   "description": "Customizable new tab page with widgets",
-  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqWdMnfZ4y0x7GB1t72znw4BNBMEfAbCMIOfqJm0rGeNPB1uoHN/waqRdvihW6MsshZ88Qlyd3q3rZP8/+kBcnDbZmbbLuUHYfLiVv6dduXWSnYvHq+xQpMOMJ74PHzA50rANGhIWcoh+LHZOMH2AJxhevmH6g0UF3xalAkRXhcmwyQMnTttPnadXXGbY0Onzw7iNqMyXTRBSovJise+ZZK/nFcWLjT6M9NZGCbyH7+zDu9l2BHjC7U5YWRkAuLcnvQsbk9ZFJBrzd697ul6cK9moeLghLXNLsBsnEH5Ennr2bgAenyqta0v65MSZicBa0Q13zs//dlkxStAMPFqeRwIDAQAB",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
