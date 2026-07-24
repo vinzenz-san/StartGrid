@@ -1,0 +1,6 @@
+/* Reuses the Google Calendar widget's chrome wholesale — the classnames
+   (sg-cal-*) are generic layout/skeleton/settings styles, not Google-branded,
+   so importing rather than duplicating ~600 lines keeps both widgets visually
+   identical and in sync. Only the logo icon gets an Outlook-specific override
+   below. See src/components/widgets/Calendar/Calendar.css. */
+@import '../Calendar/Calendar.css';
