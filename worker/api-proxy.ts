@@ -3,13 +3,17 @@
 // /google-token forwards to Google's OAuth token endpoint (client_secret
 // injected server-side — Google's "Web application" client type requires
 // client_secret at token exchange even when the extension uses PKCE),
-// everything else forwards to api.unsplash.com (Client-ID auth header) —
-// keeps a single Worker/deploy for both rather than one per provider.
+// /ms-token forwards to Microsoft's identity platform token endpoint (same
+// reasoning — see src/lib/msAuth.ts), everything else forwards to
+// api.unsplash.com (Client-ID auth header) — keeps a single Worker/deploy
+// for all of these rather than one per provider.
 export interface Env {
   UNSPLASH_ACCESS_KEY: string;
   NASA_API_KEY: string;
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
+  MS_CLIENT_ID: string;
+  MS_CLIENT_SECRET: string;
   ALLOWED_ORIGIN?: string; // e.g. 'chrome-extension://<id>' or 'moz-extension://<id>'
 }
 
@@ -18,6 +22,8 @@ const NASA_UPSTREAM = 'https://api.nasa.gov';
 const NASA_PREFIX = '/nasa';
 const GOOGLE_TOKEN_UPSTREAM = 'https://oauth2.googleapis.com/token';
 const GOOGLE_TOKEN_PATH = '/google-token';
+const MS_TOKEN_UPSTREAM = 'https://login.microsoftonline.com/common/oauth2/v2.0/token';
+const MS_TOKEN_PATH = '/ms-token';
 
 async function relay(upstreamRes: Response, corsHeaders: Record<string, string>): Promise<Response> {
   const body = await upstreamRes.arrayBuffer();
@@ -59,6 +65,26 @@ export default {
       params.set('client_secret', env.GOOGLE_CLIENT_SECRET);
 
       const upstreamRes = await fetch(GOOGLE_TOKEN_UPSTREAM, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params,
+      });
+      return relay(upstreamRes, corsHeaders);
+    }
+
+    if (url.pathname === MS_TOKEN_PATH) {
+      if (request.method !== 'POST') {
+        return new Response('Method not allowed', { status: 405, headers: corsHeaders });
+      }
+      const incoming = await request.formData();
+      const params = new URLSearchParams();
+      for (const [key, value] of incoming.entries()) {
+        params.set(key, String(value));
+      }
+      params.set('client_id', env.MS_CLIENT_ID);
+      params.set('client_secret', env.MS_CLIENT_SECRET);
+
+      const upstreamRes = await fetch(MS_TOKEN_UPSTREAM, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params,
