@@ -2,6 +2,12 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.1.0] — Outlook integration
+- New Outlook Calendar widget (Microsoft Graph `calendarView`, `Calendars.Read`) — agenda view, reuses the Google Calendar widget's visual chrome
+- New Outlook Mail widget (Microsoft Graph `messages`, `Mail.Read`) — inbox list with unread filter
+- Microsoft OAuth: authorization code + PKCE flow (`src/lib/msAuth.ts`), token exchange proxied through the same Cloudflare Worker as Google's (`/ms-token` route), mirroring the Google Sign-In implementation
+- Both widgets are `devOnly` pending end-to-end verification of the connect flow, same gate as the Google Calendar widget — `Mail.Read`/`Calendars.Read` don't require tenant admin consent, so this is expected to be short-lived
+
 ## [1.0.0] — First public release
 - Build: version now sourced solely from `package.json`, injected into both manifests at build time
 - Build: production builds now minify and drop source maps (`mode` was hardcoded to `development`)
