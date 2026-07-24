@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react';
-import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, CalendarData, NotesData, GreetingData, WeatherData, PlaceholderData } from '../../types/widget';
+import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, CalendarData, OutlookCalendarData, OutlookMailData, NotesData, GreetingData, WeatherData, PlaceholderData } from '../../types/widget';
 import type { TranslationKey } from '../../i18n';
 import Clock, { ClockSettings } from './Clock/Clock';
 import Quicklinks, { QuicklinksSettings } from './Quicklinks/Quicklinks';
 import BookmarkFolder, { BookmarkFolderSettings } from './BookmarkFolder/BookmarkFolder';
 import BookmarkSearch, { BookmarkSearchSettings } from './BookmarkSearch/BookmarkSearch';
 import Calendar, { CalendarSettings } from './Calendar/Calendar';
+import OutlookCalendar, { OutlookCalendarSettings } from './OutlookCalendar/OutlookCalendar';
+import OutlookMail, { OutlookMailSettings } from './OutlookMail/OutlookMail';
 import Notes, { NotesSettings } from './Notes/Notes';
 import Greeting, { GreetingSettings } from './Greeting/Greeting';
 import Weather, { WeatherSettings } from './Weather/Weather';
@@ -109,6 +111,33 @@ const _registry = {
     renderSettings:  (data, onUpdateData) => <CalendarSettings data={data} onUpdateData={onUpdateData} />,
   } satisfies TypedEntry<CalendarData>,
 
+  outlookCalendar: {
+    label:         'Outlook Calendar',
+    icon:          '📆',
+    defaultSize:   { w: 2, h: 3 },
+    defaultData:   { maxDays: 3, showAllDay: true } satisfies OutlookCalendarData,
+    // Same reasoning as the `calendar` entry above: gated behind Developer
+    // Options until the Microsoft OAuth app registration and Worker token
+    // route are live and verified end-to-end. Mail.Read/Calendars.Read both
+    // have AdminConsentRequired = No, so this is expected to be a much
+    // shorter-lived gate than Google's — see msAuth.ts.
+    devOnly:       true,
+    titleBehavior: 'auto',
+    renderComponent: (data, onUpdateData) => <OutlookCalendar data={data} onUpdateData={onUpdateData} />,
+    renderSettings:  (data, onUpdateData) => <OutlookCalendarSettings data={data} onUpdateData={onUpdateData} />,
+  } satisfies TypedEntry<OutlookCalendarData>,
+
+  outlookMail: {
+    label:         'Outlook Mail',
+    icon:          '📧',
+    defaultSize:   { w: 2, h: 3 },
+    defaultData:   { maxResults: 8, showUnreadOnly: false } satisfies OutlookMailData,
+    devOnly:       true,
+    titleBehavior: 'auto',
+    renderComponent: (data, onUpdateData) => <OutlookMail data={data} onUpdateData={onUpdateData} />,
+    renderSettings:  (data, onUpdateData) => <OutlookMailSettings data={data} onUpdateData={onUpdateData} />,
+  } satisfies TypedEntry<OutlookMailData>,
+
   notes: {
     label:                 'Notes',
     icon:                  '📝',
@@ -169,6 +198,8 @@ export const WIDGET_TYPE_LABEL_KEYS: Record<WidgetType, TranslationKey> = {
   bookmarks:      'widgets.type.bookmarks',
   bookmarkSearch: 'widgets.type.bookmarkSearch',
   calendar:       'widgets.type.calendar',
+  outlookCalendar: 'widgets.type.outlookCalendar',
+  outlookMail:    'widgets.type.outlookMail',
   notes:          'widgets.type.notes',
   greeting:       'widgets.type.greeting',
   weather:        'widgets.type.weather',
@@ -177,5 +208,5 @@ export const WIDGET_TYPE_LABEL_KEYS: Record<WidgetType, TranslationKey> = {
 
 // Ordered list for the "Add Widget" menu (excludes placeholder handled separately if desired).
 export const WIDGET_MENU_TYPES: WidgetType[] = [
-  'clock', 'quicklinks', 'bookmarks', 'bookmarkSearch', 'calendar', 'notes', 'greeting', 'weather', 'placeholder',
+  'clock', 'quicklinks', 'bookmarks', 'bookmarkSearch', 'calendar', 'outlookCalendar', 'outlookMail', 'notes', 'greeting', 'weather', 'placeholder',
 ];

@@ -96,6 +96,16 @@ export interface CalendarData {
   viewMode?: 'agenda' | 'monthly';
 }
 
+export interface OutlookCalendarData {
+  maxDays: number;
+  showAllDay: boolean;
+}
+
+export interface OutlookMailData {
+  maxResults: number;      // 1–25, default 8
+  showUnreadOnly?: boolean; // default false
+}
+
 export interface NotesData {
   content:      string;
   fontSize?:    'S' | 'M' | 'L';
@@ -127,15 +137,17 @@ export interface WeatherData {
 
 // Maps each widget type string to its strongly-typed data interface.
 export interface WidgetDataMap {
-  clock:          ClockData;
-  quicklinks:     QuicklinksData;
-  bookmarks:      BookmarksData;
-  bookmarkSearch: BookmarkSearchData;
-  calendar:       CalendarData;
-  notes:          NotesData;
-  greeting:       GreetingData;
-  weather:        WeatherData;
-  placeholder:    PlaceholderData;
+  clock:           ClockData;
+  quicklinks:      QuicklinksData;
+  bookmarks:       BookmarksData;
+  bookmarkSearch:  BookmarkSearchData;
+  calendar:        CalendarData;
+  outlookCalendar: OutlookCalendarData;
+  outlookMail:     OutlookMailData;
+  notes:           NotesData;
+  greeting:        GreetingData;
+  weather:         WeatherData;
+  placeholder:     PlaceholderData;
 }
 
 export type WidgetType = keyof WidgetDataMap;
@@ -169,6 +181,8 @@ export type Widget =
   | (WidgetBase & { type: 'bookmarks';      data: BookmarksData })
   | (WidgetBase & { type: 'bookmarkSearch'; data: BookmarkSearchData })
   | (WidgetBase & { type: 'calendar';       data: CalendarData })
+  | (WidgetBase & { type: 'outlookCalendar'; data: OutlookCalendarData })
+  | (WidgetBase & { type: 'outlookMail';     data: OutlookMailData })
   | (WidgetBase & { type: 'notes';          data: NotesData })
   | (WidgetBase & { type: 'greeting';       data: GreetingData })
   | (WidgetBase & { type: 'weather';        data: WeatherData })
