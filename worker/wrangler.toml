@@ -10,4 +10,6 @@ compatibility_date = "2024-01-01"
 #   wrangler secret put NASA_API_KEY
 #   wrangler secret put GOOGLE_CLIENT_ID
 #   wrangler secret put GOOGLE_CLIENT_SECRET
+#   wrangler secret put MS_CLIENT_ID
+#   wrangler secret put MS_CLIENT_SECRET
 # Optionally restrict CORS via: wrangler secret put ALLOWED_ORIGIN
