@@ -1,6 +1,6 @@
 {
   "name": "firefox-addon-startpage",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "browserslist": [
     "last 2 Firefox versions",
@@ -11,6 +11,7 @@
     "dev": "rspack build --watch --env target=firefox",
     "build:firefox": "rspack build --env target=firefox --env production=true && node scripts/patch-runtime.js dist/firefox/newtab.js",
     "build:chrome": "rspack build --env target=chrome --env production=true && node scripts/patch-runtime.js dist/chrome/newtab.js",
+    "build:chrome-store": "rspack build --env target=chrome --env production=true --env store=true && node scripts/patch-runtime.js dist/chrome-store/newtab.js",
     "build": "pnpm build:firefox && pnpm build:chrome",
     "preview": "npx serve dist/firefox -p 4747 --no-clipboard"
   },

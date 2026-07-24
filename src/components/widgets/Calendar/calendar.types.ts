@@ -13,27 +13,15 @@ export interface CalendarData {
 // with timeMin=now, orderBy=startTime, singleEvents=true.
 // The start/end objects are either { dateTime, timeZone } for timed events
 // or { date } for all-day events — exactly as the real API returns them.
+// The generic shape itself lives in shared/calendarEvent.types.ts, shared with
+// the Outlook Calendar widget.
 
-export interface CalendarEventDateTime {
-  dateTime?: string;  // ISO-8601 with offset, e.g. "2025-07-14T10:00:00+02:00"
-  date?: string;      // YYYY-MM-DD for all-day events
-  timeZone?: string;
-}
-
-export interface CalendarEvent {
-  id: string;
-  summary: string;                  // event title
-  start: CalendarEventDateTime;
-  end: CalendarEventDateTime;
-  colorId?: string;                 // "1"–"11", maps to Google's palette
-  location?: string;
-  description?: string;
-  htmlLink: string;                 // deep-link to event in Google Calendar
-}
+export type { CalendarEventDateTime, CalendarEvent } from '../shared/calendarEvent.types';
+import type { CalendarViewStatus, CalendarEvent } from '../shared/calendarEvent.types';
 
 // ── Hook state ────────────────────────────────────────────────────────────────
 
-export type CalendarStatus = 'idle' | 'loading' | 'success' | 'error' | 'unauthenticated';
+export type CalendarStatus = CalendarViewStatus;
 
 export interface CalendarState {
   status: CalendarStatus;

@@ -97,7 +97,7 @@ const _registry = {
   } satisfies TypedEntry<BookmarkSearchData>,
 
   calendar: {
-    label:         'Calendar',
+    label:         'Google Calendar',
     icon:          '📅',
     defaultSize:   { w: 2, h: 3 },
     defaultData:   { maxDays: 3, showAllDay: true } satisfies CalendarData,

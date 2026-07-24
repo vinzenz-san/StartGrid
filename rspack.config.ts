@@ -25,7 +25,17 @@ function loadEnvFile(filePath: string): Record<string, string> {
 
 const { version } = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'));
 
-export default (env: { target?: string; production?: boolean } = {}) => {
+// Pins the Chrome extension's unpacked-load ID so the Google OAuth redirect
+// URI (https://<id>.chromiumapp.org/) stops changing across rebuilds/reclones
+// — see startgrid-chrome-key.pem (gitignored, kept outside the repo). Included
+// in every normal `pnpm build:chrome` (that's the artifact you load unpacked
+// to test), but the Chrome Web Store rejects uploads containing a "key"
+// field — use `pnpm build:chrome-store` for the actual submission zip, which
+// omits it. See git history on manifest.chrome.json for why this must never
+// ship in the store artifact.
+const CHROME_DEV_KEY_PATH = path.resolve(__dirname, 'startgrid-chrome-key.pub.b64.txt');
+
+export default (env: { target?: string; production?: boolean; store?: boolean } = {}) => {
   const target = (env.target === 'chrome' ? 'chrome' : 'firefox') as 'firefox' | 'chrome';
 
   // .env.local (gitignored, machine-specific) takes precedence over .env (gitignored template-filled copy).
@@ -40,7 +50,7 @@ export default (env: { target?: string; production?: boolean } = {}) => {
       background: './src/background.ts',
     },
     output: {
-      path: path.resolve(__dirname, 'dist', target),
+      path: path.resolve(__dirname, 'dist', env.store ? `${target}-store` : target),
       filename: '[name].js',
       clean: true,
       // Both target browsers have supported globalThis since 2018 — telling
@@ -128,6 +138,9 @@ export default (env: { target?: string; production?: boolean } = {}) => {
             transform(content) {
               const manifest = JSON.parse(content.toString());
               manifest.version = version;
+              if (target === 'chrome' && !env.store && fs.existsSync(CHROME_DEV_KEY_PATH)) {
+                manifest.key = fs.readFileSync(CHROME_DEV_KEY_PATH, 'utf-8').trim();
+              }
               return JSON.stringify(manifest, null, 2);
             },
           },
