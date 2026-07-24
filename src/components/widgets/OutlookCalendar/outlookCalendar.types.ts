@@ -1,42 +1,31 @@
 // ── Persistent widget data (stored in browser.storage.sync) ──────────────────
 
 export interface OutlookCalendarData {
-  maxDays: number;      // 1–28, default 3
-  showAllDay: boolean;  // include all-day events, default true
+  maxDays: number;                 // 1–28, default 3
+  showAllDay: boolean;             // include all-day events, default true
+  viewMode?: 'agenda' | 'monthly'; // default 'agenda'
+  firstDayOfWeek?: 0 | 1;           // 0=Sunday, 1=Monday; monthly view only, default 0
 }
 
 // ── API-mirroring types ─────────────────────────────────────────────────────
 // Mirrors the shape returned by Microsoft Graph's
 //   GET https://graph.microsoft.com/v1.0/me/calendarView
 //     ?startDateTime=<now>&endDateTime=<cutoff>&$orderby=start/dateTime
-// after mapping (see useOutlookCalendar.ts) into a shape structurally
-// identical to the Google Calendar widget's CalendarEvent, so the render
-// logic in OutlookCalendar.tsx stays a straight copy of Calendar.tsx.
+// after mapping (see useOutlookCalendar.ts) into the shared, provider-agnostic
+// CalendarEvent shape (shared/calendarEvent.types.ts) — the same one the
+// Google Calendar widget uses, so CalendarCore.tsx's rendering is a straight
+// reuse for both.
 
-export interface OutlookEventDateTime {
-  dateTime?: string;  // ISO-8601, e.g. "2025-07-14T10:00:00"
-  date?: string;      // YYYY-MM-DD for all-day events
-  timeZone?: string;
-}
-
-export interface OutlookEvent {
-  id: string;
-  summary: string;       // mapped from Graph's `subject`
-  start: OutlookEventDateTime;
-  end: OutlookEventDateTime;
-  colorId?: string;      // mapped from Graph's `categories[0]`, via OUTLOOK_CATEGORY_COLORS
-  location?: string;     // mapped from Graph's `location.displayName`
-  description?: string;  // mapped from Graph's `bodyPreview`
-  htmlLink: string;      // mapped from Graph's `webLink`
-}
+export type { CalendarEventDateTime as OutlookEventDateTime, CalendarEvent as OutlookEvent } from '../shared/calendarEvent.types';
+import type { CalendarViewStatus, CalendarEvent } from '../shared/calendarEvent.types';
 
 // ── Hook state ────────────────────────────────────────────────────────────────
 
-export type OutlookCalendarStatus = 'idle' | 'loading' | 'success' | 'error' | 'unauthenticated';
+export type OutlookCalendarStatus = CalendarViewStatus;
 
 export interface OutlookCalendarState {
   status: OutlookCalendarStatus;
-  events: OutlookEvent[];
+  events: CalendarEvent[];
   error: string | null;
   lastRefreshed: Date | null;
 }

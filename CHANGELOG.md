@@ -2,6 +2,11 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.1.1] — Outlook monthly view, Chrome ID stability
+- Outlook Calendar widget gains a monthly grid view (view toggle, first-day-of-week setting), at parity with the Google Calendar widget — the agenda/monthly rendering core was extracted into a shared `widgets/shared/CalendarCore.tsx` used by both widgets
+- Google Calendar widget renamed to "Google Calendar" in the Add Widget menu for consistency with "Outlook Calendar"
+- Build: Chrome extension ID is now pinned via a manifest `key` for local unpacked testing (keeps the Google/Microsoft OAuth redirect URI stable across rebuilds), while a new `build:chrome-store` script produces a key-free artifact for the actual Chrome Web Store upload (the Store rejects manifests containing `key`)
+
 ## [1.1.0] — Outlook integration
 - New Outlook Calendar widget (Microsoft Graph `calendarView`, `Calendars.Read`) — agenda view, reuses the Google Calendar widget's visual chrome
 - New Outlook Mail widget (Microsoft Graph `messages`, `Mail.Read`) — inbox list with unread filter

@@ -99,6 +99,8 @@ export interface CalendarData {
 export interface OutlookCalendarData {
   maxDays: number;
   showAllDay: boolean;
+  viewMode?: 'agenda' | 'monthly';
+  firstDayOfWeek?: 0 | 1;
 }
 
 export interface OutlookMailData {
