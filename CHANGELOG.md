@@ -2,6 +2,10 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.1.2] — Store submission fixes
+- Removed the unused `tabs` permission from both manifests (Chrome Web Store rejected 1.1.1 for excessive permissions — `tabs.create`/`tabs.update` don't require it since the code never reads back `Tab.url`/`title`/`favIconUrl`)
+- Build: replaced PowerShell `Compress-Archive` with a Node `archiver`-based packaging script (`scripts/package-zip.js`, `pnpm package:firefox`/`package:chrome`/`package:chrome-store`) — `Compress-Archive` was writing backslash path separators into the zip, which AMO's linter rejects as invalid file names
+
 ## [1.1.1] — Outlook monthly view, Chrome ID stability
 - Outlook Calendar widget gains a monthly grid view (view toggle, first-day-of-week setting), at parity with the Google Calendar widget — the agenda/monthly rendering core was extracted into a shared `widgets/shared/CalendarCore.tsx` used by both widgets
 - Google Calendar widget renamed to "Google Calendar" in the Add Widget menu for consistency with "Outlook Calendar"

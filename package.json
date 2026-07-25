@@ -1,6 +1,6 @@
 {
   "name": "firefox-addon-startpage",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "private": true,
   "browserslist": [
     "last 2 Firefox versions",
@@ -13,7 +13,10 @@
     "build:chrome": "rspack build --env target=chrome --env production=true && node scripts/patch-runtime.js dist/chrome/newtab.js",
     "build:chrome-store": "rspack build --env target=chrome --env production=true --env store=true && node scripts/patch-runtime.js dist/chrome-store/newtab.js",
     "build": "pnpm build:firefox && pnpm build:chrome",
-    "preview": "npx serve dist/firefox -p 4747 --no-clipboard"
+    "preview": "npx serve dist/firefox -p 4747 --no-clipboard",
+    "package:firefox": "node scripts/package-zip.js firefox",
+    "package:chrome": "node scripts/package-zip.js chrome",
+    "package:chrome-store": "node scripts/package-zip.js chrome-store"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.20",
@@ -27,6 +30,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/webextension-polyfill": "^0.10.0",
+    "archiver": "^7.0.1",
     "serve": "^14.2.6",
     "typescript": "^5.0.0"
   }
