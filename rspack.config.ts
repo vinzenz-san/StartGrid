@@ -44,6 +44,17 @@ export default (env: { target?: string; production?: boolean; store?: boolean } 
     ...loadEnvFile(path.resolve(__dirname, '.env.local')),
   };
 
+  // astronomy.ts only consults the NASA key when no proxy URL is configured
+  // (the direct-to-api.nasa.gov fallback a fresh clone gets). With the proxy
+  // configured — every real build — injecting the key would still embed it as
+  // a string constant in a branch that never executes: MEDIA_PROXY_URL is
+  // derived through a .replace() call, so the minifier can't prove the
+  // fallback dead and keeps it, key and all. Blank it out instead. Side
+  // benefit: the build then reproduces from the public .env.example alone,
+  // with no private value needed (see README's build steps).
+  const mediaProxyUrl = envVars.APP_MEDIA_PROXY_URL || '';
+  const nasaApiKey = mediaProxyUrl ? '' : (envVars.APP_NASA_API_KEY || '');
+
   const config: Configuration = {
     entry: {
       newtab: './src/main.tsx',
@@ -103,8 +114,8 @@ export default (env: { target?: string; production?: boolean; store?: boolean } 
       // (astronomy.ts's DEMO_KEY, useUnsplash.ts's proxyReady gate) engages
       // rather than the build crashing on undefined.
       new rspack.DefinePlugin({
-        'import.meta.env.APP_NASA_API_KEY': JSON.stringify(envVars.APP_NASA_API_KEY || ''),
-        'import.meta.env.APP_MEDIA_PROXY_URL': JSON.stringify(envVars.APP_MEDIA_PROXY_URL || ''),
+        'import.meta.env.APP_NASA_API_KEY': JSON.stringify(nasaApiKey),
+        'import.meta.env.APP_MEDIA_PROXY_URL': JSON.stringify(mediaProxyUrl),
       }),
       new rspack.HtmlRspackPlugin({
         template: './src/newtab.html',
