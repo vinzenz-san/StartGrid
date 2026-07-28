@@ -58,12 +58,6 @@ export function hexToRgb(hex: string): [number, number, number] {
   return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
 }
 
-/** Standard broadcast luminance (0–255): Y = 0.299R + 0.587G + 0.114B */
-export function luminance(hex: string): number {
-  const [r, g, b] = hexToRgb(hex);
-  return 0.299 * r + 0.587 * g + 0.114 * b;
-}
-
 export function hex2hsl(hex: string): [number, number, number] {
   const [rr, gg, bb] = hexToRgb(hex);
   const r = rr / 255, g = gg / 255, b = bb / 255;
