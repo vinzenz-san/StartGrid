@@ -29,13 +29,13 @@ export interface Env {
 // startgrid-chrome-key.pub.b64.txt (see rspack.config.ts) — so it's matched
 // exactly.
 //
-// ⚠ The origin below is the ID that the pinned key produces, i.e. what
-// `pnpm build:chrome` loads unpacked. `build:chrome-store` deliberately omits
-// the key field, so if the Chrome Web Store assigned the published item a
-// different ID, that ID must be added to the ALLOWED_ORIGIN secret *before*
-// this Worker is deployed — otherwise store users get a 403 on every
-// Unsplash/NASA/OAuth call. Rejections name the offending origin in the
-// response body so that shows up immediately rather than as a silent failure.
+// The origin below is the ID the pinned key produces. `build:chrome-store`
+// omits the key field, so the published item's ID could in principle differ
+// from the unpacked build's — verified 2026-07-29 that it does not: the Chrome
+// Web Store listing installs as jkikhgehaeponbomfggejlnpbegpdafl, the same ID,
+// so one entry covers both and no ALLOWED_ORIGIN secret is required. Recheck
+// this if the item is ever re-uploaded under a new listing; a mismatch shows up
+// as a 403 naming the offending origin rather than as a silent failure.
 const CHROME_EXTENSION_ORIGIN = 'chrome-extension://jkikhgehaeponbomfggejlnpbegpdafl';
 const FIREFOX_ORIGIN_PATTERN = /^moz-extension:\/\/[0-9a-f-]+$/i;
 // Demo/testing surfaces served over the public web.
