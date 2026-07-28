@@ -16,11 +16,14 @@ A customizable new tab page for Firefox and Chrome — a widget grid (clock, wea
 ### Steps
 
 ```bash
+cp .env.example .env    # Windows: copy .env.example .env
 pnpm install
 pnpm build:firefox
 ```
 
-This produces the exact contents of the submitted package in `dist/firefox/` (manifest, HTML, minified JS/CSS, icons).
+This produces the contents of the submitted package in `dist/firefox/` (manifest, HTML, minified JS/CSS, icons).
+
+The first step is required, not optional. `APP_MEDIA_PROXY_URL` is inlined into the bundle at build time (rspack's `DefinePlugin` — see `rspack.config.ts`), and building without it yields a different, degraded artifact: the Unsplash background provider disables itself entirely and NASA APOD falls back to the shared rate-limited `DEMO_KEY`. The URL in `.env.example` is a public Cloudflare Worker endpoint, not a credential — the API keys it guards live in the Worker's own secret store (see `worker/api-proxy.ts`).
 
 For the Chrome/Chromium build instead: `pnpm build:chrome` → `dist/chrome/`.
 
