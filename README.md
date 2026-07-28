@@ -2,8 +2,8 @@
 
 A customizable new tab page for Firefox and Chrome — a widget grid (clock, weather, notes, bookmarks, quicklinks, and more) set against a background of your choice.
 
-- Homepage: https://vinzenz-san.github.io/StartGrid/
-- Privacy Policy: https://vinzenz-san.github.io/StartGrid/privacy.html
+- Homepage: https://vinzenz-dev.de/startgrid/
+- Privacy Policy: https://vinzenz-dev.de/startgrid/privacy.html
 
 ## Building from source
 
