@@ -47,7 +47,6 @@ export default (env: { target?: string; production?: boolean; store?: boolean } 
   const config: Configuration = {
     entry: {
       newtab: './src/main.tsx',
-      background: './src/background.ts',
     },
     output: {
       path: path.resolve(__dirname, 'dist', env.store ? `${target}-store` : target),

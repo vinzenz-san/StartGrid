@@ -1,10 +1,7 @@
 // Pure network helper — fetches Wikimedia's "Featured Content" feed, which
 // includes the Picture of the Day. api.wikimedia.org sends permissive CORS
-// headers (confirmed: no relay needed for the JSON fetch itself, unlike
-// apod.nasa.gov/Bing's own endpoint — see the "Verify CORS Failures Before
-// Architecting Around Them" note elsewhere in this codebase). The image URL
-// itself still goes through the FETCH_EXTERNAL_IMAGE relay for canvas
-// pixel-sampling in useBackgroundContrast.ts, same as Bing/Astronomy/Online.
+// headers, so a direct fetch() from the extension page works with no
+// relay or host_permissions needed.
 
 const FEED_BASE = 'https://api.wikimedia.org/feed/v1/wikipedia/en/featured';
 

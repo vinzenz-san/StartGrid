@@ -13,7 +13,6 @@ import SettingsPanel from './SettingsPanel';
 import DevPanel, { type DevPanelPos } from '../DevPanel/DevPanel';
 import InspectorHistoryPanel from '../DevPanel/InspectorHistoryPanel';
 import { ElementInspectorProvider } from '../../contexts/ElementInspectorContext';
-import { useBackgroundContrast } from '../../hooks/useBackgroundContrast';
 import './Grid.css';
 
 interface DropTarget { col: number; row: number; w: number; h: number; valid: boolean; }
@@ -24,11 +23,9 @@ export default function Grid() {
   const { gridConfig } = useGridConfig();
   const { developerOptionsEnabled, settingsButtonPosition, settingsPinned, elementInspectorEnabled, disableGridGlow, t } = useSettings();
   const gridRef = useRef<HTMLDivElement>(null);
-  const gearBtnRef = useRef<HTMLButtonElement>(null);
   const [dropTarget,        setDropTarget]        = useState<DropTarget | null>(null);
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
   const [devPanelPos,       setDevPanelPos]       = useState<DevPanelPos | null>(null);
-  const gearDarkVariant = useBackgroundContrast(gearBtnRef);
 
   // .sg-grid's own padding is var(--gap) / 2 (Grid.css — gap is applied via
   // each widget's own margin rather than the grid `gap` property, so the
@@ -109,8 +106,7 @@ export default function Grid() {
           <div className={`sg-controls sg-controls--${settingsButtonPosition} sg-controls--side-${side}`}>
             {/* Settings gear — always visible anchor */}
             <button
-              ref={gearBtnRef}
-              className={`sg-btn-control sg-btn-control--settings${settingsPanelOpen ? ' active' : ''}${gearDarkVariant ? ' sg-btn-control--dark-variant' : ''}`}
+              className={`sg-btn-control sg-btn-control--settings${settingsPanelOpen ? ' active' : ''}`}
               onPointerDown={e => { e.stopPropagation(); e.preventDefault(); if (!settingsPinned) setSettingsPanelOpen(s => !s); }}
               title={t('dashboard.settings')}
             >

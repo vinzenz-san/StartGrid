@@ -10,20 +10,11 @@
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
-  "background": {
-    "service_worker": "background.js"
-  },
   "permissions": [
     "storage",
     "identity"
   ],
   "optional_permissions": [
     "bookmarks"
-  ],
-  "host_permissions": [
-    "https://bing.npanuhin.me/*",
-    "https://*.nasa.gov/*",
-    "https://*.unsplash.com/*",
-    "https://*.bing.com/*"
   ]
 }

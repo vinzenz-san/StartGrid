@@ -120,15 +120,14 @@ html.sg-glow-all-widgets .sg-widget {
   transform: translateX(calc(-50% + 10px));
 }
 
-/* Icon-only control button. The settings gear has no border/background of
-   its own (its contrast is fully owned by the dynamic background-contrast
-   system — see Grid.tsx's useBackgroundContrast). The lock + theme-toggle
-   buttons, however, have no such per-pixel contrast sampling, and previously
-   relied entirely on the shared .sg-controls::before pill backdrop for
-   legibility — which left them blending into whatever's directly behind the
-   cluster (e.g. a light-colored widget) since they carried no background or
-   border of their own. They now get a small persistent chip (below) so they
-   stay legible regardless of what's behind the cluster. */
+/* Icon-only control button. All three (gear, lock, theme-toggle) share the
+   same small persistent chip background (below) so they stay legible
+   regardless of what's directly behind the cluster (e.g. a light-colored
+   widget or background image), without needing per-pixel contrast sampling
+   of the actual background — that used to be canvas-based (see removed
+   useBackgroundContrast) but was dropped along with the background-image
+   host_permissions it required; a fixed chip tied to the app's light/dark
+   theme setting works unconditionally instead. */
 .sg-btn-control {
   position: relative;
   z-index: 1;
@@ -147,22 +146,20 @@ html.sg-glow-all-widgets .sg-widget {
 }
 .sg-btn-control:hover        { transform: scale(1.15); }
 .sg-controls:hover .sg-btn-control { color: var(--accent); }
-/* Excludes the settings gear — its "open" (active) state must fall back to
-   the dynamic background-contrast color when not actively hovered, not a
-   persistent accent tint. The lock button keeps this as its unlocked
-   indicator. */
-.sg-btn-control.active:not(.sg-btn-control--settings) { color: var(--accent); }
+/* Accent tint for "active" state — the settings gear while its panel is
+   open, and the lock button's unlocked indicator. */
+.sg-btn-control.active { color: var(--accent); }
 
-/* Own chip background/border for lock + theme-toggle (dark mode) — a subtle
-   translucent circle so the icon reads clearly even directly over a bright
-   widget, instead of depending solely on the shared pill backdrop. Repeated
-   explicitly for the `.active` (unlocked) state below — the color-only
-   `.active` rule above it does not itself set background/border, but it
-   raises this selector's specificity to a three-class chain, so the chip is
-   restated at that same specificity to guarantee it survives in both the
-   locked and unlocked states rather than depending on rule ordering. */
-.sg-btn-control:not(.sg-btn-control--settings),
-.sg-btn-control.active:not(.sg-btn-control--settings) {
+/* Own chip background/border — a subtle translucent circle so the icon reads
+   clearly even directly over a bright widget, instead of depending solely on
+   the shared pill backdrop. Repeated explicitly for the `.active` state below
+   — the color-only `.active` rule above it does not itself set
+   background/border, but it raises this selector's specificity to a
+   two-class chain, so the chip is restated at that same specificity to
+   guarantee it survives in both the active and inactive states rather than
+   depending on rule ordering. */
+.sg-btn-control,
+.sg-btn-control.active {
   background: rgba(20, 22, 32, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
@@ -186,11 +183,9 @@ html.sg-glow-all-widgets .sg-widget {
    the chip background above flips to a near-opaque white (rather than the
    dark-mode translucent dark chip) so it doesn't itself blend into a light
    widget sitting directly behind the cluster — same pairing already used for
-   the per-widget settings gear's light-mode chip (WidgetContainer.css).
-   Excludes the settings gear — its color is fully owned by the dynamic
-   background-contrast system below, in both color schemes. */
-[data-scheme="light"] .sg-btn-control:not(.sg-btn-control--settings),
-[data-scheme="light"] .sg-btn-control.active:not(.sg-btn-control--settings) {
+   the per-widget settings gear's light-mode chip (WidgetContainer.css). */
+[data-scheme="light"] .sg-btn-control,
+[data-scheme="light"] .sg-btn-control.active {
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid rgba(0, 0, 0, 0.12);
   color: rgba(30, 30, 50, 0.65);
@@ -201,22 +196,8 @@ html.sg-glow-all-widgets .sg-widget {
 /* The unlocked (.active) indicator still needs to read as accent-colored in
    light mode, same as dark — restated after the chip rule above so it wins
    the tie (identical specificity, later in source). */
-[data-scheme="light"] .sg-btn-control.active:not(.sg-btn-control--settings) {
+[data-scheme="light"] .sg-btn-control.active {
   color: var(--accent);
-}
-
-/* ── Settings gear: dynamic background-contrast color ──────────────────────
-   Toggled by useBackgroundContrast() based on live-sampled luminance under
-   the button's current anchor position — strictly white or black, no
-   in-between tones, per design constraint. .active is explicitly excluded
-   above so this still governs the gear's color while the settings panel is
-   open but not hovered; only the actual :hover→accent rule (highest
-   specificity, always wins) overrides it. */
-.sg-btn-control--settings {
-  color: #fff;
-}
-.sg-btn-control--settings.sg-btn-control--dark-variant {
-  color: #000;
 }
 
 /* ── Grid ────────────────────────────────────────── */
