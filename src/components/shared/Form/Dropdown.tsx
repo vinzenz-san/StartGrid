@@ -51,7 +51,12 @@ export default function Dropdown<T extends string>({ options, value, onChange, d
     if (!open) return;
     const handler = (e: PointerEvent) => {
       const t = e.target as Node;
-      if (!refs.reference.current?.contains?.(t as Node) && !refs.floating.current?.contains(t))
+      // floating-ui's ReferenceType allows a VirtualElement (no .contains),
+      // but this component never sets a virtual reference — both refs are
+      // always real DOM nodes at runtime, hence the cast.
+      const referenceEl = refs.reference.current as Node | null;
+      const floatingEl  = refs.floating.current as Node | null;
+      if (!referenceEl?.contains(t) && !floatingEl?.contains(t))
         setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };

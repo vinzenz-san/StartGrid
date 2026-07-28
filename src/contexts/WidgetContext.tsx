@@ -64,7 +64,12 @@ export function WidgetProvider({ children }: { children: ReactNode }) {
   };
 
   const addWidget = (widget: Omit<Widget, 'id'>): Widget => {
-    const newWidget: Widget = { ...widget, id: `w-${Date.now()}` };
+    // TS can't verify a spread of Omit<DiscriminatedUnion, 'id'> still pairs
+    // each variant's `type` with its own `data` shape (a known limitation,
+    // not a real type mismatch) — callers are trusted to have constructed
+    // `widget` with a matching type/data pair in the first place, same as
+    // registry.tsx's WidgetEntry.defaultData type erasure this feeds from.
+    const newWidget = { ...widget, id: `w-${Date.now()}` } as Widget;
     setWidgets(prev => [...prev, newWidget]);
     return newWidget;
   };

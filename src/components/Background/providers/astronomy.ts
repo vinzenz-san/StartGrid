@@ -6,9 +6,8 @@ import { AstronomyConfig, BackgroundProviderDef } from '../../../types/backgroun
 // Without a proxy configured (e.g. local dev on a fresh clone), falls back to
 // calling NASA directly with APP_NASA_API_KEY, or NASA's heavily rate-limited
 // DEMO_KEY (30 req/hr, 50/day) if that's unset either — with a console notice.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MEDIA_PROXY_URL = ((import.meta as any).env.APP_MEDIA_PROXY_URL || '').replace(/\/$/, '');
-const NASA_API_KEY = (import.meta as any).env.APP_NASA_API_KEY || ''; // eslint-disable-line @typescript-eslint/no-explicit-any
+const NASA_API_KEY = (import.meta as any).env.APP_NASA_API_KEY || '';
 
 let APOD_BASE: string;
 if (MEDIA_PROXY_URL) {

@@ -1,4 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
+// Type-only import — erased at build time, so this doesn't defeat the lazy
+// runtime `await import('webextension-polyfill')` used below. Needed because
+// the package's .d.ts uses `export = Browser` (a namespace), which dynamic
+// `import('webextension-polyfill').default` typing doesn't resolve cleanly.
+import type Browser from 'webextension-polyfill';
 import {
   checkIsMsConnected,
   connectMicrosoft,
@@ -33,7 +38,7 @@ export function useMsAuth(): MsAuthState {
     // React to storage changes from any other widget / tab that triggers
     // connect() or disconnect() — keeps all mounted widgets in sync without
     // a shared React context.
-    let browser: typeof import('webextension-polyfill').default | null = null;
+    let browser: Browser.Browser | null = null;
 
     const listener = (
       changes: Record<string, { oldValue?: unknown; newValue?: unknown }>,

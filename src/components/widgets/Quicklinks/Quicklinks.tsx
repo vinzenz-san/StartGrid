@@ -88,7 +88,7 @@ function LinkItem({ link, iconSize, showTitle, showWhiteBadge, textSize }: LinkI
   const fallback = <span className="sg-ql-fallback">{label.charAt(0).toUpperCase()}</span>;
 
   let iconInner: React.ReactNode;
-  let isFaviconImg = false;
+  let isFaviconImg: boolean;
   if (iconSource !== 'auto' && link.customIcon) {
     iconInner = customImgError ? fallback : <img src={link.customIcon} alt="" draggable={false} onError={() => setCustomImgError(true)} />;
     isFaviconImg = !customImgError;

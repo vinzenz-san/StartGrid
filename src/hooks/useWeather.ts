@@ -57,7 +57,6 @@ export function useWeather({ latitude, longitude, units }: Params) {
         fetchRef.current();
       }
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasLocation, latitude, longitude, units]);
 
   return { weather, isFetching, error, refetch: fetchWeather };

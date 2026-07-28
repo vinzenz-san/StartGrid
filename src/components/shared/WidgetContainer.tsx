@@ -33,6 +33,41 @@ export default function WidgetContainer({ widget }: Props) {
   const displayW = resizePreview?.w ?? widget.w;
   const displayH = resizePreview?.h ?? widget.h;
 
+  // ── Floating panel positioning ────────────────────────────────────────────
+  // Declared before the orphan-guard early return below (rather than in its
+  // original spot further down, next to the title/header logic) — hooks must
+  // run unconditionally on every render, and an unknown widget.type hitting
+  // that early return would otherwise skip these, violating Rules of Hooks
+  // the moment a stale/removed widget type shows up in storage.
+
+  const { refs, floatingStyles } = useFloating({
+    placement: 'right-start',
+    middleware: [offset(8), flip(), shift({ padding: 8 })],
+    whileElementsMounted: autoUpdate,
+  });
+
+  const setRef = (node: HTMLDivElement | null) => {
+    (elRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+    refs.setReference(node);
+  };
+
+  // Outside-click to close — ignore clicks inside any active color picker portal
+  useEffect(() => {
+    if (!settingsOpen) return;
+    const handler = (e: PointerEvent) => {
+      const target = e.target as Element;
+      // Both are portaled to document.body, outside this panel's own DOM
+      // subtree — without this exemption, a pointerdown on either one reads
+      // as "outside click" and closes the whole panel before the picker's/
+      // dropdown's own click handler (which fires after pointerdown) can run.
+      if (target.closest('.ccp-panel') || target.closest('.sg-dropdown-menu')) return;
+      if (!elRef.current?.contains(target) && !refs.floating.current?.contains(target))
+        setSettingsOpen(false);
+    };
+    document.addEventListener('pointerdown', handler, { capture: true });
+    return () => document.removeEventListener('pointerdown', handler, { capture: true });
+  }, [settingsOpen, refs.floating]);
+
   // ── Registry lookup ───────────────────────────────────────────────────────
 
   const entry = WIDGET_REGISTRY[widget.type];
@@ -71,36 +106,6 @@ export default function WidgetContainer({ widget }: Props) {
   const showHeader      = entry.titleBehavior === 'optional' && showCustomTitle;
   const titlePlaceholder = entry.resolveDynamicTitle?.(widget.data) ?? entry.defaultTitle ?? t(WIDGET_TYPE_LABEL_KEYS[widget.type]);
   const resolvedTitle    = widget.customTitle || titlePlaceholder;
-
-  // ── Floating panel positioning ────────────────────────────────────────────
-
-  const { refs, floatingStyles } = useFloating({
-    placement: 'right-start',
-    middleware: [offset(8), flip(), shift({ padding: 8 })],
-    whileElementsMounted: autoUpdate,
-  });
-
-  const setRef = (node: HTMLDivElement | null) => {
-    (elRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
-    refs.setReference(node);
-  };
-
-  // Outside-click to close — ignore clicks inside any active color picker portal
-  useEffect(() => {
-    if (!settingsOpen) return;
-    const handler = (e: PointerEvent) => {
-      const target = e.target as Element;
-      // Both are portaled to document.body, outside this panel's own DOM
-      // subtree — without this exemption, a pointerdown on either one reads
-      // as "outside click" and closes the whole panel before the picker's/
-      // dropdown's own click handler (which fires after pointerdown) can run.
-      if (target.closest('.ccp-panel') || target.closest('.sg-dropdown-menu')) return;
-      if (!elRef.current?.contains(target) && !refs.floating.current?.contains(target))
-        setSettingsOpen(false);
-    };
-    document.addEventListener('pointerdown', handler, { capture: true });
-    return () => document.removeEventListener('pointerdown', handler, { capture: true });
-  }, [settingsOpen, refs.floating]);
 
   // ── Drag to move ──────────────────────────────────────────────────────────
 
@@ -161,7 +166,6 @@ export default function WidgetContainer({ widget }: Props) {
 
   // ── Data update helper ────────────────────────────────────────────────────
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleUpdateData = (patch: any) => {
     updateWidget(widget.id, { data: { ...widget.data, ...patch } });
   };

@@ -75,9 +75,16 @@ async function fetchStats(): Promise<Stats> {
     browser.storage.local.get(null) as Promise<Record<string, unknown>>,
   ]);
 
-  let localUsed = 0;
+  let localUsed: number;
   try {
-    localUsed = await (browser.storage.local.getBytesInUse(null) as Promise<number>);
+    // getBytesInUse exists on Chrome's local storage area at runtime but
+    // isn't in Firefox's (hence the catch below falling back to measuring
+    // the serialized size directly) — webextension-polyfill's types only
+    // declare it for the sync area, so this needs an explicit escape hatch.
+    const localStorageWithBytesInUse = browser.storage.local as unknown as {
+      getBytesInUse(keys: null): Promise<number>;
+    };
+    localUsed = await localStorageWithBytesInUse.getBytesInUse(null);
   } catch {
     localUsed = new TextEncoder().encode(JSON.stringify(localAll)).length;
   }

@@ -1,6 +1,6 @@
 {
   "name": "firefox-addon-startpage",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "private": true,
   "browserslist": [
     "last 2 Firefox versions",
@@ -9,6 +9,8 @@
   ],
   "scripts": {
     "dev": "rspack build --watch --env target=firefox",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint src",
     "build:firefox": "rspack build --env target=firefox --env production=true && node scripts/patch-runtime.js dist/firefox/newtab.js",
     "build:chrome": "rspack build --env target=chrome --env production=true && node scripts/patch-runtime.js dist/chrome/newtab.js",
     "build:chrome-store": "rspack build --env target=chrome --env production=true --env store=true && node scripts/patch-runtime.js dist/chrome-store/newtab.js",
@@ -25,13 +27,20 @@
     "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@rspack/cli": "^1.3.0",
     "@rspack/core": "^1.3.0",
+    "@types/chrome": "^0.2.2",
+    "@types/firefox-webext-browser": "^143.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/webextension-polyfill": "^0.10.0",
     "archiver": "^7.0.1",
+    "eslint": "^10.8.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.8.0",
     "serve": "^14.2.6",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.65.0"
   }
 }

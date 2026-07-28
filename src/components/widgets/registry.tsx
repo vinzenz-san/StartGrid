@@ -42,9 +42,7 @@ export interface WidgetEntry {
   defaultTitle?:        string;
   defaultShowCustomTitle?: boolean;
   resolveDynamicTitle?: (data: unknown) => string | undefined;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   renderComponent: (data: any, onUpdateData: (patch: any) => void, isSettingsOpen?: boolean, widgetId?: string) => ReactNode;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   renderSettings:  ((data: any, onUpdateData: (patch: any) => void, widgetId?: string) => ReactNode) | null;
 }
 
@@ -177,7 +175,7 @@ const _registry = {
     defaultData:   { title: 'Placeholder' } satisfies PlaceholderData,
     devOnly:       true,
     titleBehavior: 'none',
-    renderComponent: (data, onUpdateData) => <WidgetPlaceholder widget={{ type: 'placeholder', data, id: '', col: 1, row: 1, w: 1, h: 1 }} />,
+    renderComponent: (data, _onUpdateData) => <WidgetPlaceholder widget={{ type: 'placeholder', data, id: '', col: 1, row: 1, w: 1, h: 1 }} />,
     renderSettings:  null,
   } satisfies TypedEntry<PlaceholderData>,
 

@@ -2,6 +2,12 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.1.5] — CI: typecheck + lint gate
+- Added `pnpm typecheck` (`tsc --noEmit`) and `pnpm lint` (ESLint, flat config) scripts, plus a GitHub Actions workflow (`.github/workflows/ci.yml`) running typecheck, lint, and both browser builds on every push/PR — previously `tsc` had never actually been run against this codebase (rspack transpiles without type-checking)
+- Fixed a real Rules-of-Hooks violation in `WidgetContainer.tsx`: `useFloating`/`useEffect` were called after the "unknown widget type" early return, so a widget with a type missing from the registry (e.g. a stale/removed type in stored data) would skip those hooks entirely — moved them above the early return
+- Fixed ~13 other pre-existing type errors surfaced by the first `tsc` run: missing `@types/chrome`/`@types/firefox-webext-browser`, a null-safety gap in `useUnsplash.ts`'s rotation timer, a stale dead type-narrowing check in `SettingsContext.tsx` (comparing against `'left'`/`'right'`, values `SettingsButtonPosition` never actually has), a `Dropdown.tsx` outside-click check that couldn't call `.contains()` on a floating-ui virtual-element type, and a few discriminated-union cast points in the widget registry/context
+- Cleaned up dead code the type/lint gate surfaced: unused `luminance()` helper, unused `useRef` import, a few stale `eslint-disable` comments, and useless variable initializers always overwritten before being read
+
 ## [1.1.4] — Drop background-image host_permissions entirely
 - Removed the remaining `host_permissions` (`*.nasa.gov`, `*.unsplash.com`, `*.bing.com`, `bing.npanuhin.me`) along with the background-script `FETCH_EXTERNAL_IMAGE` relay and the `background.ts` entry point altogether — the extension no longer has a background context at all
 - These existed solely to support `useBackgroundContrast`, which sampled the live background image's pixels on a `<canvas>` to auto-pick a light/dark settings-gear icon. That feature is removed: the settings gear now uses the same fixed, theme-aware translucent chip background as the lock and theme-toggle buttons, which needs no permissions and works unconditionally (same approach TablissNG uses for its own background providers — plain CSS `url()`, no pixel sampling)

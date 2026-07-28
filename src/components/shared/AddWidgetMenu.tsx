@@ -4,7 +4,7 @@ import { useGridConfig } from '../../contexts/GridConfigContext';
 import { useSettings } from '../../contexts/SettingsContext';
 import { WIDGET_REGISTRY, WIDGET_MENU_TYPES, WIDGET_TYPE_LABEL_KEYS } from '../widgets/registry';
 import { findFreePosition } from '../../lib/gridUtils';
-import type { WidgetType } from '../../types/widget';
+import type { Widget, WidgetType } from '../../types/widget';
 import './AddWidgetMenu.css';
 
 interface Props { className?: string; }
@@ -31,7 +31,10 @@ export default function AddWidgetMenu({ className }: Props) {
   const handleAdd = (type: WidgetType) => {
     const { defaultSize, defaultData } = WIDGET_REGISTRY[type];
     const { col, row } = findFreePosition(widgets, gridConfig.columns, defaultSize.w, defaultSize.h);
-    addWidget({ type, col, row, w: defaultSize.w, h: defaultSize.h, data: defaultData });
+    // defaultData is `unknown` here — WidgetEntry type-erases it for dynamic
+    // lookup by `type` (see registry.tsx), each entry's own `satisfies`
+    // check already guarantees it actually matches `type`.
+    addWidget({ type, col, row, w: defaultSize.w, h: defaultSize.h, data: defaultData } as Omit<Widget, 'id'>);
     setOpen(false);
   };
 

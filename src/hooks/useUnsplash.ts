@@ -31,7 +31,6 @@ export function extractCollectionId(raw: string): string {
 // VITE_). All Unsplash requests go through this Cloudflare Worker (shared
 // with astronomy.ts's NASA calls — see worker/api-proxy.ts), which attaches
 // the real Access Key server-side — the key never ships in the extension bundle.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const PROXY_URL = ((import.meta as any).env.APP_MEDIA_PROXY_URL || '').replace(/\/$/, '');
 const UNSPLASH_API_ORIGIN = 'https://api.unsplash.com';
 
@@ -51,7 +50,11 @@ export function useUnsplash(
   const fetchRef = useRef<() => Promise<void>>(async () => {});
 
   const fetchImage = useCallback(async () => {
-    if (!proxyReady) return;
+    // Every caller already gates on isActive/proxyReady before triggering a
+    // fetch, but `uc` is a separately-captured closure variable that TS can't
+    // narrow across that boundary — this guard makes the same guarantee
+    // explicit (and type-checkable) at the one place that actually reads it.
+    if (!proxyReady || !uc) return;
     setIsFetching(true);
     setError(null);
     try {
@@ -183,14 +186,13 @@ export function useUnsplash(
   const fetchedAt = attribution?.fetchedAt ?? 0;
   useEffect(() => {
     if (!isActive || !proxyReady || !fetchedAt) return;
-    const rotation = uc.rotationInterval ?? 900;
+    const rotation = uc?.rotationInterval ?? 900;
     // 0 = 'every new tab' — only fetches on (re)mount, never on a recurring timer.
     if (rotation === 0) return;
     const interval = rotation * 1000;
     const delay    = Math.max(0, interval - (Date.now() - fetchedAt));
     const t = setTimeout(() => fetchRef.current(), delay);
     return () => clearTimeout(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive, proxyReady, uc?.rotationInterval, fetchedAt]);
 
   return {
