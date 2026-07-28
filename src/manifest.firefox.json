@@ -12,7 +12,8 @@
       "id": "startgrid@local",
       "strict_min_version": "142.0",
       "data_collection_permissions": {
-        "required": ["bookmarksInfo", "locationInfo", "personallyIdentifyingInfo"]
+        "required": ["locationInfo", "personallyIdentifyingInfo"],
+        "optional": ["bookmarksInfo"]
       }
     }
   },
@@ -24,18 +25,15 @@
   },
   "permissions": [
     "storage",
-    "bookmarks",
     "identity"
   ],
+  "optional_permissions": [
+    "bookmarks"
+  ],
   "host_permissions": [
-    "https://accounts.google.com/*",
-    "https://oauth2.googleapis.com/*",
-    "https://www.googleapis.com/*",
     "https://bing.npanuhin.me/*",
     "https://*.nasa.gov/*",
     "https://*.unsplash.com/*",
-    "https://*.bing.com/*",
-    "https://api.open-meteo.com/*",
-    "https://geocoding-api.open-meteo.com/*"
+    "https://*.bing.com/*"
   ]
 }
