@@ -29,14 +29,20 @@ export interface Env {
 // startgrid-chrome-key.pub.b64.txt (see rspack.config.ts) — so it's matched
 // exactly.
 //
-// The origin below is the ID the pinned key produces. `build:chrome-store`
-// omits the key field, so the published item's ID could in principle differ
-// from the unpacked build's — verified 2026-07-29 that it does not: the Chrome
-// Web Store listing installs as jkikhgehaeponbomfggejlnpbegpdafl, the same ID,
-// so one entry covers both and no ALLOWED_ORIGIN secret is required. Recheck
-// this if the item is ever re-uploaded under a new listing; a mismatch shows up
-// as a 403 naming the offending origin rather than as a silent failure.
-const CHROME_EXTENSION_ORIGIN = 'chrome-extension://jkikhgehaeponbomfggejlnpbegpdafl';
+// Two Chrome origins, not one — they are NOT the same value:
+//   * `build:chrome-store` omits the manifest key field, so the published item
+//     uses the ID the Web Store assigned at listing creation. This is the ID
+//     real users run; it must never be dropped from this list.
+//   * `build:chrome` injects the pinned key (startgrid-chrome-key.pub.b64.txt),
+//     which produces a different, local-only ID for unpacked testing.
+// Deriving one from the other is not possible — confirmed 2026-07-29 by
+// resolving both against the Web Store: only cihlhlnnd... returns the StartGrid
+// listing. An earlier revision of this file allowed the unpacked ID alone,
+// which 403'd every store install until this was caught.
+const CHROME_EXTENSION_ORIGINS = [
+  'chrome-extension://cihlhlnndcacidpnhmncifiggfcacdhk', // Chrome Web Store listing
+  'chrome-extension://jkikhgehaeponbomfggejlnpbegpdafl', // local unpacked (pinned key)
+];
 const FIREFOX_ORIGIN_PATTERN = /^moz-extension:\/\/[0-9a-f-]+$/i;
 // Demo/testing surfaces served over the public web.
 const WEB_ORIGINS = ['https://vinzenz-dev.de', 'http://localhost:5173'];
@@ -65,7 +71,7 @@ export function resolveAllowedOrigin(origin: string | null, env: Env): string | 
 
   const configured = parseAllowlist(env.ALLOWED_ORIGIN);
   const allowed = [
-    ...(configured.length > 0 ? configured : [CHROME_EXTENSION_ORIGIN]),
+    ...(configured.length > 0 ? configured : CHROME_EXTENSION_ORIGINS),
     ...WEB_ORIGINS,
   ];
   return allowed.some(entry => originMatches(origin, entry)) ? origin : null;
