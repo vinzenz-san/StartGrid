@@ -5,6 +5,21 @@ import { SETTINGS_DEFAULTS } from '../../contexts/SettingsContext';
 
 const isExtension = typeof chrome !== 'undefined' && !!chrome.storage;
 
+// OAuth tokens never leave the extension's sandboxed storage. An exported
+// backup is a plain-text JSON file in the user's Downloads folder (often
+// itself cloud-synced), so including sg_google_auth/sg_ms_auth would put a
+// live refresh token on disk where any local process could read it — exactly
+// the guarantee docs/privacy.html makes about browser.storage.local. Filtered
+// on both ends: export never writes them, and import never restores them from
+// a hand-edited or third-party file.
+const SENSITIVE_LOCAL_KEYS = ['sg_google_auth', 'sg_ms_auth'];
+
+function withoutSensitiveKeys(local: Record<string, unknown>): Record<string, unknown> {
+  const filtered = { ...local };
+  for (const key of SENSITIVE_LOCAL_KEYS) delete filtered[key];
+  return filtered;
+}
+
 // ── Storage helpers ────────────────────────────────────────────────────────
 
 async function readAllStorage(): Promise<{ sync: Record<string, unknown>; local: Record<string, unknown> }> {
@@ -101,7 +116,7 @@ export async function exportBackup(): Promise<void> {
     version: 1,
     exportedAt: new Date().toISOString(),
     sync,
-    local,
+    local: withoutSensitiveKeys(local),
   };
   const blob = new Blob([JSON.stringify(envelope, null, 2)], { type: 'application/json' });
   const url  = URL.createObjectURL(blob);
@@ -126,7 +141,7 @@ export function importBackup(file: File): Promise<void> {
         if (!isValidEnvelope(parsed)) {
           throw new Error('Invalid backup file. Expected a Startpage backup with version, sync, and local keys.');
         }
-        await writeAllStorage(parsed.sync, parsed.local);
+        await writeAllStorage(parsed.sync, withoutSensitiveKeys(parsed.local));
         resolve();
       } catch (err) {
         reject(err instanceof Error ? err : new Error('Unknown error.'));
