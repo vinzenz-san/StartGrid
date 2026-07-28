@@ -2,6 +2,11 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.1.3] — Reduced permissions footprint
+- Removed unnecessary `host_permissions`: `accounts.google.com`, `oauth2.googleapis.com`, `www.googleapis.com`, `api.open-meteo.com`, `geocoding-api.open-meteo.com` — all confirmed CORS-permissive for direct fetch, so the permission was declared but never actually needed (Google OAuth is opened via `identity.launchWebAuthFlow`, not fetched directly; token exchange and Calendar API calls already work without it). Kept `*.nasa.gov`/`*.unsplash.com`/`*.bing.com`/`bing.npanuhin.me`, which the `FETCH_EXTERNAL_IMAGE` background relay genuinely needs for CORS-blocked image bytes.
+- `bookmarks` moved from a required to an `optional_permissions` entry (Firefox: `bookmarksInfo` moved to optional data collection too) — Bookmark Folder/Search widgets now request it at runtime via `browser.permissions.request()` the first time they're used, with a "Grant access" prompt in place of silently falling back to sample data
+- Fixed extension-environment detection (`isExtensionEnv`) to key off `browser.runtime.id` instead of `chrome.permissions`, which isn't reliably exposed by Firefox's `chrome.*` compatibility shim — the old check silently misdetected Firefox and could get stuck showing mock bookmarks with no permission prompt
+
 ## [1.1.2] — Store submission fixes
 - Removed the unused `tabs` permission from both manifests (Chrome Web Store rejected 1.1.1 for excessive permissions — `tabs.create`/`tabs.update` don't require it since the code never reads back `Tab.url`/`title`/`favIconUrl`)
 - Build: replaced PowerShell `Compress-Archive` with a Node `archiver`-based packaging script (`scripts/package-zip.js`, `pnpm package:firefox`/`package:chrome`/`package:chrome-store`) — `Compress-Archive` was writing backslash path separators into the zip, which AMO's linter rejects as invalid file names
