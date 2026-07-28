@@ -2,10 +2,16 @@ import { AstronomyConfig, BackgroundProviderDef } from '../../../types/backgroun
 
 // NASA APOD API. When APP_MEDIA_PROXY_URL is set (see .env.example), requests
 // go through the Cloudflare Worker in worker/api-proxy.ts, which attaches the
-// real key server-side — nothing NASA-related ships in the extension bundle.
-// Without a proxy configured (e.g. local dev on a fresh clone), falls back to
-// calling NASA directly with APP_NASA_API_KEY, or NASA's heavily rate-limited
-// DEMO_KEY (30 req/hr, 50/day) if that's unset either — with a console notice.
+// real key server-side. Without a proxy configured (e.g. local dev on a fresh
+// clone), falls back to calling NASA directly with APP_NASA_API_KEY, or NASA's
+// heavily rate-limited DEMO_KEY (30 req/hr, 50/day) if that's unset either —
+// with a console notice.
+//
+// The fallback below is why rspack.config.ts injects APP_NASA_API_KEY only
+// when no proxy URL is configured: MEDIA_PROXY_URL is derived through a
+// .replace() call, so the minifier can't fold it to a constant, can't prove
+// this branch dead, and would otherwise keep the key as a string literal in
+// every shipped bundle.
 const MEDIA_PROXY_URL = ((import.meta as any).env.APP_MEDIA_PROXY_URL || '').replace(/\/$/, '');
 const NASA_API_KEY = (import.meta as any).env.APP_NASA_API_KEY || '';
 
