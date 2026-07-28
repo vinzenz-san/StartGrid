@@ -2,6 +2,10 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.1.4] — Drop background-image host_permissions entirely
+- Removed the remaining `host_permissions` (`*.nasa.gov`, `*.unsplash.com`, `*.bing.com`, `bing.npanuhin.me`) along with the background-script `FETCH_EXTERNAL_IMAGE` relay and the `background.ts` entry point altogether — the extension no longer has a background context at all
+- These existed solely to support `useBackgroundContrast`, which sampled the live background image's pixels on a `<canvas>` to auto-pick a light/dark settings-gear icon. That feature is removed: the settings gear now uses the same fixed, theme-aware translucent chip background as the lock and theme-toggle buttons, which needs no permissions and works unconditionally (same approach TablissNG uses for its own background providers — plain CSS `url()`, no pixel sampling)
+
 ## [1.1.3] — Reduced permissions footprint
 - Removed unnecessary `host_permissions`: `accounts.google.com`, `oauth2.googleapis.com`, `www.googleapis.com`, `api.open-meteo.com`, `geocoding-api.open-meteo.com` — all confirmed CORS-permissive for direct fetch, so the permission was declared but never actually needed (Google OAuth is opened via `identity.launchWebAuthFlow`, not fetched directly; token exchange and Calendar API calls already work without it). Kept `*.nasa.gov`/`*.unsplash.com`/`*.bing.com`/`bing.npanuhin.me`, which the `FETCH_EXTERNAL_IMAGE` background relay genuinely needs for CORS-blocked image bytes.
 - `bookmarks` moved from a required to an `optional_permissions` entry (Firefox: `bookmarksInfo` moved to optional data collection too) — Bookmark Folder/Search widgets now request it at runtime via `browser.permissions.request()` the first time they're used, with a "Grant access" prompt in place of silently falling back to sample data
