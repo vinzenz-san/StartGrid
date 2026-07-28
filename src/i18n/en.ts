@@ -280,6 +280,8 @@ export const en = {
   'widget.bookmarkSearch.noResults':        'No results',
   'widget.bookmarkSearch.overflow':         'Showing top {{n}} results. Refine your search to see more.',
   'widget.bookmarkSearch.folderFallback':   '(Folder)',
+  'widget.bookmarkSearch.permissionNeeded': 'Bookmark access needed to search your bookmarks.',
+  'widget.bookmarkSearch.grantAccess':      'Grant access',
 
   // ── Bookmark Folder widget ───────────────────────────────────────────────
   'widget.bookmarkFolder.sortOrder':        'Sort order',
@@ -288,6 +290,8 @@ export const en = {
   'widget.bookmarkFolder.sortAlphabetical': 'A–Z',
   'widget.bookmarkFolder.rootFolder':       'Root folder',
   'widget.bookmarkFolder.mockNote':         'Mock data — real bookmarks available in the extension.',
+  'widget.bookmarkFolder.permissionNeeded': 'Bookmark access needed to show your bookmarks.',
+  'widget.bookmarkFolder.grantAccess':      'Grant access',
   'widget.bookmarkFolder.loading':          'Loading…',
   'widget.bookmarkFolder.rootFallback':     '(Root)',
   'widget.bookmarkFolder.unnamedFolder':    '(Unnamed folder)',

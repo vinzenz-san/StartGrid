@@ -228,6 +228,18 @@
 .sg-bks-empty-icon { font-size: 20px; opacity: 0.35; }
 .sg-bks-empty-text { font-size: 12px; opacity: 0.4; text-align: center; }
 
+.sg-bks-grant-btn {
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.1s;
+}
+.sg-bks-grant-btn:hover { background: rgba(128, 128, 128, 0.2); }
+
 /* ── Overflow warning banner ──────────────────────────────────────────────── */
 
 .sg-bks-overflow-banner {

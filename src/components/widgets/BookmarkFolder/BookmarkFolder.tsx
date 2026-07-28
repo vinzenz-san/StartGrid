@@ -134,13 +134,14 @@ export function BookmarkFolderSettings({ data, onUpdateData }: SettingsProps) {
   const [editingIconId, setEditingIconId]             = useState<string | null>(null);
 
   useEffect(() => {
+    setTreeLoading(true);
     bookmarks.getTree().then(t => {
       setTree(t);
       setTreeLoading(false);
       const topLevel = t[0]?.children ?? [];
       setExpandedIds(findAncestorIds(topLevel, selectedId));
-    });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }).catch(() => setTreeLoading(false));
+  }, [bookmarks.permissionState]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedId = data.rootFolderId ?? '1';
 
@@ -153,8 +154,8 @@ export function BookmarkFolderSettings({ data, onUpdateData }: SettingsProps) {
     bookmarks.getChildren(selectedId).then(children => {
       setRootChildren(children.filter(c => !!c.url));
       setRootChildrenLoading(false);
-    });
-  }, [selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
+    }).catch(() => setRootChildrenLoading(false));
+  }, [selectedId, bookmarks.permissionState]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateOverride = (id: string, patch: Partial<BookmarkIconOverride>) => {
     const next = { ...(data.iconOverrides ?? {}) };
@@ -302,7 +303,14 @@ export function BookmarkFolderSettings({ data, onUpdateData }: SettingsProps) {
       <div className="sg-bf-settings-divider" />
 
       <span className="sg-bf-settings-label">{t('widget.bookmarkFolder.rootFolder')}</span>
-      {bookmarks.isMock && (
+      {bookmarks.needsPermission ? (
+        <div className="sg-bf-permission-prompt">
+          <p className="sg-bf-settings-note">{t('widget.bookmarkFolder.permissionNeeded')}</p>
+          <button className="sg-bf-io-action-btn" onClick={bookmarks.requestAccess}>
+            {t('widget.bookmarkFolder.grantAccess')}
+          </button>
+        </div>
+      ) : bookmarks.isMock && !bookmarks.checkingPermission && (
         <p className="sg-bf-settings-note">{t('widget.bookmarkFolder.mockNote')}</p>
       )}
       {treeLoading ? (
@@ -431,7 +439,7 @@ export default function BookmarkFolder({ data, onUpdateData }: Props) {
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rootFolderId]);
+  }, [rootFolderId, bookmarks.permissionState]);
 
   // Load children for current folder
   useEffect(() => {
@@ -454,7 +462,7 @@ export default function BookmarkFolder({ data, onUpdateData }: Props) {
         }
       })
       .catch(() => setLoading(false));
-  }, [currentId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentId, bookmarks.permissionState]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function enterFolder(node: BmNode) {
     setNavStack(prev => [...prev, { id: node.id, name: node.title || t('widget.bookmarkFolder.folderFallback') }]);
@@ -497,7 +505,15 @@ export default function BookmarkFolder({ data, onUpdateData }: Props) {
 
       {/* Body */}
       <div className="sg-bf-body">
-        {loading ? (
+        {bookmarks.needsPermission ? (
+          <div className="sg-bf-empty sg-bf-permission-prompt">
+            <span className="sg-bf-empty-icon">🔒</span>
+            <span className="sg-bf-empty-text">{t('widget.bookmarkFolder.permissionNeeded')}</span>
+            <button className="sg-bf-io-action-btn" onClick={bookmarks.requestAccess}>
+              {t('widget.bookmarkFolder.grantAccess')}
+            </button>
+          </div>
+        ) : loading ? (
           <div className="sg-bf-empty">
             <span className="sg-bf-empty-text">{t('widget.bookmarkFolder.loading')}</span>
           </div>

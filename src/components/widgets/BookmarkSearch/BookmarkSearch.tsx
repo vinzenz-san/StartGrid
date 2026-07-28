@@ -214,8 +214,8 @@ export default function BookmarkSearch({ data }: Props) {
       setTotalResultCount(results.length);
       setSearchResults(results.slice(0, maxResults));
       setLoading(false);
-    });
-  }, [query, maxResults]); // eslint-disable-line react-hooks/exhaustive-deps
+    }).catch(() => setLoading(false));
+  }, [query, maxResults, bookmarks.permissionState]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Load folder contents ──────────────────────────────────────────────────
 
@@ -225,7 +225,7 @@ export default function BookmarkSearch({ data }: Props) {
     bookmarks.getChildren(currentFolder.id)
       .then(items => { setFolderItems(items); setLoading(false); })
       .catch(() => setLoading(false));
-  }, [folderStack]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [folderStack, bookmarks.permissionState]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function enterFolder(node: BmNode) {
     setFolderStack(prev => [...prev, { id: node.id, name: node.title || t('widget.bookmarkSearch.folderFallback') }]);
@@ -260,7 +260,15 @@ export default function BookmarkSearch({ data }: Props) {
 
       {/* Results body */}
       <div className="sg-bks-float-body">
-        {loading ? (
+        {bookmarks.needsPermission ? (
+          <div className="sg-bks-empty">
+            <span className="sg-bks-empty-icon">🔒</span>
+            <span className="sg-bks-empty-text">{t('widget.bookmarkSearch.permissionNeeded')}</span>
+            <button className="sg-bks-grant-btn" onClick={bookmarks.requestAccess}>
+              {t('widget.bookmarkSearch.grantAccess')}
+            </button>
+          </div>
+        ) : loading ? (
           <div className="sg-bks-empty">
             <span className="sg-bks-empty-text">{t('widget.bookmarkSearch.loading')}</span>
           </div>

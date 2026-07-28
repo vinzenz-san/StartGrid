@@ -282,6 +282,8 @@ export const de: Record<TranslationKey, string> = {
   'widget.bookmarkSearch.noResults':        'Keine Ergebnisse',
   'widget.bookmarkSearch.overflow':         'Zeigt die obersten {{n}} Ergebnisse. Verfeinere deine Suche, um mehr zu sehen.',
   'widget.bookmarkSearch.folderFallback':   '(Ordner)',
+  'widget.bookmarkSearch.permissionNeeded': 'Zugriff auf Lesezeichen nötig, um sie zu durchsuchen.',
+  'widget.bookmarkSearch.grantAccess':      'Zugriff erlauben',
 
   // ── Bookmark Folder widget ───────────────────────────────────────────────
   'widget.bookmarkFolder.sortOrder':        'Sortierung',
@@ -290,6 +292,8 @@ export const de: Record<TranslationKey, string> = {
   'widget.bookmarkFolder.sortAlphabetical': 'A–Z',
   'widget.bookmarkFolder.rootFolder':       'Stammordner',
   'widget.bookmarkFolder.mockNote':         'Testdaten — echte Lesezeichen sind in der Erweiterung verfügbar.',
+  'widget.bookmarkFolder.permissionNeeded': 'Zugriff auf Lesezeichen nötig, um sie anzuzeigen.',
+  'widget.bookmarkFolder.grantAccess':      'Zugriff erlauben',
   'widget.bookmarkFolder.loading':          'Wird geladen…',
   'widget.bookmarkFolder.rootFallback':     '(Stamm)',
   'widget.bookmarkFolder.unnamedFolder':    '(Unbenannter Ordner)',
