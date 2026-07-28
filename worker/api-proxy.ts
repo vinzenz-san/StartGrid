@@ -14,7 +14,61 @@ export interface Env {
   GOOGLE_CLIENT_SECRET: string;
   MS_CLIENT_ID: string;
   MS_CLIENT_SECRET: string;
-  ALLOWED_ORIGIN?: string; // e.g. 'chrome-extension://<id>' or 'moz-extension://<id>'
+  // Comma-separated allowlist that replaces the built-in Chrome origin below,
+  // e.g. 'chrome-extension://aaa...,chrome-extension://bbb...'. An entry may
+  // end in '*' to match a prefix ('chrome-extension://*'). Firefox origins and
+  // the web origins below are always allowed regardless of this value.
+  ALLOWED_ORIGIN?: string;
+}
+
+// ── CORS origin allowlist ─────────────────────────────────────────────────────
+//
+// This cannot collapse to a single fixed origin: Firefox regenerates
+// moz-extension://<uuid> per install and per profile, so the scheme is the
+// only thing there is to match on. Chrome's ID is stable — it's pinned by
+// startgrid-chrome-key.pub.b64.txt (see rspack.config.ts) — so it's matched
+// exactly.
+//
+// ⚠ The origin below is the ID that the pinned key produces, i.e. what
+// `pnpm build:chrome` loads unpacked. `build:chrome-store` deliberately omits
+// the key field, so if the Chrome Web Store assigned the published item a
+// different ID, that ID must be added to the ALLOWED_ORIGIN secret *before*
+// this Worker is deployed — otherwise store users get a 403 on every
+// Unsplash/NASA/OAuth call. Rejections name the offending origin in the
+// response body so that shows up immediately rather than as a silent failure.
+const CHROME_EXTENSION_ORIGIN = 'chrome-extension://jkikhgehaeponbomfggejlnpbegpdafl';
+const FIREFOX_ORIGIN_PATTERN = /^moz-extension:\/\/[0-9a-f-]+$/i;
+// Demo/testing surfaces served over the public web.
+const WEB_ORIGINS = ['https://vinzenz-dev.de', 'http://localhost:5173'];
+
+function parseAllowlist(raw: string | undefined): string[] {
+  return (raw ?? '').split(',').map(entry => entry.trim()).filter(Boolean);
+}
+
+function originMatches(origin: string, entry: string): boolean {
+  return entry.endsWith('*') ? origin.startsWith(entry.slice(0, -1)) : origin === entry;
+}
+
+/**
+ * Returns the value to echo back in Access-Control-Allow-Origin, or null if
+ * the caller isn't allowed.
+ *
+ * A request with no Origin header at all resolves to null and is served
+ * without CORS headers rather than refused: an origin check only ever
+ * constrains browsers, since any non-browser client can omit or forge the
+ * header. The point of this allowlist is to stop a web page from spending the
+ * API keys this Worker holds, not to authenticate callers.
+ */
+export function resolveAllowedOrigin(origin: string | null, env: Env): string | null {
+  if (!origin) return null;
+  if (FIREFOX_ORIGIN_PATTERN.test(origin)) return origin;
+
+  const configured = parseAllowlist(env.ALLOWED_ORIGIN);
+  const allowed = [
+    ...(configured.length > 0 ? configured : [CHROME_EXTENSION_ORIGIN]),
+    ...WEB_ORIGINS,
+  ];
+  return allowed.some(entry => originMatches(origin, entry)) ? origin : null;
 }
 
 const UNSPLASH_UPSTREAM = 'https://api.unsplash.com';
@@ -38,16 +92,29 @@ async function relay(upstreamRes: Response, corsHeaders: Record<string, string>)
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const corsHeaders = {
-      'Access-Control-Allow-Origin': env.ALLOWED_ORIGIN || '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    };
+    const origin = request.headers.get('Origin');
+    const allowedOrigin = resolveAllowedOrigin(origin, env);
+
+    // A browser identified itself and we don't recognise it — refuse outright
+    // instead of relying on the browser to throw the response away, so the
+    // keys behind this Worker can't be spent from an unknown page.
+    if (origin !== null && allowedOrigin === null) {
+      return new Response(`Origin not allowed: ${origin}`, { status: 403 });
+    }
+
+    // Vary matters here: without it a cache could serve one extension install's
+    // Allow-Origin header to another.
+    const corsHeaders: Record<string, string> = allowedOrigin
+      ? {
+          'Access-Control-Allow-Origin': allowedOrigin,
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
+          Vary: 'Origin',
+        }
+      : {};
 
     if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        headers: { ...corsHeaders, 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' },
-      });
+      return new Response(null, { headers: corsHeaders });
     }
 
     const url = new URL(request.url);

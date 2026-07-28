@@ -12,4 +12,9 @@ compatibility_date = "2024-01-01"
 #   wrangler secret put GOOGLE_CLIENT_SECRET
 #   wrangler secret put MS_CLIENT_ID
 #   wrangler secret put MS_CLIENT_SECRET
-# Optionally restrict CORS via: wrangler secret put ALLOWED_ORIGIN
+# Optionally: wrangler secret put ALLOWED_ORIGIN
+#   Comma-separated list of extra allowed origins, replacing the built-in
+#   Chrome extension origin in api-proxy.ts (Firefox moz-extension:// origins
+#   and the web origins listed there stay allowed either way). Needed if the
+#   Chrome Web Store item's ID differs from the one the pinned signing key
+#   produces — see the allowlist comment in api-proxy.ts.
