@@ -1,0 +1,153 @@
+/* Slim search-bar shell + floating results panel. Mirrors the Bookmark Search
+   widget's construction so the two read as the same control. */
+
+.sg-obss {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.sg-obss-search-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: var(--sg-search-bg, var(--surface-hover, #2a2a2a));
+  border-radius: 6px;
+  padding: 5px 8px;
+}
+
+.sg-obss-search-icon {
+  font-size: 13px;
+  opacity: 0.4;
+  flex-shrink: 0;
+  line-height: 1;
+  user-select: none;
+}
+
+.sg-obss-search {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 12px;
+  color: var(--text);
+  min-width: 0;
+}
+
+.sg-obss-search::placeholder { color: var(--text-muted); opacity: 0.6; }
+
+.sg-obss-clear {
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.5;
+  padding: 1px 3px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  transition: opacity 0.1s, background 0.1s;
+  cursor: pointer;
+}
+
+.sg-obss-clear:hover { opacity: 1; background: rgba(128, 128, 128, 0.15); }
+
+/* ── Floating results panel ──────────────────────────────────────────────── */
+
+.sg-obss-float-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  min-width: 350px;
+  max-height: 480px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.sg-obss-float-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(128, 128, 128, 0.25) transparent;
+}
+
+.sg-obss-float-body::-webkit-scrollbar       { width: 5px; }
+.sg-obss-float-body::-webkit-scrollbar-thumb { background: rgba(128, 128, 128, 0.25); border-radius: 3px; }
+
+/* ── Result rows ─────────────────────────────────────────────────────────── */
+
+.sg-obss-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.sg-obss-item {
+  display: flex;
+  gap: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: background 0.1s;
+  min-width: 0;
+}
+
+.sg-obss-item:hover { background: rgba(128, 128, 128, 0.1); }
+
+.sg-obss-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.sg-obss-item-title {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+
+.sg-obss-item-path {
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Match context is the reason a hit is a hit — give it room to wrap, but cap
+   it so one verbose note can't push the rest of the results off-screen. */
+.sg-obss-item-context {
+  margin-top: 2px;
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Empty / loading ─────────────────────────────────────────────────────── */
+
+.sg-obss-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 20px 16px;
+}
+
+.sg-obss-empty-icon { font-size: 20px; opacity: 0.35; }
+.sg-obss-empty-text { font-size: 12px; opacity: 0.4; text-align: center; }

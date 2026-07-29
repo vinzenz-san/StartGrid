@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, CalendarData, OutlookCalendarData, OutlookMailData, NotesData, ObsidianCaptureData, ObsidianDailyData, GreetingData, WeatherData, PlaceholderData } from '../../types/widget';
+import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, CalendarData, OutlookCalendarData, OutlookMailData, NotesData, ObsidianCaptureData, ObsidianDailyData, ObsidianNoteData, ObsidianSearchData, ObsidianRandomData, GreetingData, WeatherData, PlaceholderData } from '../../types/widget';
 import type { TranslationKey } from '../../i18n';
 import Clock, { ClockSettings } from './Clock/Clock';
 import Quicklinks, { QuicklinksSettings } from './Quicklinks/Quicklinks';
@@ -11,6 +11,9 @@ import OutlookMail, { OutlookMailSettings } from './OutlookMail/OutlookMail';
 import Notes, { NotesSettings } from './Notes/Notes';
 import ObsidianCapture, { ObsidianCaptureSettings } from './ObsidianCapture/ObsidianCapture';
 import ObsidianDaily, { ObsidianDailySettings } from './ObsidianDaily/ObsidianDaily';
+import ObsidianNote, { ObsidianNoteSettings } from './ObsidianNote/ObsidianNote';
+import ObsidianSearch, { ObsidianSearchSettings } from './ObsidianSearch/ObsidianSearch';
+import ObsidianRandom, { ObsidianRandomSettings } from './ObsidianRandom/ObsidianRandom';
 import Greeting, { GreetingSettings } from './Greeting/Greeting';
 import Weather, { WeatherSettings } from './Weather/Weather';
 import WidgetPlaceholder from '../shared/WidgetPlaceholder';
@@ -165,6 +168,41 @@ const _registry = {
     renderSettings:  (data, onUpdateData) => <ObsidianDailySettings data={data} onUpdateData={onUpdateData} />,
   } satisfies TypedEntry<ObsidianDailyData>,
 
+  obsidianNote: {
+    label:         'Obsidian Pinned Note',
+    icon:          '◈',
+    defaultSize:   { w: 2, h: 3 },
+    defaultData:   {} satisfies ObsidianNoteData,
+    devOnly:       true,
+    titleBehavior: 'auto',
+    renderComponent: (data) => <ObsidianNote data={data} />,
+    renderSettings:  (data, onUpdateData) => <ObsidianNoteSettings data={data} onUpdateData={onUpdateData} />,
+  } satisfies TypedEntry<ObsidianNoteData>,
+
+  obsidianSearch: {
+    label:         'Obsidian Vault Search',
+    icon:          '◈',
+    defaultSize:   { w: 2, h: 1 },
+    defaultData:   { maxResults: 8, contextLength: 100 } satisfies ObsidianSearchData,
+    devOnly:       true,
+    titleBehavior: 'none',
+    renderComponent: (data) => <ObsidianSearch data={data} />,
+    renderSettings:  (data, onUpdateData) => <ObsidianSearchSettings data={data} onUpdateData={onUpdateData} />,
+  } satisfies TypedEntry<ObsidianSearchData>,
+
+  obsidianRandom: {
+    label:                 'Obsidian Random Note',
+    icon:                  '◈',
+    defaultSize:           { w: 2, h: 2 },
+    defaultData:           { refreshOn: 'load', showExcerpt: false, excerptLines: 4 } satisfies ObsidianRandomData,
+    devOnly:               true,
+    titleBehavior:         'optional',
+    defaultTitle:          'Random Note',
+    defaultShowCustomTitle: false,
+    renderComponent: (data) => <ObsidianRandom data={data} />,
+    renderSettings:  (data, onUpdateData) => <ObsidianRandomSettings data={data} onUpdateData={onUpdateData} />,
+  } satisfies TypedEntry<ObsidianRandomData>,
+
   greeting: {
     label:         'Greeting',
     icon:          '👋',
@@ -218,6 +256,9 @@ export const WIDGET_TYPE_LABEL_KEYS: Record<WidgetType, TranslationKey> = {
   notes:          'widgets.type.notes',
   obsidianCapture: 'widgets.type.obsidianCapture',
   obsidianDaily:  'widgets.type.obsidianDaily',
+  obsidianNote:   'widgets.type.obsidianNote',
+  obsidianSearch: 'widgets.type.obsidianSearch',
+  obsidianRandom: 'widgets.type.obsidianRandom',
   greeting:       'widgets.type.greeting',
   weather:        'widgets.type.weather',
   placeholder:    'widgets.type.placeholder',
@@ -225,5 +266,5 @@ export const WIDGET_TYPE_LABEL_KEYS: Record<WidgetType, TranslationKey> = {
 
 // Ordered list for the "Add Widget" menu (excludes placeholder handled separately if desired).
 export const WIDGET_MENU_TYPES: WidgetType[] = [
-  'clock', 'quicklinks', 'bookmarks', 'bookmarkSearch', 'calendar', 'outlookCalendar', 'outlookMail', 'notes', 'obsidianCapture', 'obsidianDaily', 'greeting', 'weather', 'placeholder',
+  'clock', 'quicklinks', 'bookmarks', 'bookmarkSearch', 'calendar', 'outlookCalendar', 'outlookMail', 'notes', 'obsidianCapture', 'obsidianDaily', 'obsidianNote', 'obsidianSearch', 'obsidianRandom', 'greeting', 'weather', 'placeholder',
 ];

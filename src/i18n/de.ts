@@ -296,6 +296,47 @@ export const de: Record<TranslationKey, string> = {
   'widget.obsidianDaily.createNote':        'Heutige Notiz anlegen',
   'widget.obsidianDaily.conflict':          'Diese Notiz wurde in Obsidian geändert, die Änderung wurde nicht übernommen. Neu geladen.',
 
+  // ── Obsidian Angeheftete-Notiz-Widget ────────────────────────────────────
+  'widget.obsidianNote.path':            'Notizpfad',
+  'widget.obsidianNote.section':         'Nur diese Überschrift',
+  'widget.obsidianNote.sectionPlaceholder': 'z. B. Diese Woche',
+  'widget.obsidianNote.maxLines':        'Max. Zeilen',
+  'widget.obsidianNote.noLimit':         'Alle',
+  'widget.obsidianNote.refreshMinutes':  'Auto-Aktualisierung',
+  'widget.obsidianNote.refreshOnLoad':   'Beim Laden',
+  'widget.obsidianNote.fontSize':        'Schriftgröße',
+  'widget.obsidianNote.refresh':         'Aktualisieren',
+  'widget.obsidianNote.openInObsidian':  'In Obsidian öffnen',
+  'widget.obsidianNote.empty':           'Diese Notiz ist leer',
+  'widget.obsidianNote.untitled':        'Angeheftete Notiz',
+  'widget.obsidianNote.readOnlyNote':    'Nur lesend — Bearbeiten in Obsidian.',
+
+  // ── Obsidian Vault-Suche-Widget ──────────────────────────────────────────
+  'widget.obsidianSearch.maxResults':    'Anzahl Treffer',
+  'widget.obsidianSearch.contextLength': 'Kontextlänge',
+  'widget.obsidianSearch.placeholder':   'Vault durchsuchen…',
+  'widget.obsidianSearch.typeToSearch':  'Zum Durchsuchen tippen',
+  'widget.obsidianSearch.loading':       'Suche…',
+  'widget.obsidianSearch.noResults':     'Keine Treffer',
+
+  // ── Obsidian Zufallsnotiz-Widget ─────────────────────────────────────────
+  'widget.obsidianRandom.title':          'Zufallsnotiz',
+  'widget.obsidianRandom.refreshOn':      'Notiz wählen',
+  'widget.obsidianRandom.refreshLoad':    'Bei jedem Tab',
+  'widget.obsidianRandom.refreshManual':  'Manuell',
+  'widget.obsidianRandom.excludeFolders': 'Ordner überspringen',
+  'widget.obsidianRandom.excludeHint':    'Ordnernamen, durch Komma getrennt.',
+  'widget.obsidianRandom.showExcerpt':    'Nur Auszug',
+  'widget.obsidianRandom.excerptLines':   'Auszugszeilen',
+  'widget.obsidianRandom.fontSize':       'Schriftgröße',
+  'widget.obsidianRandom.shuffle':        'Nächste zeigen',
+  'widget.obsidianRandom.openInObsidian': 'In Obsidian öffnen',
+  'widget.obsidianRandom.indexing':       'Vault wird indiziert…',
+  'widget.obsidianRandom.prompt':         'Etwas Geschriebenes wieder hervorholen.',
+  'widget.obsidianRandom.rebuildIndex':   'Vault-Index neu aufbauen',
+  'widget.obsidianRandom.indexHint':      'Die Dateiliste wird 6 Stunden zwischengespeichert. Nach dem Verschieben von Notizen neu aufbauen.',
+  'widget.obsidianRandom.truncated':      'Großer Vault — Auswahl aus einem Teilindex.',
+
   // ── Clock widget ─────────────────────────────────────────────────────────
   'widget.clock.format':        'Format',
   'widget.clock.showSeconds':   'Sekunden anzeigen',

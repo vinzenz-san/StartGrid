@@ -1,0 +1,42 @@
+.sg-obsr {
+  padding: 2px 10px 8px;
+}
+
+.sg-obsr--s { font-size: 11px; }
+.sg-obsr--m { font-size: 12.5px; }
+.sg-obsr--l { font-size: 15px; }
+
+.sg-obsr-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.sg-obsr-path {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sg-obsr-excerpt {
+  margin: 0;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+/* Shown when the vault walk hit its request or depth cap — the shuffle is
+   still drawing from a real sample, just not the whole vault. */
+.sg-obsr-truncated {
+  margin-bottom: 6px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background: rgba(128, 128, 128, 0.12);
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.4;
+}

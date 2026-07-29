@@ -149,6 +149,33 @@ export interface ObsidianDailyData {
   fontSize?:       'S' | 'M' | 'L';
 }
 
+/** Pinned Note — one note rendered read-only. Editing deliberately stays in
+ *  Obsidian; ObsidianCaptureData covers the write case. */
+export interface ObsidianNoteData {
+  path?:           string;
+  sectionHeading?: string;
+  maxLines?:       number;
+  /** Auto-refresh interval in minutes; 0/undefined = only on load. */
+  refreshMinutes?: number;
+  fontSize?:       'S' | 'M' | 'L';
+}
+
+export interface ObsidianSearchData {
+  maxResults?:    number;
+  /** Characters of surrounding text the plugin returns per hit. */
+  contextLength?: number;
+}
+
+export interface ObsidianRandomData {
+  /** Vault-relative folder names to skip, e.g. "Templates", "Archive". */
+  excludeFolders?: string[];
+  showExcerpt?:    boolean;
+  excerptLines?:   number;
+  /** 'load' picks a fresh note on every new tab; 'manual' only on the button. */
+  refreshOn?:      'load' | 'manual';
+  fontSize?:       'S' | 'M' | 'L';
+}
+
 export interface PlaceholderData {
   title?: string;
 }
@@ -184,6 +211,9 @@ export interface WidgetDataMap {
   notes:           NotesData;
   obsidianCapture: ObsidianCaptureData;
   obsidianDaily:   ObsidianDailyData;
+  obsidianNote:    ObsidianNoteData;
+  obsidianSearch:  ObsidianSearchData;
+  obsidianRandom:  ObsidianRandomData;
   greeting:        GreetingData;
   weather:         WeatherData;
   placeholder:     PlaceholderData;
@@ -225,6 +255,9 @@ export type Widget =
   | (WidgetBase & { type: 'notes';          data: NotesData })
   | (WidgetBase & { type: 'obsidianCapture'; data: ObsidianCaptureData })
   | (WidgetBase & { type: 'obsidianDaily';   data: ObsidianDailyData })
+  | (WidgetBase & { type: 'obsidianNote';    data: ObsidianNoteData })
+  | (WidgetBase & { type: 'obsidianSearch';  data: ObsidianSearchData })
+  | (WidgetBase & { type: 'obsidianRandom';  data: ObsidianRandomData })
   | (WidgetBase & { type: 'greeting';       data: GreetingData })
   | (WidgetBase & { type: 'weather';        data: WeatherData })
   | (WidgetBase & { type: 'placeholder';    data: PlaceholderData });

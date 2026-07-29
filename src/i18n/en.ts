@@ -294,6 +294,47 @@ export const en = {
   'widget.obsidianDaily.createNote':        'Create today’s note',
   'widget.obsidianDaily.conflict':          'This note changed in Obsidian, so the change wasn’t applied. Reloaded to the latest version.',
 
+  // ── Obsidian Pinned Note widget ──────────────────────────────────────────
+  'widget.obsidianNote.path':            'Note path',
+  'widget.obsidianNote.section':         'Only this heading',
+  'widget.obsidianNote.sectionPlaceholder': 'e.g. This week',
+  'widget.obsidianNote.maxLines':        'Max lines',
+  'widget.obsidianNote.noLimit':         'All',
+  'widget.obsidianNote.refreshMinutes':  'Auto-refresh',
+  'widget.obsidianNote.refreshOnLoad':   'On load',
+  'widget.obsidianNote.fontSize':        'Font size',
+  'widget.obsidianNote.refresh':         'Refresh',
+  'widget.obsidianNote.openInObsidian':  'Open in Obsidian',
+  'widget.obsidianNote.empty':           'This note is empty',
+  'widget.obsidianNote.untitled':        'Pinned note',
+  'widget.obsidianNote.readOnlyNote':    'Read-only — edit the note in Obsidian.',
+
+  // ── Obsidian Vault Search widget ─────────────────────────────────────────
+  'widget.obsidianSearch.maxResults':    'Results to show',
+  'widget.obsidianSearch.contextLength': 'Context length',
+  'widget.obsidianSearch.placeholder':   'Search your vault…',
+  'widget.obsidianSearch.typeToSearch':  'Type to search your vault',
+  'widget.obsidianSearch.loading':       'Searching…',
+  'widget.obsidianSearch.noResults':     'No matches',
+
+  // ── Obsidian Random Note widget ──────────────────────────────────────────
+  'widget.obsidianRandom.title':          'Random note',
+  'widget.obsidianRandom.refreshOn':      'Pick a note',
+  'widget.obsidianRandom.refreshLoad':    'On each tab',
+  'widget.obsidianRandom.refreshManual':  'Manually',
+  'widget.obsidianRandom.excludeFolders': 'Skip folders',
+  'widget.obsidianRandom.excludeHint':    'Comma-separated folder names.',
+  'widget.obsidianRandom.showExcerpt':    'Excerpt only',
+  'widget.obsidianRandom.excerptLines':   'Excerpt lines',
+  'widget.obsidianRandom.fontSize':       'Font size',
+  'widget.obsidianRandom.shuffle':        'Show another',
+  'widget.obsidianRandom.openInObsidian': 'Open in Obsidian',
+  'widget.obsidianRandom.indexing':       'Indexing your vault…',
+  'widget.obsidianRandom.prompt':         'Resurface something you wrote.',
+  'widget.obsidianRandom.rebuildIndex':   'Rebuild vault index',
+  'widget.obsidianRandom.indexHint':      'The file list is cached for 6 hours. Rebuild it after moving notes around.',
+  'widget.obsidianRandom.truncated':      'Large vault — drawing from a partial index.',
+
   // ── Clock widget ─────────────────────────────────────────────────────────
   'widget.clock.format':        'Format',
   'widget.clock.showSeconds':   'Show seconds',

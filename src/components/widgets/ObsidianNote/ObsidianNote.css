@@ -1,0 +1,13 @@
+.sg-obsn {
+  padding: 2px 10px 8px;
+}
+
+.sg-obsn--s { font-size: 11px; }
+.sg-obsn--m { font-size: 12.5px; }
+.sg-obsn--l { font-size: 15px; }
+
+.sg-obsn-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
