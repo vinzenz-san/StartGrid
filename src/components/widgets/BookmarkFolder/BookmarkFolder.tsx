@@ -505,6 +505,9 @@ export default function BookmarkFolder({ data, onUpdateData }: Props) {
 
       {/* Body */}
       <div className="sg-bf-body">
+        {bookmarks.isMock && (
+          <div className="sg-bf-preview-badge">{t('widget.bookmarkFolder.previewBadge')}</div>
+        )}
         {bookmarks.needsPermission ? (
           <div className="sg-bf-empty sg-bf-permission-prompt">
             <span className="sg-bf-empty-icon">🔒</span>

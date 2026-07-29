@@ -271,6 +271,14 @@
 .sg-bf-empty-icon { font-size: 20px; opacity: 0.35; }
 .sg-bf-empty-text { font-size: 12px; opacity: 0.4; text-align: center; }
 
+.sg-bf-preview-badge {
+  font-size: 10px;
+  opacity: 0.5;
+  text-align: center;
+  padding: 4px 8px;
+  flex-shrink: 0;
+}
+
 .sg-bf-permission-prompt {
   display: flex;
   flex-direction: column;
