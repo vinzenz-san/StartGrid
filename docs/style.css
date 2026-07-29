@@ -70,6 +70,17 @@ li { margin-bottom: 8px; }
   padding: 20px 24px;
 }
 a { color: var(--accent); }
+.btn-primary {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 10px 20px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.btn-primary:hover { opacity: 0.9; }
 footer {
   border-top: 1px solid var(--border);
   padding-top: 20px;
