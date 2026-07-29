@@ -1,0 +1,11 @@
+# pnpm 11 no longer reads settings from package.json's "pnpm" field — they live
+# here instead (https://pnpm.io/settings). pnpm generated this file itself when
+# it blocked puppeteer's build script.
+#
+# puppeteer's postinstall downloads the pinned Chromium build it drives. pnpm
+# blocks dependency build scripts by default, so without this the install
+# "succeeds" but leaves no browser behind, and scripts/render-promo.js then
+# fails at launch. Only needed for `pnpm render:promo` — nothing in the
+# extension build or the shipped artifact touches it.
+allowBuilds:
+  puppeteer: true
