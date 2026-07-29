@@ -101,9 +101,9 @@ export type BackgroundConfig =
 export type BackgroundMode = BackgroundConfig['mode'];
 
 // ─── Defaults ──────────────────────────────────────────────────────────────
-export const DEFAULT_BG: PresetConfig = {
-  mode: 'preset',
-  value: 'midnight',
+export const DEFAULT_BG: BingConfig = {
+  mode: 'bing',
+  value: '',
 };
 
 // ─── Editor grouping ───────────────────────────────────────────────────────

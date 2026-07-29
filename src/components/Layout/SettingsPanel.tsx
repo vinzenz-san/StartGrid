@@ -357,7 +357,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
           </div>
 
           {/* ══ 5. SETTINGS ══ */}
-          <PanelSection title={t('settings.sectionTitle')} collapsible persistenceKey="settings" defaultOpen>
+          <PanelSection title={t('settings.sectionTitle')} collapsible persistenceKey="settings">
             <SettingsRow label={t('settings.language')}>
               <Dropdown<Language>
                 options={LANGUAGE_OPTIONS}

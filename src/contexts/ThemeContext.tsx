@@ -21,7 +21,7 @@ interface ThemeConfig {
 export const DEFAULTS: ThemeConfig = {
   globalColor:             '#2a2d3d',
   globalColorScheme:       'dark',
-  globalOpacity:           1,
+  globalOpacity:           0.9,
   globalDim:               0,
   globalGradientIntensity: 100,
   widgetShadowOpacity:     75,
