@@ -47,3 +47,44 @@ export function requestBookmarksPermission(): Promise<boolean> {
     .then((browser) => browser.permissions.request({ permissions: ['bookmarks'] }))
     .catch(() => false);
 }
+
+// ── Obsidian host permission ─────────────────────────────────────────────────
+//
+// The Obsidian widgets talk to the Local REST API plugin's server on the
+// loopback interface. That needs a host permission, declared in both manifests
+// under `optional_host_permissions` (a separate key — MV3 rejects host match
+// patterns inside `optional_permissions`). Nothing is granted at install time;
+// this is requested the first time a user connects a widget.
+//
+// Two things about the match pattern are easy to get wrong:
+//   - Match patterns have no port component, so `http://127.0.0.1/*` already
+//     covers the plugin's 27123 and cannot be narrowed to it.
+//   - `localhost` and `127.0.0.1` are distinct patterns. We use 127.0.0.1
+//     everywhere, manifest and request URLs alike — see lib/obsidianApi.ts.
+export const OBSIDIAN_ORIGIN_PATTERN = 'http://127.0.0.1/*';
+
+export async function hasObsidianHostPermission(): Promise<boolean> {
+  if (!browserPromise) return false;
+  try {
+    const browser = await browserPromise;
+    return await browser.permissions.contains({ origins: [OBSIDIAN_ORIGIN_PATTERN] });
+  } catch {
+    return false;
+  }
+}
+
+// Same gesture constraint as requestBookmarksPermission above — call straight
+// from a click handler, with no await in between.
+export function requestObsidianHostPermission(): Promise<boolean> {
+  if (!browserPromise) return Promise.resolve(false);
+  return browserPromise
+    .then((browser) => browser.permissions.request({ origins: [OBSIDIAN_ORIGIN_PATTERN] }))
+    .catch(() => false);
+}
+
+export function removeObsidianHostPermission(): Promise<boolean> {
+  if (!browserPromise) return Promise.resolve(false);
+  return browserPromise
+    .then((browser) => browser.permissions.remove({ origins: [OBSIDIAN_ORIGIN_PATTERN] }))
+    .catch(() => false);
+}

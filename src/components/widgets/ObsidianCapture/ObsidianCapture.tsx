@@ -3,6 +3,8 @@ import type { ObsidianCaptureData } from '../../../types/widget';
 import { SettingsRow, SegmentedControl, SettingsSwitch } from '../../shared/Form';
 import { storageLocal } from '../../../lib/storageLocal';
 import { useSettings } from '../../../contexts/SettingsContext';
+import { useObsidian } from '../../../hooks/useObsidian';
+import { appendToFile } from '../../../lib/obsidianApi';
 import { buildAppendUri, launchUri } from '../../../lib/obsidianUri';
 import {
   DEFAULT_DAILY_TEMPLATE,
@@ -10,6 +12,7 @@ import {
   normalizeVaultPath,
   resolvePathTemplate,
 } from '../../../lib/obsidianPath';
+import ObsidianConnect from '../shared/ObsidianConnect';
 import '../shared/obsidian.css';
 import './ObsidianCapture.css';
 
@@ -146,6 +149,9 @@ export function ObsidianCaptureSettings({ data, onUpdateData }: SettingsProps) {
         />
       </SettingsRow>
 
+      <div className="sg-cal-settings-divider"/>
+      <p className="sg-obs-hint">{t('widget.obsidianCapture.restNote')}</p>
+      <ObsidianConnect />
     </div>
   );
 }
@@ -170,6 +176,15 @@ function IconCheck() {
   );
 }
 
+function IconWarn() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M8 4v5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+      <circle cx="8" cy="12" r="1" fill="currentColor"/>
+    </svg>
+  );
+}
+
 // ── Main widget ───────────────────────────────────────────────────────────────
 
 interface Props {
@@ -179,16 +194,23 @@ interface Props {
 
 export default function ObsidianCapture({ data, widgetId }: Props) {
   const { t } = useSettings();
+  const { isReady, connection } = useObsidian();
   const draftKey = widgetId ? `obsidian_capture_draft_${widgetId}` : null;
 
   const [text,   setText]   = useState('');
   const [sent,   setSent]   = useState(false);
+  const [failed, setFailed] = useState(false);
   const saveTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const vaultName = data.vaultName?.trim() ?? '';
+  // The widget's own vault name wins, so Quick Capture keeps working with no
+  // REST connection at all; the shared connection fills in for users who have
+  // already configured one and shouldn't have to repeat it.
+  const vaultName = (data.vaultName?.trim() || connection?.vaultName?.trim()) ?? '';
   const target    = resolveTarget(data);
-  const canSend   = text.trim().length > 0 && !!vaultName && !!target;
+  // With REST available the vault name is irrelevant — the API writes straight
+  // into the connected vault. It's only the URI transport that needs it.
+  const canSend   = text.trim().length > 0 && !!target && (isReady || !!vaultName);
 
   // A new tab page remounts constantly — an unsent thought must survive that,
   // so the draft is persisted the same way the Notes widget persists content.
@@ -215,7 +237,21 @@ export default function ObsidianCapture({ data, widgetId }: Props) {
     persistDraft(value);
   }
 
-  function handleSend() {
+  function clearInput() {
+    if (!(data.clearAfterSend ?? true)) return;
+    setText('');
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    if (draftKey) void storageLocal.remove(draftKey);
+  }
+
+  function flash(ok: boolean) {
+    setSent(ok);
+    setFailed(!ok);
+    if (flashTimer.current) clearTimeout(flashTimer.current);
+    flashTimer.current = setTimeout(() => { setSent(false); setFailed(false); }, SENT_FLASH_MS);
+  }
+
+  async function handleSend() {
     if (!canSend) return;
 
     const content = composeCapture(text, {
@@ -227,18 +263,28 @@ export default function ObsidianCapture({ data, widgetId }: Props) {
 
     // Leading newline so the append lands on its own line rather than running
     // onto the end of whatever the note currently ends with.
-    launchUri(buildAppendUri(vaultName, target, `
-${content}`));
+    const payload = `\n${content}`;
 
-    if (data.clearAfterSend ?? true) {
-      setText('');
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-      if (draftKey) void storageLocal.remove(draftKey);
+    // REST is the better transport when it's available: it appends silently,
+    // whereas the URI scheme raises and focuses the Obsidian window — the
+    // opposite of what a capture box on a new tab page is for.
+    if (isReady) {
+      try {
+        await appendToFile(target, payload);
+        clearInput();
+        flash(true);
+        return;
+      } catch {
+        // Obsidian closed, or the plugin stopped. The URI fallback still
+        // works in that case (it launches the app), so try it rather than
+        // losing the capture.
+      }
     }
 
-    setSent(true);
-    if (flashTimer.current) clearTimeout(flashTimer.current);
-    flashTimer.current = setTimeout(() => setSent(false), SENT_FLASH_MS);
+    if (!vaultName) { flash(false); return; }
+    launchUri(buildAppendUri(vaultName, target, payload));
+    clearInput();
+    flash(true);
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -246,11 +292,11 @@ ${content}`));
     // aren't cut short mid-thought.
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
-      handleSend();
+      void handleSend();
     }
   }
 
-  if (!vaultName) {
+  if (!vaultName && !isReady) {
     return (
       <div className="sg-obs-setup">
         <span className="sg-obs-setup-icon">◈</span>
@@ -277,14 +323,14 @@ ${content}`));
       <div className="sg-obsc-footer">
         <span className="sg-obsc-target" title={target}>{target}</span>
         <button
-          className={`sg-obsc-send${sent ? ' sg-obsc-send--sent' : ''}`}
-          onClick={handleSend}
+          className={`sg-obsc-send${sent ? ' sg-obsc-send--sent' : ''}${failed ? ' sg-obsc-send--failed' : ''}`}
+          onClick={() => void handleSend()}
           disabled={!canSend}
           title={t('widget.obsidianCapture.sendHint')}
           aria-label={t('widget.obsidianCapture.send')}
           onPointerDown={e => e.stopPropagation()}
         >
-          {sent ? <IconCheck/> : <IconSend/>}
+          {sent ? <IconCheck/> : failed ? <IconWarn/> : <IconSend/>}
         </button>
       </div>
     </div>

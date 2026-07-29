@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, CalendarData, OutlookCalendarData, OutlookMailData, NotesData, ObsidianCaptureData, GreetingData, WeatherData, PlaceholderData } from '../../types/widget';
+import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, CalendarData, OutlookCalendarData, OutlookMailData, NotesData, ObsidianCaptureData, ObsidianDailyData, GreetingData, WeatherData, PlaceholderData } from '../../types/widget';
 import type { TranslationKey } from '../../i18n';
 import Clock, { ClockSettings } from './Clock/Clock';
 import Quicklinks, { QuicklinksSettings } from './Quicklinks/Quicklinks';
@@ -10,6 +10,7 @@ import OutlookCalendar, { OutlookCalendarSettings } from './OutlookCalendar/Outl
 import OutlookMail, { OutlookMailSettings } from './OutlookMail/OutlookMail';
 import Notes, { NotesSettings } from './Notes/Notes';
 import ObsidianCapture, { ObsidianCaptureSettings } from './ObsidianCapture/ObsidianCapture';
+import ObsidianDaily, { ObsidianDailySettings } from './ObsidianDaily/ObsidianDaily';
 import Greeting, { GreetingSettings } from './Greeting/Greeting';
 import Weather, { WeatherSettings } from './Weather/Weather';
 import WidgetPlaceholder from '../shared/WidgetPlaceholder';
@@ -151,6 +152,19 @@ const _registry = {
     renderSettings:  (data, onUpdateData) => <ObsidianCaptureSettings data={data} onUpdateData={onUpdateData} />,
   } satisfies TypedEntry<ObsidianCaptureData>,
 
+  obsidianDaily: {
+    label:         'Obsidian Daily Note',
+    icon:          '◈',
+    defaultSize:   { w: 2, h: 3 },
+    defaultData:   { showChecked: true } satisfies ObsidianDailyData,
+    // Gated while the loopback host permission and its store-listing/privacy
+    // wording are still being rolled out — the same path Calendar took.
+    devOnly:       true,
+    titleBehavior: 'auto',
+    renderComponent: (data) => <ObsidianDaily data={data} />,
+    renderSettings:  (data, onUpdateData) => <ObsidianDailySettings data={data} onUpdateData={onUpdateData} />,
+  } satisfies TypedEntry<ObsidianDailyData>,
+
   greeting: {
     label:         'Greeting',
     icon:          '👋',
@@ -203,6 +217,7 @@ export const WIDGET_TYPE_LABEL_KEYS: Record<WidgetType, TranslationKey> = {
   outlookMail:    'widgets.type.outlookMail',
   notes:          'widgets.type.notes',
   obsidianCapture: 'widgets.type.obsidianCapture',
+  obsidianDaily:  'widgets.type.obsidianDaily',
   greeting:       'widgets.type.greeting',
   weather:        'widgets.type.weather',
   placeholder:    'widgets.type.placeholder',
@@ -210,5 +225,5 @@ export const WIDGET_TYPE_LABEL_KEYS: Record<WidgetType, TranslationKey> = {
 
 // Ordered list for the "Add Widget" menu (excludes placeholder handled separately if desired).
 export const WIDGET_MENU_TYPES: WidgetType[] = [
-  'clock', 'quicklinks', 'bookmarks', 'bookmarkSearch', 'calendar', 'outlookCalendar', 'outlookMail', 'notes', 'obsidianCapture', 'greeting', 'weather', 'placeholder',
+  'clock', 'quicklinks', 'bookmarks', 'bookmarkSearch', 'calendar', 'outlookCalendar', 'outlookMail', 'notes', 'obsidianCapture', 'obsidianDaily', 'greeting', 'weather', 'placeholder',
 ];

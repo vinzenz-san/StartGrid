@@ -134,6 +134,21 @@ export interface ObsidianCaptureData {
   fontSize?:        'S' | 'M' | 'L';
 }
 
+/** Daily Note — reads today's note over the REST transport. The path comes
+ *  from a template rather than a plugin endpoint so it works against any vault
+ *  layout; see lib/obsidianPath.ts. */
+export interface ObsidianDailyData {
+  pathTemplate?:   string;
+  /** Render only the content beneath this heading. Empty = the whole note. */
+  sectionHeading?: string;
+  /** Drop everything that isn't a checkbox line. */
+  tasksOnly?:      boolean;
+  /** Show already-ticked tasks. Default true. */
+  showChecked?:    boolean;
+  maxLines?:       number;
+  fontSize?:       'S' | 'M' | 'L';
+}
+
 export interface PlaceholderData {
   title?: string;
 }
@@ -168,6 +183,7 @@ export interface WidgetDataMap {
   outlookMail:     OutlookMailData;
   notes:           NotesData;
   obsidianCapture: ObsidianCaptureData;
+  obsidianDaily:   ObsidianDailyData;
   greeting:        GreetingData;
   weather:         WeatherData;
   placeholder:     PlaceholderData;
@@ -208,6 +224,7 @@ export type Widget =
   | (WidgetBase & { type: 'outlookMail';     data: OutlookMailData })
   | (WidgetBase & { type: 'notes';          data: NotesData })
   | (WidgetBase & { type: 'obsidianCapture'; data: ObsidianCaptureData })
+  | (WidgetBase & { type: 'obsidianDaily';   data: ObsidianDailyData })
   | (WidgetBase & { type: 'greeting';       data: GreetingData })
   | (WidgetBase & { type: 'weather';        data: WeatherData })
   | (WidgetBase & { type: 'placeholder';    data: PlaceholderData });
