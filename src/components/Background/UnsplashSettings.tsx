@@ -177,7 +177,7 @@ export default function UnsplashSettings() {
 
         <SettingsRow label={t('background.scaleToFit')}>
           <SettingsSwitch
-            checked={uc.scaleToFit ?? true}
+            checked={uc.scaleToFit ?? false}
             onChange={v => update({ scaleToFit: v })}
           />
         </SettingsRow>

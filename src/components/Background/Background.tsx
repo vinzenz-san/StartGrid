@@ -102,6 +102,13 @@ function useCrossfadeBackground(backgroundCss: string) {
   return { layers, active };
 }
 
+// "Scale to fit" (object-fit: contain) defaults to off for the live daily-photo
+// providers — their images are typically already close to viewport aspect ratio,
+// and "fill" (cover) avoids letterboxing more often than not for these sources.
+// Custom/online image uploads keep the old true default, since those are
+// user-supplied images of unknown aspect ratio where avoiding a crop matters more.
+const SCALE_TO_FIT_DEFAULT_FALSE_MODES = new Set(['bing', 'astronomy', 'unsplash', 'wikimedia']);
+
 const POSITION_CSS: Record<BackgroundPosition, string> = {
   center:       'center',
   top:          'top',
@@ -121,7 +128,7 @@ export default function Background() {
   // Modular display controls — apply to the active layer regardless of provider.
   const blur         = config.blur ?? 0;
   const luminosity   = config.luminosity ?? 100;
-  const scaleToFit   = config.scaleToFit ?? true;
+  const scaleToFit   = config.scaleToFit ?? !SCALE_TO_FIT_DEFAULT_FALSE_MODES.has(config.mode);
 
   // Every image-backed provider shares the same letterbox fill color for the
   // empty space around a "contain"-fitted image — solid/gradient modes never

@@ -430,7 +430,7 @@ export default function BackgroundEditor() {
 
             <SettingsRow label={t('background.scaleToFit')}>
               <SettingsSwitch
-                checked={bingCfg.scaleToFit ?? true}
+                checked={bingCfg.scaleToFit ?? false}
                 onChange={v => setConfig({ ...bingCfg, scaleToFit: v })}
               />
             </SettingsRow>
@@ -545,7 +545,7 @@ export default function BackgroundEditor() {
 
             <SettingsRow label={t('background.scaleToFit')}>
               <SettingsSwitch
-                checked={astro.scaleToFit ?? true}
+                checked={astro.scaleToFit ?? false}
                 onChange={v => setConfig({ ...astro, scaleToFit: v })}
               />
             </SettingsRow>
@@ -834,7 +834,7 @@ export default function BackgroundEditor() {
 
             <SettingsRow label={t('background.scaleToFit')}>
               <SettingsSwitch
-                checked={wikiCfg.scaleToFit ?? true}
+                checked={wikiCfg.scaleToFit ?? false}
                 onChange={v => setConfig({ ...wikiCfg, scaleToFit: v })}
               />
             </SettingsRow>
