@@ -13,9 +13,9 @@
 <body>
   <div class="wrap">
     <h1>Privacy Policy</h1>
-    <p class="updated">Last updated: 2026-07-29 (added permissions table, favicon and sync-storage disclosures, corrected token-relay and retention wording)</p>
+    <p class="updated">Last updated: 2026-07-29 (added the Obsidian widgets and their loopback host permission)</p>
 
-    <p>StartGrid is a browser extension (Firefox &amp; Chrome) that replaces your new tab page with a customizable widget grid. This policy explains what data StartGrid accesses, why, and how it's stored — in particular for the optional Google Calendar and Outlook Calendar/Mail widgets, which require signing in with your Google or Microsoft account. Both integrations are currently in development and hidden behind an internal developer option; they are not yet enabled for general use. This policy still documents their data practices in full, since the underlying code and permissions are present in the extension.</p>
+    <p>StartGrid is a browser extension (Firefox &amp; Chrome) that replaces your new tab page with a customizable widget grid. This policy explains what data StartGrid accesses, why, and how it's stored — in particular for the optional Google Calendar and Outlook Calendar/Mail widgets, which require signing in with your Google or Microsoft account, and the optional Obsidian widgets, which read notes from a vault on your own device. Both integrations are currently in development and hidden behind an internal developer option; they are not yet enabled for general use. This policy still documents their data practices in full, since the underlying code and permissions are present in the extension.</p>
 
     <h2>Summary</h2>
     <div class="card">
@@ -23,6 +23,7 @@
         <li>StartGrid does not operate a backend server that stores your personal data. Your account tokens and cached widget data are stored locally in your browser's extension storage (<code>browser.storage.local</code>). Your layout and widget settings are stored in your browser's built-in extension sync storage (<code>browser.storage.sync</code>) so they follow you across devices — this is your browser's own sync service (Google Chrome Sync or Mozilla Sync), not a StartGrid server. The only server StartGrid's developer operates is a stateless Cloudflare Worker relay used during OAuth token exchange and for API-key-protected image providers (see "Data security"), which does not log or retain anything it relays.</li>
         <li>Google and Microsoft account access are entirely optional, off by default, not yet publicly enabled, and would only activate when a user clicks "Connect" inside the relevant widget's settings.</li>
         <li>All Google and Microsoft data access is read-only. StartGrid never sends, deletes, modifies, or shares your calendar or mail data.</li>
+        <li>The optional Obsidian widgets talk only to your own device — either through Obsidian's <code>obsidian://</code> link scheme or through a plugin you install yourself that listens on <code>127.0.0.1</code>. No note content, file path, or search term is ever transmitted off your machine, to StartGrid's developer or to anyone else.</li>
         <li>StartGrid does not sell, rent, or share your data with third parties or advertisers.</li>
       </ul>
     </div>
@@ -55,8 +56,9 @@
       <tr><td><code>storage</code></td><td>Save your grid layout, widget settings, and account tokens in the browser's extension storage.</td></tr>
       <tr><td><code>identity</code></td><td>Open the Google or Microsoft sign-in window for the optional Calendar and Outlook widgets. Used only when you click "Connect".</td></tr>
       <tr><td><code>bookmarks</code> (optional)</td><td>Read your bookmark tree for the Bookmark Folder, Bookmark Search, and Quicklinks widgets. Not granted at install — the browser asks the first time you add one of those widgets, and you can decline.</td></tr>
+      <tr><td><code>http://127.0.0.1/*</code> (optional host permission)</td><td>Reach Obsidian on your own device for the optional Obsidian widgets. <code>127.0.0.1</code> is the loopback address — it refers to your computer and nothing else, so this grants no access to any website or to the internet at large. Not granted at install: the browser asks the first time you click "Allow local access" in an Obsidian widget's settings, and you can decline or revoke it later.</td></tr>
     </table>
-    <p>StartGrid requests no host permissions, runs no background script, and injects no content scripts into any web page.</p>
+    <p>StartGrid requests no host permission for any website, runs no background script, and injects no content scripts into any web page. The single host permission it can request, listed above, is limited to your own machine and is never requested unless you choose to connect an Obsidian widget.</p>
 
     <h2>Data security</h2>
     <p>StartGrid limits the security surface for your Google data by design:</p>
@@ -89,6 +91,18 @@
     </ul>
     <p>These requests are made by your browser directly to those services; StartGrid's developer never sees them. To avoid them entirely for a given quicklink, set its icon to a custom URL or an uploaded image in the widget's settings.</p>
     <p>Clicking a bookmark or quicklink opens it in a tab. StartGrid does not request the <code>tabs</code> permission and cannot read your open tabs' URLs, titles, or content.</p>
+
+    <h2>Obsidian widgets (your notes)</h2>
+    <p>StartGrid offers optional widgets that read and write notes in a local <a href="https://obsidian.md" target="_blank" rel="noopener">Obsidian</a> vault: Quick Capture, Daily Note, Pinned Note, Vault Search, and Random Note. None of them are active unless you add them.</p>
+    <p><strong>Nothing about your vault ever leaves your device.</strong> There is no StartGrid server involved in these widgets at any point — no relay, no proxy, no analytics. Your note contents, note titles, file paths, folder names, tags, and search terms are never transmitted to StartGrid's developer, to the Cloudflare Worker described above, or to any third party.</p>
+    <p>There are two ways these widgets reach Obsidian, and they differ in what they need:</p>
+    <ul>
+      <li><strong>Quick Capture, by default</strong>, uses Obsidian's own <code>obsidian://</code> link scheme — the same mechanism as clicking an Obsidian link anywhere else on your system. Your operating system hands the text to the Obsidian app. This requires no permission from StartGrid at all and no setup inside Obsidian.</li>
+      <li><strong>The other four widgets</strong> (and Quick Capture, if you choose to connect it) talk to the <a href="https://github.com/coddingtonbear/obsidian-local-rest-api" target="_blank" rel="noopener">Local REST API with MCP</a> community plugin, which you install and enable inside Obsidian yourself. That plugin runs a small server on your own machine at <code>127.0.0.1</code>, the loopback address. Requests to it never touch a network. This is what the optional <code>http://127.0.0.1/*</code> host permission is for, and StartGrid only asks for it when you click "Allow local access".</li>
+    </ul>
+    <p>The plugin protects its server with an API key that you copy from its settings into StartGrid. That key is stored only in <code>browser.storage.local</code> on the device where you entered it — deliberately never in sync storage, so it is not uploaded to your Google or Mozilla account or carried to another device. Note contents fetched from your vault are held in the open tab's memory only and are never written to storage of any kind; closing the tab discards them.</p>
+    <p>The Random Note widget is the one exception to "nothing is written to storage": because the plugin can only list one folder at a time, that widget caches a list of your vault's Markdown <em>file paths</em> (not their contents) in <code>browser.storage.local</code> for six hours, so it does not have to re-scan your vault on every new tab. You can clear it at any time with "Rebuild vault index" in the widget's settings, and removing the widget or uninstalling StartGrid removes it too.</p>
+    <p>Daily Note can tick checkboxes off in today's note, and Quick Capture appends the text you type. These are the only writes StartGrid makes to your vault; it never deletes notes, and it never modifies a note you have not pointed a widget at. Revoking the host permission, clicking "Disconnect", or quitting Obsidian stops all of it immediately.</p>
 
     <h2>Location (Weather widget)</h2>
     <p>The optional Weather widget, if you enable it and grant permission, uses your browser's geolocation API to get your device's coordinates. These coordinates are sent directly from your browser to the third-party weather provider <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> to fetch local weather data — StartGrid's developer never receives or stores this location data. You can alternatively search for a location by name instead of sharing your device's position, and you can deny or revoke the location permission at any time via your browser's site permissions for this extension. The coordinates you choose are saved with that widget's settings in the browser's sync storage described above, so the same location appears on your other signed-in devices; removing the Weather widget removes them.</p>

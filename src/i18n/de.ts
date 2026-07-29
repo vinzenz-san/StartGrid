@@ -270,7 +270,7 @@ export const de: Record<TranslationKey, string> = {
   'widget.obsidian.testOk':           'Verbunden.',
   'widget.obsidian.testOkVersion':    'Mit Plugin {{version}} verbunden.',
   'widget.obsidian.disconnect':       'Trennen',
-  'widget.obsidian.setupHint':        'Benötigt das Plugin „Local REST API“ in Obsidian mit aktiviertem HTTP-Server auf Port 27123.',
+  'widget.obsidian.setupHint':        'Benötigt das Plugin „Local REST API with MCP“ in Obsidian mit aktiviertem HTTP-Server auf Port 27123.',
   'widget.obsidian.previewOnly':      'Obsidian-Widgets brauchen die installierte Erweiterung — dies ist eine Browser-Vorschau.',
   'widget.obsidian.previewBadge':     'Beispieldaten (Browser-Vorschau)',
   'widget.obsidian.errUnreachable':   'Obsidian ist nicht erreichbar. Öffne es und prüfe, ob das Local-REST-API-Plugin läuft.',

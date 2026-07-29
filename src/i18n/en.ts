@@ -268,7 +268,7 @@ export const en = {
   'widget.obsidian.testOk':           'Connected.',
   'widget.obsidian.testOkVersion':    'Connected to plugin {{version}}.',
   'widget.obsidian.disconnect':       'Disconnect',
-  'widget.obsidian.setupHint':        'Requires the “Local REST API” plugin in Obsidian, with its HTTP server enabled on port 27123.',
+  'widget.obsidian.setupHint':        'Requires the “Local REST API with MCP” plugin in Obsidian, with its HTTP server enabled on port 27123.',
   'widget.obsidian.previewOnly':      'Obsidian widgets need the installed extension — this is a browser preview.',
   'widget.obsidian.previewBadge':     'Preview data (browser preview)',
   'widget.obsidian.errUnreachable':   'Obsidian isn’t reachable. Open it and make sure the Local REST API plugin is running.',

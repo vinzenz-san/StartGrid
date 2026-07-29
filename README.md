@@ -35,6 +35,23 @@ For the Chrome/Chromium build instead: `pnpm build:chrome` → `dist/chrome/`.
 
 No other code generation, templating, or obfuscation is used beyond what's described above.
 
+## Obsidian widgets
+
+StartGrid ships five optional widgets that read and write notes in a local [Obsidian](https://obsidian.md) vault: **Quick Capture**, **Daily Note**, **Pinned Note**, **Vault Search**, and **Random Note**. Nothing about your vault ever leaves your machine — there is no server involved on StartGrid's side.
+
+**Quick Capture works with no setup.** Add the widget, enter your vault name exactly as it appears in Obsidian's vault switcher, and send. It uses Obsidian's `obsidian://` link scheme, which needs no permission and no plugin — though sending does raise the Obsidian window.
+
+The other four widgets, and Quick Capture's silent-append mode, need a small server running inside Obsidian:
+
+1. In Obsidian, install the **Local REST API with MCP** community plugin (by Adam Coddington) and enable it.
+2. In the plugin's settings, turn on the **HTTP server** and note its port (`27123` by default). StartGrid targets HTTP rather than the plugin's HTTPS default: that default serves a self-signed certificate, `fetch()` rejects it outright, and a browser extension cannot click through a certificate warning. Loopback traffic never leaves your machine, and the plugin's API key is what actually guards the server.
+3. Copy the plugin's **API key**.
+4. In any Obsidian widget's settings in StartGrid, click **Allow local access** — the browser will ask to grant `http://127.0.0.1/*`, an optional host permission that is not granted at install time. Paste the API key and click **Test connection**.
+
+The connection is stored once and shared by all five widgets, so step 4 only has to be done in one of them. The API key lives in `browser.storage.local` and deliberately never in sync storage, so it is not replicated to your other devices. "Disconnect" clears the key and hands the host permission back.
+
+The companion **Local REST API - Periodic Notes** plugin is *not* required — Daily Note resolves today's note from a path template you configure (`Daily/{{date:YYYY-MM-DD}}.md` by default), which works against any vault layout.
+
 ## License
 
 Copyright © 2026 Vinzenz.

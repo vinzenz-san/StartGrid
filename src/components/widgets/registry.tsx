@@ -160,9 +160,9 @@ const _registry = {
     icon:          '◈',
     defaultSize:   { w: 2, h: 3 },
     defaultData:   { showChecked: true } satisfies ObsidianDailyData,
-    // Gated while the loopback host permission and its store-listing/privacy
-    // wording are still being rolled out — the same path Calendar took.
-    devOnly:       true,
+    // The loopback host permission is documented in the privacy policy and
+    // both store listings, so this is no longer gated behind Developer
+    // Options — the same path Calendar took.
     titleBehavior: 'auto',
     renderComponent: (data) => <ObsidianDaily data={data} />,
     renderSettings:  (data, onUpdateData) => <ObsidianDailySettings data={data} onUpdateData={onUpdateData} />,
@@ -173,7 +173,6 @@ const _registry = {
     icon:          '◈',
     defaultSize:   { w: 2, h: 3 },
     defaultData:   {} satisfies ObsidianNoteData,
-    devOnly:       true,
     titleBehavior: 'auto',
     renderComponent: (data) => <ObsidianNote data={data} />,
     renderSettings:  (data, onUpdateData) => <ObsidianNoteSettings data={data} onUpdateData={onUpdateData} />,
@@ -184,7 +183,6 @@ const _registry = {
     icon:          '◈',
     defaultSize:   { w: 2, h: 1 },
     defaultData:   { maxResults: 8, contextLength: 100 } satisfies ObsidianSearchData,
-    devOnly:       true,
     titleBehavior: 'none',
     renderComponent: (data) => <ObsidianSearch data={data} />,
     renderSettings:  (data, onUpdateData) => <ObsidianSearchSettings data={data} onUpdateData={onUpdateData} />,
@@ -195,7 +193,6 @@ const _registry = {
     icon:                  '◈',
     defaultSize:           { w: 2, h: 2 },
     defaultData:           { refreshOn: 'load', showExcerpt: false, excerptLines: 4 } satisfies ObsidianRandomData,
-    devOnly:               true,
     titleBehavior:         'optional',
     defaultTitle:          'Random Note',
     defaultShowCustomTitle: false,
