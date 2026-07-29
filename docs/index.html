@@ -17,12 +17,23 @@
 <body>
   <div class="wrap">
     <header>
-      <div class="logo-row">
-        <div class="logo"><img src="./icons/icon-128.png" alt="StartGrid logo"></div>
-        <h1>StartGrid</h1>
+      <div class="hero-tile">
+        <img class="hero-tile-logo" src="./icons/icon-512.png" alt="StartGrid logo">
+        <span class="hero-tile-word">StartGrid</span>
       </div>
       <p class="tagline">StartGrid is a free browser extension for Firefox and Chrome that replaces your browser's default new tab page with a customizable grid of widgets — a clock, weather, notes, bookmarks, and optional Google Calendar previews — set against a background of your choice.</p>
-      <a href="./preview/" class="btn-primary">Try in browser &rarr;</a>
+      <div class="store-row">
+        <a class="store-btn" href="https://addons.mozilla.org/de/firefox/addon/startgrid-a-new-tab/">
+          <img class="store-badge" src="./icons/badge-firefox.svg" alt="Get the add-on for Firefox" width="172" height="60">
+        </a>
+        <a class="store-btn" href="https://chromewebstore.google.com/detail/startgrid-a-new-tab/cihlhlnndcacidpnhmncifiggfcacdhk">
+          <img class="store-badge" src="./icons/badge-chrome.png" alt="Available in the Chrome Web Store" width="206" height="58">
+        </a>
+        <a class="store-btn store-btn-try" href="./preview/index.html">
+          <svg class="store-btn-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18Z"/></svg>
+          <span class="store-btn-text"><small>No install needed</small>Try in browser</span>
+        </a>
+      </div>
     </header>
 
     <section>
@@ -44,9 +55,32 @@
     </section>
 
     <footer>
-      <a href="./privacy.html">Privacy Policy</a>
-      <a href="https://github.com/vinzenz-san/StartGrid">Source Code</a>
-      <a href="mailto:vinzenz.san@gmail.com">Contact</a>
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h3>Get StartGrid</h3>
+          <ul>
+            <li><a href="https://addons.mozilla.org/de/firefox/addon/startgrid-a-new-tab/">Firefox Add-on</a></li>
+            <li><a href="https://chromewebstore.google.com/detail/startgrid-a-new-tab/cihlhlnndcacidpnhmncifiggfcacdhk">Chrome Web Store</a></li>
+            <li><a href="./preview/index.html">Web Preview</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3>Project</h3>
+          <ul>
+            <li><a href="https://github.com/vinzenz-san/startgrid">GitHub</a></li>
+            <li><a href="https://github.com/vinzenz-san/startgrid/issues">Report an Issue</a></li>
+            <li><a href="https://github.com/vinzenz-san/startgrid/blob/main/CHANGELOG.md">Changelog</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3>More</h3>
+          <ul>
+            <li><a href="./privacy.html">Privacy Policy</a></li>
+            <li><a href="mailto:vinzenz.san@gmail.com">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+      <p class="footer-legal">StartGrid is open source and licensed under <a href="https://github.com/vinzenz-san/startgrid/blob/main/LICENSE">GPL-3.0</a>. &copy; 2026 Vinzenz.</p>
     </footer>
   </div>
 </body>

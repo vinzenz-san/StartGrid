@@ -35,6 +35,101 @@ body {
   padding: 64px 24px 96px;
 }
 header { margin-bottom: 48px; }
+
+/* Promo tile hero — same artwork as store-assets/promo-tile-small-440x280.html,
+   cropped to 440x160 so it reads as a banner here rather than the square-ish
+   tile the store listing requires.
+   background-position insets the grid by half a cell (20px of the 40px pitch).
+   Without it a gridline lands exactly on x=0 and y=0 — the repeating gradient is
+   anchored to the box's top-left, so trimming the box can never clear the left
+   or top edge, only the right and bottom. Offsetting is what keeps all four
+   edges free of a line sitting flush against them. */
+.hero-tile {
+  width: 100%;
+  max-width: 440px;
+  aspect-ratio: 440 / 160;
+  margin: 0 auto 28px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  background-color: #0a0a0a;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(168, 85, 247, 0.35) 0px, rgba(168, 85, 247, 0.35) 1px, transparent 1px, transparent 40px),
+    repeating-linear-gradient(90deg, rgba(168, 85, 247, 0.35) 0px, rgba(168, 85, 247, 0.35) 1px, transparent 1px, transparent 40px);
+  background-position: 20px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5%;
+}
+.hero-tile-logo {
+  width: 21%;
+  height: auto;
+  filter: invert(1);
+}
+.hero-tile-word {
+  color: #fff;
+  font-size: clamp(2rem, 12.7vw, 3.5rem);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+/* Store badges — every cell is the same 206x58 box (official badge dimensions) */
+.store-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+.store-btn {
+  flex: 0 0 206px;
+  height: 58px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+.store-btn:hover { opacity: 0.85; }
+/* Vendor artwork keeps its own aspect ratio, centred in the shared box */
+.store-badge {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  display: block;
+}
+/* "Try in browser" is ours, so it fills the box and matches the badge styling */
+.store-btn-try {
+  gap: 10px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+.store-btn-try:hover { opacity: 1; border-color: var(--accent); }
+.store-btn-icon { width: 26px; height: 26px; flex-shrink: 0; color: var(--accent); }
+.store-btn-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.store-btn-text small {
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+@media (max-width: 500px) {
+  .store-btn { flex: 1 1 100%; }
+}
+
 .logo-row {
   display: flex;
   align-items: center;
@@ -70,24 +165,39 @@ li { margin-bottom: 8px; }
   padding: 20px 24px;
 }
 a { color: var(--accent); }
-.btn-primary {
-  display: inline-block;
-  margin-top: 16px;
-  padding: 10px 20px;
-  background: var(--accent);
-  color: #fff;
-  border-radius: 8px;
-  font-weight: 600;
-  text-decoration: none;
-}
-.btn-primary:hover { opacity: 0.9; }
 footer {
   border-top: 1px solid var(--border);
   padding-top: 20px;
   color: var(--text-muted);
   font-size: 0.9rem;
 }
-footer a { margin-right: 16px; }
+footer > a { margin-right: 16px; }
+
+/* Multi-column footer (index.html) */
+.footer-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 24px 32px;
+}
+.footer-col h3 {
+  margin: 0 0 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.footer-col ul { list-style: none; padding: 0; margin: 0; }
+.footer-col li { margin-bottom: 6px; }
+.footer-col a { text-decoration: none; }
+.footer-col a:hover { text-decoration: underline; }
+.footer-legal {
+  margin: 28px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  color: var(--text-footer);
+  font-size: 0.85rem;
+}
 
 /* privacy.html specific */
 .wrap > h1 { font-size: 1.5rem; margin-bottom: 4px; }
