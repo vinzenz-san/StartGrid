@@ -34,3 +34,19 @@ For the Chrome/Chromium build instead: `pnpm build:chrome` → `dist/chrome/`.
 - Runs `scripts/patch-runtime.js` as a post-build step, which replaces a `Function("return this")()` fallback in rspack's own generated runtime helper (a defensive pattern for pre-2018 browsers, unreachable in this extension's supported targets) with a direct `globalThis` reference — done to satisfy `no-unsanitized` static analysis, since the fallback is otherwise indistinguishable from an eval call to that tooling despite never executing.
 
 No other code generation, templating, or obfuscation is used beyond what's described above.
+
+## License
+
+Copyright © 2026 Vinzenz.
+
+StartGrid is free software, licensed under the [GNU General Public License v3.0 or later](LICENSE).
+
+You may use, study, modify, and redistribute it. If you distribute a modified version — including publishing it to an extension store — you must release your changes under the same license and make the corresponding source available.
+
+### Trademarks
+
+The GPL covers the *code*. It does not grant any right to the StartGrid name or branding, and those are expressly reserved (see GPL-3.0 §7(e)).
+
+"StartGrid", the StartGrid logo, and the StartGrid icon set are not part of the licensed work. If you distribute a modified version, you must remove them and use your own name and branding — you may not publish a fork under the StartGrid name, nor present it in a way that suggests it is the official StartGrid or is endorsed by its author.
+
+You may of course state factually that your work is derived from StartGrid.

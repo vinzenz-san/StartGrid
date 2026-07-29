@@ -4,10 +4,10 @@ const DEFAULT_FROM = '#3498db';
 const DEFAULT_TO = '#9b59b6';
 const DEFAULT_ANGLE = 135;
 
-// Ported from TablissNG's gradient background plugin — linear/radial CSS
-// generation from a from/to color pair (+ angle for linear). The upstream
-// `isRandom` feature (fetching a random gradient from a third-party JSON
-// endpoint) is deliberately not ported: resolveCss must stay a pure,
+// Linear/radial CSS generated from a from/to color pair (+ angle for linear) —
+// same behaviour as TablissNG's gradient background, for feature parity.
+// Its `isRandom` option (fetching a random gradient from a third-party JSON
+// endpoint) is deliberately not implemented: resolveCss must stay a pure,
 // synchronous function with no network side effects.
 export function resolveGradientCss(config: ColorGradientConfig): string {
   const from = config.from ?? DEFAULT_FROM;

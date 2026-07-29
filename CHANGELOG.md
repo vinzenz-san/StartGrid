@@ -2,6 +2,13 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [Unreleased] — GPL-3.0 licensing, homepage store badges
+- StartGrid is now released under **GPL-3.0-or-later**. Until now the project had no license at all, which under default copyright meant "all rights reserved" — the source was readable on GitHub but nobody could legally reuse, modify, or redistribute it, so the public repo granted no rights beyond GitHub's own fork button. GPL-3.0 was chosen over a permissive license specifically because a browser extension is trivially repackageable: it allows redistribution but requires any redistributed derivative to publish its source under the same terms, which removes the incentive to fork it into a closed-source clone with ads or tracking
+- Added `LICENSE` (verbatim GPL-3.0 text), `"license": "GPL-3.0-or-later"` in `package.json`, and a License section in `README.md`
+- Trademark reservation added to `README.md` — the GPL covers the code only; the "StartGrid" name, logo, and icon set are expressly reserved under GPL-3.0 §7(e), so a fork must strip the branding and ship under its own name. The reservation lives in the README rather than in `LICENSE`, which is kept byte-for-byte verbatim: modifying the GPL text would create ambiguity about which license is actually being offered
+- `z_package-source.bat` now includes `LICENSE` in the AMO source archive — GPL requires the license text to accompany distributed source, and the source upload was previously omitting it
+- Comment in `src/components/Background/providers/gradient.ts` corrected: it claimed the provider was "ported from" TablissNG's gradient plugin, but the code is two template literals producing `linear-gradient()`/`radial-gradient()` — convergent, not copied. Reworded to describe feature parity; the rationale for omitting upstream's `isRandom` option is unchanged
+
 ## [1.3.0] — Calendar/mail widgets enabled, privacy policy corrections
 - Google Calendar widget is no longer gated behind Developer Options — Google's OAuth verification of the `calendar.readonly` scope was approved, so it's now available to all users from the Add-Widget menu
 - Outlook Calendar and Outlook Mail widgets are also no longer gated behind Developer Options, now available to all users
