@@ -114,6 +114,26 @@ export interface NotesData {
   storageMode?: 'local' | 'synced';
 }
 
+/** Quick Capture — the one Obsidian widget that works with no host permission,
+ *  falling back to the `obsidian://` URI scheme when no REST connection is
+ *  configured. Connection details themselves are global (storage.local key
+ *  `sg_obsidian_conn`), not per-widget — only the capture target lives here. */
+export interface ObsidianCaptureData {
+  /** Vault name, required for the URI transport only. */
+  vaultName?:       string;
+  /** 'daily' resolves dailyTemplate against today; 'file' uses targetPath. */
+  targetMode?:      'daily' | 'file';
+  targetPath?:      string;
+  dailyTemplate?:   string;
+  /** Prefix each captured line with a `- ` bullet. Default true. */
+  bulletPrefix?:    boolean;
+  prependTimestamp?: boolean;
+  /** Time format for prependTimestamp, in the token subset of lib/obsidianPath. */
+  timestampFormat?: string;
+  clearAfterSend?:  boolean;
+  fontSize?:        'S' | 'M' | 'L';
+}
+
 export interface PlaceholderData {
   title?: string;
 }
@@ -147,6 +167,7 @@ export interface WidgetDataMap {
   outlookCalendar: OutlookCalendarData;
   outlookMail:     OutlookMailData;
   notes:           NotesData;
+  obsidianCapture: ObsidianCaptureData;
   greeting:        GreetingData;
   weather:         WeatherData;
   placeholder:     PlaceholderData;
@@ -186,6 +207,7 @@ export type Widget =
   | (WidgetBase & { type: 'outlookCalendar'; data: OutlookCalendarData })
   | (WidgetBase & { type: 'outlookMail';     data: OutlookMailData })
   | (WidgetBase & { type: 'notes';          data: NotesData })
+  | (WidgetBase & { type: 'obsidianCapture'; data: ObsidianCaptureData })
   | (WidgetBase & { type: 'greeting';       data: GreetingData })
   | (WidgetBase & { type: 'weather';        data: WeatherData })
   | (WidgetBase & { type: 'placeholder';    data: PlaceholderData });

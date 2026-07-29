@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, CalendarData, OutlookCalendarData, OutlookMailData, NotesData, GreetingData, WeatherData, PlaceholderData } from '../../types/widget';
+import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, CalendarData, OutlookCalendarData, OutlookMailData, NotesData, ObsidianCaptureData, GreetingData, WeatherData, PlaceholderData } from '../../types/widget';
 import type { TranslationKey } from '../../i18n';
 import Clock, { ClockSettings } from './Clock/Clock';
 import Quicklinks, { QuicklinksSettings } from './Quicklinks/Quicklinks';
@@ -9,6 +9,7 @@ import Calendar, { CalendarSettings } from './Calendar/Calendar';
 import OutlookCalendar, { OutlookCalendarSettings } from './OutlookCalendar/OutlookCalendar';
 import OutlookMail, { OutlookMailSettings } from './OutlookMail/OutlookMail';
 import Notes, { NotesSettings } from './Notes/Notes';
+import ObsidianCapture, { ObsidianCaptureSettings } from './ObsidianCapture/ObsidianCapture';
 import Greeting, { GreetingSettings } from './Greeting/Greeting';
 import Weather, { WeatherSettings } from './Weather/Weather';
 import WidgetPlaceholder from '../shared/WidgetPlaceholder';
@@ -138,6 +139,18 @@ const _registry = {
     renderSettings:  (data, onUpdateData, widgetId) => <NotesSettings data={data} onUpdateData={onUpdateData} widgetId={widgetId} />,
   } satisfies TypedEntry<NotesData>,
 
+  obsidianCapture: {
+    label:                 'Obsidian Quick Capture',
+    icon:                  '◈',
+    defaultSize:           { w: 2, h: 2 },
+    defaultData:           { targetMode: 'daily', bulletPrefix: true, clearAfterSend: true } satisfies ObsidianCaptureData,
+    titleBehavior:         'optional',
+    defaultTitle:          'Quick Capture',
+    defaultShowCustomTitle: false,
+    renderComponent: (data, _onUpdateData, _isSettingsOpen, widgetId) => <ObsidianCapture data={data} widgetId={widgetId} />,
+    renderSettings:  (data, onUpdateData) => <ObsidianCaptureSettings data={data} onUpdateData={onUpdateData} />,
+  } satisfies TypedEntry<ObsidianCaptureData>,
+
   greeting: {
     label:         'Greeting',
     icon:          '👋',
@@ -189,6 +202,7 @@ export const WIDGET_TYPE_LABEL_KEYS: Record<WidgetType, TranslationKey> = {
   outlookCalendar: 'widgets.type.outlookCalendar',
   outlookMail:    'widgets.type.outlookMail',
   notes:          'widgets.type.notes',
+  obsidianCapture: 'widgets.type.obsidianCapture',
   greeting:       'widgets.type.greeting',
   weather:        'widgets.type.weather',
   placeholder:    'widgets.type.placeholder',
@@ -196,5 +210,5 @@ export const WIDGET_TYPE_LABEL_KEYS: Record<WidgetType, TranslationKey> = {
 
 // Ordered list for the "Add Widget" menu (excludes placeholder handled separately if desired).
 export const WIDGET_MENU_TYPES: WidgetType[] = [
-  'clock', 'quicklinks', 'bookmarks', 'bookmarkSearch', 'calendar', 'outlookCalendar', 'outlookMail', 'notes', 'greeting', 'weather', 'placeholder',
+  'clock', 'quicklinks', 'bookmarks', 'bookmarkSearch', 'calendar', 'outlookCalendar', 'outlookMail', 'notes', 'obsidianCapture', 'greeting', 'weather', 'placeholder',
 ];

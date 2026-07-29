@@ -1,0 +1,82 @@
+.sg-obsc {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.sg-obsc-input {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.55;
+  padding: 10px 12px 4px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.sg-obsc-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.sg-obsc--s { font-size: 11px; }
+.sg-obsc--m { font-size: 13px; }
+.sg-obsc--l { font-size: 16px; }
+
+.sg-obsc-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 8px 6px 12px;
+}
+
+.sg-obsc-target {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.65;
+}
+
+.sg-obsc-send {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: rgba(128, 128, 128, 0.14);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, opacity 0.15s;
+}
+
+.sg-obsc-send svg { width: 14px; height: 14px; }
+
+.sg-obsc-send:hover:not(:disabled) { background: var(--accent); color: #fff; }
+
+.sg-obsc-send:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.sg-obsc-send--sent,
+.sg-obsc-send--sent:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.9);
+  color: #fff;
+}
