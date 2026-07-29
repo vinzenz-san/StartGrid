@@ -275,3 +275,11 @@
   letter-spacing: 0.03em;
   user-select: none;
 }
+
+.sg-bks-preview-badge {
+  font-size: 10px;
+  opacity: 0.5;
+  text-align: center;
+  padding: 4px 8px;
+  flex-shrink: 0;
+}

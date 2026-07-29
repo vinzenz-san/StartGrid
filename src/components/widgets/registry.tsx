@@ -99,11 +99,8 @@ const _registry = {
     icon:          '📅',
     defaultSize:   { w: 2, h: 3 },
     defaultData:   { maxDays: 3, showAllDay: true } satisfies CalendarData,
-    // Hidden from the Add-Widget menu (still reachable via Developer Options)
-    // pending Google OAuth verification of the calendar.readonly scope — see
-    // the comment above SCOPES in googleAuth.ts. Flip this back to unset/false
-    // once verification succeeds, without needing to re-implement anything.
-    devOnly:       true,
+    // Google OAuth verification of the calendar.readonly scope succeeded
+    // (2026-07-28) — no longer gated behind Developer Options.
     titleBehavior: 'auto',
     renderComponent: (data, onUpdateData) => <Calendar data={data} onUpdateData={onUpdateData} />,
     renderSettings:  (data, onUpdateData) => <CalendarSettings data={data} onUpdateData={onUpdateData} />,
@@ -114,12 +111,6 @@ const _registry = {
     icon:          '📆',
     defaultSize:   { w: 2, h: 3 },
     defaultData:   { maxDays: 3, showAllDay: true } satisfies OutlookCalendarData,
-    // Same reasoning as the `calendar` entry above: gated behind Developer
-    // Options until the Microsoft OAuth app registration and Worker token
-    // route are live and verified end-to-end. Mail.Read/Calendars.Read both
-    // have AdminConsentRequired = No, so this is expected to be a much
-    // shorter-lived gate than Google's — see msAuth.ts.
-    devOnly:       true,
     titleBehavior: 'auto',
     renderComponent: (data, onUpdateData) => <OutlookCalendar data={data} onUpdateData={onUpdateData} />,
     renderSettings:  (data, onUpdateData) => <OutlookCalendarSettings data={data} onUpdateData={onUpdateData} />,
@@ -130,7 +121,6 @@ const _registry = {
     icon:          '📧',
     defaultSize:   { w: 2, h: 3 },
     defaultData:   { maxResults: 8, showUnreadOnly: false } satisfies OutlookMailData,
-    devOnly:       true,
     titleBehavior: 'auto',
     renderComponent: (data, onUpdateData) => <OutlookMail data={data} onUpdateData={onUpdateData} />,
     renderSettings:  (data, onUpdateData) => <OutlookMailSettings data={data} onUpdateData={onUpdateData} />,

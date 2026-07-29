@@ -274,6 +274,7 @@ export const en = {
   'widget.bookmarkSearch.maxResults':       'Max results',
   'widget.bookmarkSearch.focusShortcut':    'Focus shortcut',
   'widget.bookmarkSearch.searchPlaceholder':'Search bookmarks…',
+  'widget.bookmarkSearch.previewBadge':     'Preview data (browser preview)',
   'widget.bookmarkSearch.loading':          'Loading…',
   'widget.bookmarkSearch.typeToSearch':     'Type to search bookmarks',
   'widget.bookmarkSearch.folderEmpty':      'Folder is empty',
@@ -342,6 +343,7 @@ export const en = {
 
 
   // ── Calendar widget ──────────────────────────────────────────────────────
+  'widget.calendar.previewBadge':     'Preview data (browser preview)',
   'widget.calendar.view':             'View',
   'widget.calendar.viewAgenda':       'Agenda',
   'widget.calendar.viewMonthly':      'Monthly',
@@ -370,6 +372,7 @@ export const en = {
   'widget.calendar.location':         'Location',
   'widget.calendar.description':      'Description',
 
+  'widget.outlookCalendar.previewBadge':     'Preview data (browser preview)',
   'widget.outlookCalendar.view':             'View',
   'widget.outlookCalendar.viewAgenda':       'Agenda',
   'widget.outlookCalendar.viewMonthly':      'Monthly',
@@ -408,6 +411,7 @@ export const en = {
   'widget.outlookMail.connectPrompt': 'Connect your Microsoft Account to see your inbox.',
   'widget.outlookMail.loadError':     'Could not load mail',
   'widget.outlookMail.noMessages':    'No messages',
+  'widget.outlookMail.previewBadge':  'Preview data (browser preview)',
   'widget.outlookMail.inbox':         'Inbox',
   'widget.outlookMail.justNow':       'now',
   'widget.outlookMail.refresh':       'Refresh',

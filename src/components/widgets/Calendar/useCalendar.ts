@@ -147,5 +147,5 @@ export function useCalendar() {
     }
   }, []);
 
-  return { ...state, refresh };
+  return { ...state, refresh, isMock: !isExtension };
 }

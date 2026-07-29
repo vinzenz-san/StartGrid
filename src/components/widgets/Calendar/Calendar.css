@@ -622,3 +622,11 @@
   font-weight: 600;
   opacity: 0.85;
 }
+
+.sg-cal-preview-badge {
+  font-size: 10px;
+  opacity: 0.5;
+  text-align: center;
+  padding: 4px 8px;
+  flex-shrink: 0;
+}

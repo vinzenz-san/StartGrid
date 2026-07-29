@@ -2,6 +2,13 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.3.0] — Calendar/mail widgets enabled, privacy policy corrections
+- Google Calendar widget is no longer gated behind Developer Options — Google's OAuth verification of the `calendar.readonly` scope was approved, so it's now available to all users from the Add-Widget menu
+- Outlook Calendar and Outlook Mail widgets are also no longer gated behind Developer Options, now available to all users
+- Added the same "Preview data (browser preview)" badge already shown on Bookmark Folder to Google Calendar, Outlook Calendar, Outlook Mail, and Bookmark Search, so mock data is clearly labeled in the browser-preview build for all widgets that use it, not just one
+- Privacy policy (`docs/privacy.html`) corrected: the Google OAuth token-exchange step is relayed through the Cloudflare Worker (which attaches a server-side `client_secret`), not sent directly browser-to-Google as previously stated; added a full disclosure section for the Microsoft/Outlook integration (scopes, storage, security, deletion), which existed in code but wasn't documented; added explicit "Data security" and "Data retention and deletion" sections addressing gaps flagged by Google Trust & Safety's automated privacy policy review
+- Homepage and privacy policy now hosted on the custom domain `vinzenz-dev.de` (via a separate `vinzenz-san.github.io` user-page repo with GitHub Pages custom domain configured), replacing the `github.io` URLs Google's OAuth verification rejected as not domain-ownership-verifiable
+
 ## [1.2.0] — Browser preview
 - Added a `build:preview` script that builds the Chrome target and copies it into `docs/preview/`, publishable via GitHub Pages with no separate hosting step — visitors can try the widget grid at a URL with no install required
 - Fixed a crash that made this (and likely the existing `preview-server.js` dev workflow) impossible: `permissions.ts` statically imported `webextension-polyfill`, which throws at module-evaluation time — not just when its APIs are called — whenever no `chrome`/`browser` global exists, crashing the whole bundle before React could mount in any non-extension context

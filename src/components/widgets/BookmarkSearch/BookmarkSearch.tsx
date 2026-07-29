@@ -260,6 +260,9 @@ export default function BookmarkSearch({ data }: Props) {
 
       {/* Results body */}
       <div className="sg-bks-float-body">
+        {bookmarks.isMock && (
+          <div className="sg-bks-preview-badge">{t('widget.bookmarkSearch.previewBadge')}</div>
+        )}
         {bookmarks.needsPermission ? (
           <div className="sg-bks-empty">
             <span className="sg-bks-empty-icon">🔒</span>

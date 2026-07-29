@@ -140,5 +140,5 @@ export function useOutlookMail() {
     }
   }, []);
 
-  return { ...state, refresh };
+  return { ...state, refresh, isMock: !isExtension };
 }

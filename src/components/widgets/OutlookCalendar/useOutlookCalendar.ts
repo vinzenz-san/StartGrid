@@ -165,5 +165,5 @@ export function useOutlookCalendar() {
     }
   }, []);
 
-  return { ...state, refresh };
+  return { ...state, refresh, isMock: !isExtension };
 }

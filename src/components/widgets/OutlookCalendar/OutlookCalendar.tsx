@@ -115,7 +115,7 @@ interface Props {
 export default function OutlookCalendar({ data }: Props) {
   const { t, language } = useSettings();
   const locale = LOCALES[language];
-  const { status, events, refresh } = useOutlookCalendar();
+  const { status, events, refresh, isMock } = useOutlookCalendar();
   const { isConnected, connect, isConnecting } = useMsAuth();
   const maxDays    = data.maxDays    ?? 3;
   const showAllDay = data.showAllDay ?? true;
@@ -141,6 +141,9 @@ export default function OutlookCalendar({ data }: Props) {
         </button>
       </div>
       <div className="sg-cal-body">
+        {isMock && (
+          <div className="sg-cal-preview-badge">{t('widget.outlookCalendar.previewBadge')}</div>
+        )}
         {isUnauthed ? (
           <div className="sg-cal-empty">
             <IconOutlookCalendar/>

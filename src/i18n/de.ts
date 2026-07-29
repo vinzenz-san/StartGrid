@@ -276,6 +276,7 @@ export const de: Record<TranslationKey, string> = {
   'widget.bookmarkSearch.maxResults':       'Max. Ergebnisse',
   'widget.bookmarkSearch.focusShortcut':    'Fokus-Tastenkürzel',
   'widget.bookmarkSearch.searchPlaceholder':'Lesezeichen durchsuchen…',
+  'widget.bookmarkSearch.previewBadge':     'Testdaten (Browservorschau)',
   'widget.bookmarkSearch.loading':          'Wird geladen…',
   'widget.bookmarkSearch.typeToSearch':     'Zum Suchen tippen',
   'widget.bookmarkSearch.folderEmpty':      'Ordner ist leer',
@@ -344,6 +345,7 @@ export const de: Record<TranslationKey, string> = {
 
 
   // ── Calendar widget ──────────────────────────────────────────────────────
+  'widget.calendar.previewBadge':     'Testdaten (Browservorschau)',
   'widget.calendar.view':             'Ansicht',
   'widget.calendar.viewAgenda':       'Agenda',
   'widget.calendar.viewMonthly':      'Monatlich',
@@ -372,6 +374,7 @@ export const de: Record<TranslationKey, string> = {
   'widget.calendar.location':         'Ort',
   'widget.calendar.description':      'Beschreibung',
 
+  'widget.outlookCalendar.previewBadge':     'Testdaten (Browservorschau)',
   'widget.outlookCalendar.view':             'Ansicht',
   'widget.outlookCalendar.viewAgenda':       'Agenda',
   'widget.outlookCalendar.viewMonthly':      'Monatlich',
@@ -410,6 +413,7 @@ export const de: Record<TranslationKey, string> = {
   'widget.outlookMail.connectPrompt': 'Verbinde dein Microsoft-Konto, um dein Postfach zu sehen.',
   'widget.outlookMail.loadError':     'E-Mails konnten nicht geladen werden',
   'widget.outlookMail.noMessages':    'Keine Nachrichten',
+  'widget.outlookMail.previewBadge':  'Testdaten (Browservorschau)',
   'widget.outlookMail.inbox':         'Posteingang',
   'widget.outlookMail.justNow':       'jetzt',
   'widget.outlookMail.refresh':       'Aktualisieren',
