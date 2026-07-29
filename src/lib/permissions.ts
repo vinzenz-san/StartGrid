@@ -4,32 +4,46 @@
 // googleAuth.ts/msAuth.ts: nothing is granted at install time, a widget
 // requests it lazily the moment the user actually needs the feature.
 //
-// Static import (not the dynamic import() used elsewhere in this codebase
-// for the background/service-worker entry) is required here: Firefox only
-// honours browser.permissions.request() when it's called synchronously
-// within a user-gesture call stack (a click handler). Even one `await` for
-// a dynamic import() in between can lose that gesture context, causing the
-// native prompt to silently never appear and the request to resolve false.
-import browser from 'webextension-polyfill';
+// webextension-polyfill throws at *module evaluation time* (not just when
+// its APIs are called) if no chrome/browser global exists — which is always
+// the case in the plain-browser preview build (docs/preview, and the older
+// preview-server.js dev workflow). A static top-level `import browser from
+// 'webextension-polyfill'` would therefore crash the whole bundle before
+// React even mounts, in any non-extension context. So detection below uses
+// the raw `chrome` global directly (present only in extension pages),
+// matching the pattern in storage.ts/storageLocal.ts, and the polyfill
+// itself is only ever imported when that's true.
+//
+// The actual permission *request* still needs care: Firefox only honours
+// browser.permissions.request() when called synchronously within a
+// user-gesture call stack (a click handler) — even one `await` in between
+// can lose that gesture context. So the dynamic import is pre-warmed as
+// soon as we know we're in an extension (well before any click), and the
+// click handler below awaits the already-cached promise and calls
+// .request() with no further await in between.
+const isExtensionEnvRaw = typeof chrome !== 'undefined' && !!chrome.runtime?.id;
 
-// Detected via browser.runtime.id (always present in any extension page,
-// regardless of which permissions are granted) rather than chrome.permissions
-// — Firefox's chrome.* compat shim doesn't reliably expose `permissions`
-// even though it exposes `bookmarks`, so checking for it produced a false
-// negative in Firefox and made the extension think it wasn't an extension.
-export const isExtensionEnv = typeof browser !== 'undefined' && !!browser.runtime?.id;
+const browserPromise = isExtensionEnvRaw
+  ? import('webextension-polyfill').then((m) => m.default)
+  : null;
+
+export const isExtensionEnv = isExtensionEnvRaw;
 
 export async function hasBookmarksPermission(): Promise<boolean> {
-  if (!isExtensionEnv) return false;
+  if (!browserPromise) return false;
   try {
+    const browser = await browserPromise;
     return await browser.permissions.contains({ permissions: ['bookmarks'] });
   } catch {
     return false;
   }
 }
 
-// Must be invoked directly from a click handler — no await before this call.
+// Must be invoked directly from a click handler — no await before this call
+// once browserPromise has already resolved (it's pre-warmed above).
 export function requestBookmarksPermission(): Promise<boolean> {
-  if (!isExtensionEnv) return Promise.resolve(false);
-  return browser.permissions.request({ permissions: ['bookmarks'] }).catch(() => false);
+  if (!browserPromise) return Promise.resolve(false);
+  return browserPromise
+    .then((browser) => browser.permissions.request({ permissions: ['bookmarks'] }))
+    .catch(() => false);
 }
