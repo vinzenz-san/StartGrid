@@ -19,6 +19,7 @@
     "build:chrome": "rspack build --env target=chrome --env production=true && node scripts/patch-runtime.js dist/chrome/newtab.js",
     "build:chrome-store": "rspack build --env target=chrome --env production=true --env store=true && node scripts/patch-runtime.js dist/chrome-store/newtab.js",
     "build": "pnpm build:firefox && pnpm build:chrome",
+    "build:preview": "pnpm build:chrome && node scripts/sync-preview.js",
     "preview": "npx serve dist/firefox -p 4747 --no-clipboard",
     "package:firefox": "node scripts/package-zip.js firefox",
     "package:chrome": "node scripts/package-zip.js chrome",
