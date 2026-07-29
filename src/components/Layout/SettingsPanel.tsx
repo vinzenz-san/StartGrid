@@ -26,6 +26,9 @@ import { DEFAULT_GRID_CONFIG, type GridConfig } from '../../types/grid';
 import './SettingsPanel.css';
 
 const APP_NAME = 'Startgrid';
+// Injected at build time via rspack.config.ts's DefinePlugin — see astronomy.ts
+// for the same (import.meta as any).env pattern used elsewhere in this codebase.
+const APP_VERSION = (import.meta as any).env.APP_VERSION || '';
 
 const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
   { value: 'en', label: 'English' },
@@ -216,6 +219,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
               <img src="icons/icon-48.png" width="14" height="14" alt="" aria-hidden="true" />
             </span>
             <span className="sg-settings-title" onClick={handleTitleTap}>{APP_NAME}</span>
+            <span className="sg-settings-version">v{APP_VERSION}</span>
           </div>
         </div>
         {!settingsPinned && (

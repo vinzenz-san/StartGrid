@@ -116,6 +116,7 @@ export default (env: { target?: string; production?: boolean; store?: boolean } 
       new rspack.DefinePlugin({
         'import.meta.env.APP_NASA_API_KEY': JSON.stringify(nasaApiKey),
         'import.meta.env.APP_MEDIA_PROXY_URL': JSON.stringify(mediaProxyUrl),
+        'import.meta.env.APP_VERSION': JSON.stringify(version),
       }),
       new rspack.HtmlRspackPlugin({
         template: './src/newtab.html',
