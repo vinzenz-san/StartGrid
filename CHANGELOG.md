@@ -2,6 +2,13 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.2.0] — Browser preview
+- Added a `build:preview` script that builds the Chrome target and copies it into `docs/preview/`, publishable via GitHub Pages with no separate hosting step — visitors can try the widget grid at a URL with no install required
+- Fixed a crash that made this (and likely the existing `preview-server.js` dev workflow) impossible: `permissions.ts` statically imported `webextension-polyfill`, which throws at module-evaluation time — not just when its APIs are called — whenever no `chrome`/`browser` global exists, crashing the whole bundle before React could mount in any non-extension context
+- New-install defaults changed: background is now Bing's daily wallpaper instead of a solid color (fetched directly from a community mirror, not through the Cloudflare Worker, so no API-quota cost), widget transparency defaults to 10% instead of 0%, and the Settings section of the settings panel now starts collapsed like every other section
+- Bookmark Folder now shows a small "preview data" badge on its main tile when running outside the extension (mock data was already used, but the only indication was buried in the widget's settings panel)
+- App version now shown in the settings panel header, injected at build time from `package.json`
+
 ## [1.1.7] — Build hygiene: reproducible builds, no key in bundle
 - Build: `APP_NASA_API_KEY` is now injected only when no proxy URL is configured. `astronomy.ts` derives `MEDIA_PROXY_URL` through a `.replace()` call, so the minifier couldn't fold it to a constant, couldn't prove the direct-to-`api.nasa.gov` fallback dead, and kept that branch — meaning the key shipped as a string literal in every build even though the proxy is the path that actually runs. It's a rate-limit identifier rather than a credential, so this is hygiene rather than an incident, but the fallback is only reachable without a proxy, so the key now only ships in that case
 - Build: documented the required `cp .env.example .env` step in the README. It was missing, so anyone following the build instructions — including AMO reviewers verifying the submitted package — produced a different artifact: `APP_MEDIA_PROXY_URL` is inlined at build time, and without it the Unsplash provider disables itself and NASA APOD drops to `DEMO_KEY`. Together with the change above, a production build now reproduces exactly from the public `.env.example`, with no private value needed
