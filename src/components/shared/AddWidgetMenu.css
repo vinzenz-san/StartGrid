@@ -69,7 +69,8 @@
   transition: opacity 0.3s ease;
 }
 
-.sg-root--edit .sg-add-widget-floating {
+.sg-root--edit .sg-add-widget-floating,
+.sg-root--settings-open .sg-add-widget-floating {
   opacity: 1;
   pointer-events: auto;
 }

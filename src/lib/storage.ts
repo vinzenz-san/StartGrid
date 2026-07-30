@@ -3,7 +3,7 @@
  * falls back to localStorage for plain-browser preview/dev.
  */
 
-const isExtension = typeof chrome !== 'undefined' && !!chrome.storage;
+export const isExtension = typeof chrome !== 'undefined' && !!chrome.storage;
 
 async function get(key: string): Promise<unknown> {
   if (isExtension) {

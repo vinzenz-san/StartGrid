@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useEditMode } from '../../contexts/EditModeContext';
 import { useWidgets } from '../../contexts/WidgetContext';
 import { useGridConfig } from '../../contexts/GridConfigContext';
@@ -10,9 +10,12 @@ import AddWidgetMenu from '../shared/AddWidgetMenu';
 import ThemeToggle from '../shared/ThemeToggle';
 import GearIcon from '../shared/icons/GearIcon';
 import SettingsPanel from './SettingsPanel';
+import WidgetTour from '../shared/WidgetTour';
 import DevPanel, { type DevPanelPos } from '../DevPanel/DevPanel';
 import InspectorHistoryPanel from '../DevPanel/InspectorHistoryPanel';
 import { ElementInspectorProvider } from '../../contexts/ElementInspectorContext';
+import { isExtension } from '../../lib/storage';
+import { APP_VERSION } from '../../lib/appVersion';
 import './Grid.css';
 
 interface DropTarget { col: number; row: number; w: number; h: number; valid: boolean; }
@@ -21,11 +24,49 @@ export default function Grid() {
   const { isEditMode, toggleEditMode } = useEditMode();
   const { widgets, updateWidget, loaded } = useWidgets();
   const { gridConfig } = useGridConfig();
-  const { developerOptionsEnabled, settingsButtonPosition, settingsPinned, elementInspectorEnabled, disableGridGlow, t } = useSettings();
+  const {
+    developerOptionsEnabled, settingsButtonPosition, settingsPinned, elementInspectorEnabled,
+    disableGridGlow, widgetTourSeen, widgetTourSeenVersion, t,
+  } = useSettings();
   const gridRef = useRef<HTMLDivElement>(null);
   const [dropTarget,        setDropTarget]        = useState<DropTarget | null>(null);
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
   const [devPanelPos,       setDevPanelPos]       = useState<DevPanelPos | null>(null);
+  const [tourOpen,          setTourOpen]          = useState(false);
+
+  // Auto-trigger the widget onboarding tour once widgets have loaded (never
+  // flashes open on a dashboard that's still mid-restore). Gating differs by
+  // build target:
+  //  - Real installed extension: `widgetTourSeen` alone, so it shows exactly
+  //    once ever, regardless of later version updates.
+  //  - docs/preview demo (same bundle, served as a plain web page — see
+  //    sync-preview.js and the `isExtension` runtime check in storage.ts):
+  //    gated on `widgetTourSeenVersion` instead, so a returning visitor sees
+  //    it again after each release, demoing what's new to repeat visitors.
+  useEffect(() => {
+    if (!loaded) return;
+    const shouldShow = isExtension
+      ? !widgetTourSeen
+      : widgetTourSeenVersion !== APP_VERSION;
+    if (shouldShow) openTour();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded]);
+
+  // Tour entry/exit should always find (and leave) the dashboard in its
+  // plain resting state — settings closed, layout locked — regardless of
+  // whatever the user had open right before triggering it (first run or a
+  // manual replay), and regardless of what the tour itself toggled on
+  // mid-flow (it opens Settings and enables edit mode partway through).
+  const openTour = () => {
+    setSettingsPanelOpen(false);
+    if (isEditMode) toggleEditMode();
+    setTourOpen(true);
+  };
+  const closeTour = () => {
+    setSettingsPanelOpen(false);
+    if (isEditMode) toggleEditMode();
+    setTourOpen(false);
+  };
 
   // .sg-grid's own padding is var(--gap) / 2 (Grid.css — gap is applied via
   // each widget's own margin rather than the grid `gap` property, so the
@@ -87,12 +128,12 @@ export default function Grid() {
 
   return (
     <ElementInspectorProvider enabled={developerOptionsEnabled && elementInspectorEnabled}>
-    <div className={`sg-root${isEditMode ? ' sg-root--edit' : ''}`}>
+    <div className={`sg-root${isEditMode ? ' sg-root--edit' : ''}${(settingsPanelOpen || settingsPinned) ? ' sg-root--settings-open' : ''}`}>
 
-      {/* Top-centered, edit-mode-only shortcut to the same Add Widget menu
-          that lives in the Settings Sidebar — always rendered, opacity/
-          pointer-events gated by .sg-root--edit so it fades in/out with the
-          rest of edit mode's chrome rather than popping in abruptly. */}
+      {/* Top-centered shortcut to the same Add Widget menu that lives in the
+          Settings Sidebar — always rendered, opacity/pointer-events gated by
+          .sg-root--edit or .sg-root--settings-open so it fades in/out with
+          edit mode or an open Settings Sidebar rather than popping in abruptly. */}
       <AddWidgetMenu className="sg-add-widget-floating" />
 
       {/* ── Floating control cluster ── */}
@@ -142,6 +183,13 @@ export default function Grid() {
         onClose={() => setSettingsPanelOpen(false)}
         isOpen={settingsPanelOpen || settingsPinned}
         settingsButtonPosition={settingsButtonPosition}
+        onReplayTour={openTour}
+      />
+
+      <WidgetTour
+        open={tourOpen}
+        onClose={closeTour}
+        onOpenSettings={() => setSettingsPanelOpen(true)}
       />
 
       <main

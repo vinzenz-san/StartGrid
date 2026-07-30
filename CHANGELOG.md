@@ -2,6 +2,15 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.6.0] — Widget onboarding tour
+- Added a 9-step onboarding tour (`WidgetTour.tsx`) covering the full add/arrange/remove-widget flow: welcome, the Settings icon (clicking Next opens the sidebar), a "Settings Sidebar" confirmation slide, adding a widget, unlocking the grid (clicking Next enables edit mode), an "Edit mode is on" confirmation slide, moving/resizing, editing/removing, and a wrap-up. Auto-triggers once widgets have loaded
+- Each targeted step spotlights the real on-screen control it's describing — a fixed-position ring tracks the element's live bounding rect (polled + resize/scroll-aware) and dims the rest of the viewport via an oversized box-shadow, rather than making the user hunt for it while reading
+- The lock/theme-toggle control cluster is normally hover-only (`.sg-controls:hover`); the tour force-reveals it (icons, pill background, and the center-alignment variant's width expansion) during the "unlock the grid" step so it's visible without a real mouseover. Copy also mentions hovering and the Ctrl+E shortcut, since the tour won't always be there to force it
+- Skipping marks the tour seen and shows a one-off follow-up notice pointing at Settings → "Show tutorial again" (placed above Import/Export); finishing normally closes directly. Tour entry/exit always resets to a clean state — Settings Sidebar closed, edit mode off — regardless of what the tour toggled on mid-flow or what the user had open before triggering it. Restarting via "Show tutorial again" always starts at step 1, even if the previous run ended on the skip notice
+- First-run gating differs by build target: the real installed extension shows the tour once ever (`widgetTourSeen`), surviving later version updates; the `docs/preview` demo (same bundle, served as a plain web page — see `sync-preview.js`) instead re-triggers after every version bump (`widgetTourSeenVersion` vs. `APP_VERSION`), so returning visitors see what's new
+- The floating "Add Widget" button (`Grid.tsx`) now also shows whenever the Settings Sidebar is open or pinned, not just during edit mode — it no longer requires unlocking the grid first to add a widget
+- i18n: all new copy added to both `en.ts` and `de.ts`
+
 ## [1.5.1] — Privacy policy correction
 - Privacy policy corrected where it still described the Google Calendar and Outlook widgets as "in development and hidden behind an internal developer option — not yet enabled for general use". That stopped being true in 1.3.0, which un-gated all three; the policy had not been updated to match
 

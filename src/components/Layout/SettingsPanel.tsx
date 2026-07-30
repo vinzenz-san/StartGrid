@@ -23,12 +23,10 @@ import { DEFAULT_BG } from '../../types/background';
 import AddWidgetMenu from '../shared/AddWidgetMenu';
 import type { Language, SettingsButtonPosition } from '../../contexts/SettingsContext';
 import { DEFAULT_GRID_CONFIG, type GridConfig } from '../../types/grid';
+import { APP_VERSION } from '../../lib/appVersion';
 import './SettingsPanel.css';
 
 const APP_NAME = 'Startgrid';
-// Injected at build time via rspack.config.ts's DefinePlugin — see astronomy.ts
-// for the same (import.meta as any).env pattern used elsewhere in this codebase.
-const APP_VERSION = (import.meta as any).env.APP_VERSION || '';
 
 const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
   { value: 'en', label: 'English' },
@@ -49,9 +47,10 @@ interface Props {
   onClose: () => void;
   isOpen:  boolean;
   settingsButtonPosition: SettingsButtonPosition;
+  onReplayTour: () => void;
 }
 
-export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition }: Props) {
+export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition, onReplayTour }: Props) {
   const {
     globalColor, globalColorScheme, globalOpacity, globalDim, globalGradientIntensity, widgetShadowOpacity, globalPresetId,
     setGlobalColor, setGlobalOpacity, setGlobalDim, setGlobalGradientIntensity,
@@ -410,6 +409,12 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition 
                 onChange={v => updateSettings({ disableBackgroundBlur: v })}
               />
             </SettingsRow>
+
+            <div className="sg-data-mgmt-row">
+              <button className="sg-action-btn" onClick={onReplayTour}>
+                {t('tour.replay')}
+              </button>
+            </div>
 
             <div className="sg-data-mgmt-row">
               <button className="sg-action-btn" onClick={() => fileInputRef.current?.click()} disabled={importing}>

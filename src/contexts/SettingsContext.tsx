@@ -27,6 +27,18 @@ export interface AppSettings {
   /** Default false (effect ON). When true, hovering the Background section
    *  never blurs the widget grid. */
   disableBackgroundBlur:   boolean;
+  /** Default false. Set true once the first-run widget onboarding tour has
+   *  been shown (finished or skipped), so it never auto-triggers again.
+   *  Toggling it back to false (via "Show tutorial again" in Settings)
+   *  re-arms the auto-trigger on next load. Real installed extensions gate
+   *  the auto-trigger on this flag alone (once ever, regardless of updates).
+   *  The docs/preview demo instead gates on `widgetTourSeenVersion` below,
+   *  so returning visitors see it again after each release — see the
+   *  `isExtension` branch in Grid.tsx's auto-trigger effect. */
+  widgetTourSeen:          boolean;
+  /** APP_VERSION at the time the tour was last finished/skipped. Only
+   *  consulted on the non-extension (docs/preview) build. */
+  widgetTourSeenVersion:   string;
 }
 
 export const SETTINGS_DEFAULTS = {
@@ -41,6 +53,8 @@ export const SETTINGS_DEFAULTS = {
   disableGridGlow:         false,
   disableWidgetGlow:       false,
   disableBackgroundBlur:   false,
+  widgetTourSeen:          false,
+  widgetTourSeenVersion:   '',
 } as const satisfies AppSettings;
 
 
@@ -76,6 +90,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     disableGridGlow:         (settings ?? SETTINGS_DEFAULTS).disableGridGlow         ?? SETTINGS_DEFAULTS.disableGridGlow,
     disableWidgetGlow:       (settings ?? SETTINGS_DEFAULTS).disableWidgetGlow       ?? SETTINGS_DEFAULTS.disableWidgetGlow,
     disableBackgroundBlur:   (settings ?? SETTINGS_DEFAULTS).disableBackgroundBlur   ?? SETTINGS_DEFAULTS.disableBackgroundBlur,
+    widgetTourSeen:          (settings ?? SETTINGS_DEFAULTS).widgetTourSeen          ?? SETTINGS_DEFAULTS.widgetTourSeen,
+    widgetTourSeenVersion:   (settings ?? SETTINGS_DEFAULTS).widgetTourSeenVersion   ?? SETTINGS_DEFAULTS.widgetTourSeenVersion,
   };
 
   // Inject --accent / --accent-hover CSS variables globally
