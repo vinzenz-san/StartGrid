@@ -18,7 +18,7 @@ const outDir = path.join(__dirname, '..', 'dist-zip');
 fs.mkdirSync(outDir, { recursive: true });
 
 const pkg = require('../package.json');
-const outFile = path.join(outDir, `${target}-v${pkg.version}.zip`);
+const outFile = path.join(outDir, `v${pkg.version}-${target}.zip`);
 
 const output = fs.createWriteStream(outFile);
 const archive = archiver('zip', { zlib: { level: 9 } });
