@@ -2,6 +2,10 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.6.1] — Firefox homepage override
+
+- Firefox manifest (`src/manifest.firefox.json`) gains `chrome_settings_overrides.homepage: "newtab.html"`. Previously only `chrome_url_overrides.newtab` was set, so StartGrid took over every *subsequent* new tab but not the very first window on browser launch (which showed Firefox's default start page) — Firefox treats the initial-window slot and the new-tab slot as separate preferences (`about:preferences#home` → "Neue Fenster" vs. "Neue Tabs"), and only the latter is driven by `chrome_url_overrides`. `chrome_settings_overrides.homepage` is the key Firefox actually reads for the "New Windows" dropdown; no extra permission is required. Chrome is unaffected — `manifest.chrome.json` already covered both slots via its own override key and was left unchanged
+
 ## [1.6.0] — Obsidian widgets, onboarding tour, GPL-3.0 licensing
 
 ### Obsidian widgets
