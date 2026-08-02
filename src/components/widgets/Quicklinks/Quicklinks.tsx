@@ -159,7 +159,8 @@ export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
     if (!linksPanelOpen) return;
     const handler = (e: PointerEvent) => {
       const target = e.target as Element;
-      if (!linksRefs.reference.current?.contains?.(target as Node) && !linksRefs.floating.current?.contains(target))
+      const referenceEl = linksRefs.reference.current as Element | null;
+      if (!referenceEl?.contains(target) && !linksRefs.floating.current?.contains(target))
         setLinksPanelOpen(false);
     };
     document.addEventListener('pointerdown', handler, { capture: true });
