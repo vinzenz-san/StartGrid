@@ -10,6 +10,11 @@
 
 .sg-form-label {
   font-size: 0.8rem;
+  /* Integer line-height matching --sg-control-h so align-items: center never
+     has to round a fractional offset — without this, two rows with the same
+     centering math can land on different device pixels depending on the
+     row's cumulative fractional Y-position in the panel. */
+  line-height: var(--sg-control-h);
   color: var(--text-muted);
   flex-shrink: 0;
 }
@@ -17,16 +22,22 @@
 /* ── SegmentedControl ────────────────────────────────────────────────────── */
 .sg-form-seg {
   display: flex;
+  align-items: stretch;
   gap: 2px;
+  height: var(--sg-control-h);
+  box-sizing: border-box;
   background: var(--surface-hover);
   border-radius: 5px;
   padding: 2px;
 }
 
 .sg-form-seg-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 0.8rem;
   color: var(--text-muted);
-  padding: 2px 8px;
+  padding: 0 8px;
   border-radius: 4px;
   border: none;
   background: transparent;
@@ -228,7 +239,8 @@
 .sg-form-switch {
   position: relative;
   width: 32px;
-  height: 18px;
+  height: var(--sg-control-h);
+  box-sizing: border-box;
   background: rgba(128, 128, 128, 0.40);
   border-radius: 9px;
   border: none;
@@ -242,7 +254,8 @@
 
 .sg-form-switch-thumb {
   position: absolute;
-  top: 2px;
+  /* Vertically centers the fixed 14px thumb within --sg-control-h. */
+  top: calc((var(--sg-control-h) - 14px) / 2);
   left: 2px;
   width: 14px;
   height: 14px;
@@ -292,7 +305,9 @@
   justify-content: space-between;
   gap: 8px;
   width: 100%;
-  padding: 7px 10px;
+  height: var(--sg-control-h);
+  box-sizing: border-box;
+  padding: 0 10px;
   border-radius: 7px;
   border: 1px solid var(--border);
   background: var(--surface-hover);

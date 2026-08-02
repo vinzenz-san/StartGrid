@@ -2,6 +2,12 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.6.8] — Widget settings row-gap fix, ESLint guard against future drift
+
+- Clock, Greeting, and Weather's settings wrapper is `display: contents` (no box of its own), so unlike every other widget they got no `gap` between rows — only each row's own 4px padding, making their settings panels visibly more cramped than Calendar/BookmarkFolder/Quicklinks/Notes/Obsidian's 18px (padding + gap) row spacing. Moved `gap: 10px` onto the shared `.sg-widget-settings-content` wrapper (`WidgetContainer.css`) instead of each widget's own settings root, so `display: contents` widgets inherit it directly and widgets with their own flex+gap wrapper render as a single child here (no doubling up)
+- `.sg-form-label` now sets `line-height: var(--sg-control-h)` — without an integer line-height, centering the label's fractional-height text box inside a row could round to a different device pixel depending on the row's cumulative Y-position, causing a 1px jitter between otherwise-identical rows (most visible on Switch rows)
+- Added an ESLint rule (`eslint.config.mjs`, scoped to `src/components/widgets/**`) banning raw `<input type="range">` in favor of the shared `<SettingsSlider>` — runs in CI (`ci.yml`) on every push/PR, so a future widget reintroducing a bespoke slider (the root cause of this whole alignment audit) fails the build automatically instead of only surfacing in review. Calendar/OutlookCalendar/OutlookMail's existing raw sliders are grandfathered in with an explained `eslint-disable-next-line`, not yet migrated
+
 ## [1.6.7] — Widget settings row alignment consistency
 
 - Every widget settings panel's horizontal inset was inconsistent — Quicklinks, BookmarkFolder, BookmarkSearch, Calendar (and OutlookCalendar/OutlookMail, which share its CSS), and Notes/Obsidian widgets each hardcoded their own `10px` padding, while Clock, Greeting, Weather, and the rest of the Obsidian widgets had **none at all**, leaving their rows (and nested Font/Display-settings sliders) flush against the panel edge. Moved this padding to one shared wrapper, `.sg-widget-settings-content` (`WidgetContainer.tsx`/`.css`), around every widget's `renderSettings` output, and stripped the now-redundant per-widget copies — matches the `10%` inset already used by the Local Style section below it

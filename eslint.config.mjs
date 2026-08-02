@@ -35,6 +35,24 @@ export default tseslint.config(
     },
   },
   {
+    // Widgets get their row-height/spacing consistency from the shared Form
+    // components (SettingsSlider, SettingsSwitch, SegmentedControl, Dropdown)
+    // sharing --sg-control-h — a raw <input type="range"> bypasses that and
+    // reintroduces exactly the per-widget drift that was audited out. Scoped
+    // to widgets/ only: this file itself is where SettingsSlider legitimately
+    // renders one.
+    files: ['src/components/widgets/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'JSXOpeningElement[name.name="input"] > JSXAttribute[name.name="type"] > Literal[value="range"]',
+          message: 'Use the shared <SettingsSlider> (src/components/shared/Form) instead of a raw <input type="range"> — keeps slider height/spacing consistent with --sg-control-h across all widgets.',
+        },
+      ],
+    },
+  },
+  {
     files: ['rspack.config.ts', '*.config.ts'],
     languageOptions: { globals: globals.node },
   },

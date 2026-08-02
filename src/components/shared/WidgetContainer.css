@@ -205,11 +205,28 @@ html[data-scheme="light"] .sg-widget:not([data-theme="dark"]) .sg-widget-gear:no
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.3);
-  min-width: 240px;
-  max-width: 300px;
+  width: 300px;
+  max-width: calc(100vw - 16px);
   max-height: calc(100vh - 40px);
   overflow-y: auto;
   z-index: 9999;
+}
+
+/* Single shared horizontal inset AND row-to-row gap for every widget's
+   settings body — matches the 10px used by the general Settings sidebar
+   (.settings-section) and the Local Style section below
+   (.sg-widget-appearance). The flex/gap here specifically fixes widgets
+   whose own settings wrapper is `display: contents` (Clock, Greeting,
+   Weather) — those have no box of their own to carry a gap, so their rows
+   previously had no spacing beyond each row's own 4px padding. Widgets that
+   already wrap their rows in their own flex+gap container (Calendar,
+   BookmarkFolder, Quicklinks, Notes, Obsidian) render as a single child
+   here, so this gap never doubles up for them. */
+.sg-widget-settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 10px;
 }
 
 .sg-widget-float-divider {

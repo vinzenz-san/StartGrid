@@ -112,6 +112,7 @@ export function OutlookMailSettings({ data, onUpdateData }: SettingsProps) {
     <div className="sg-cal-settings" onClick={e => e.stopPropagation()}>
       <SettingsRow label={t('widget.outlookMail.maxResults')}>
         <div className="sg-cal-slider-wrap">
+          {/* eslint-disable-next-line no-restricted-syntax -- pre-existing, not yet migrated to SettingsSlider (shared with Calendar/OutlookCalendar) */}
           <input type="range" min={1} max={25} value={maxResults}
             onChange={e => onUpdateData({ maxResults: Number(e.target.value) })}
             className="sg-cal-slider"/>

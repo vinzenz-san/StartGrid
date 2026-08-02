@@ -68,6 +68,7 @@ export function OutlookCalendarSettings({ data, onUpdateData }: SettingsProps) {
       {viewMode === 'agenda' && (
         <SettingsRow label={t('widget.outlookCalendar.daysAhead')}>
           <div className="sg-cal-slider-wrap">
+            {/* eslint-disable-next-line no-restricted-syntax -- pre-existing, not yet migrated to SettingsSlider (shared with Calendar/OutlookMail) */}
             <input type="range" min={1} max={28} value={maxDays}
               onChange={e => onUpdateData({ maxDays: Number(e.target.value) })}
               className="sg-cal-slider"/>
