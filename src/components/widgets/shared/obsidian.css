@@ -20,7 +20,7 @@
   font-size: 11px;
 }
 
-.sg-obs-settings { padding: 6px 10px; }
+.sg-obs-settings { padding: 6px 0; }
 
 /* Explanatory text under a settings field — setup steps, token hints. */
 .sg-obs-hint {

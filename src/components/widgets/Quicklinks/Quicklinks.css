@@ -171,11 +171,46 @@
   flex: 1;
   min-height: 0;
   gap: 8px;
-  padding: 10px;
+  padding: 10px 0;
   width: 100%;
   overflow-y: auto;
   box-sizing: border-box;
   font-size: 13px;
+}
+
+.sg-ql-manage-links-btn {
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  background: rgba(128, 128, 128, 0.1);
+  color: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.sg-ql-manage-links-btn:hover { background: rgba(128, 128, 128, 0.2); }
+
+/* ── Links panel (popout, portaled next to the settings panel) ── */
+
+.sg-ql-links-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 480px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 40px);
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.3);
+  overflow-y: auto;
+  box-sizing: border-box;
+  font-size: 13px;
+  z-index: 9999;
 }
 
 .sg-ql-settings-row {
@@ -216,51 +251,80 @@
   opacity: 1;
 }
 
-/* ── Link list (settings) ── */
+/* ── Link table (settings) ── */
 
-.sg-ql-link-list {
+.sg-ql-table {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  align-items: stretch;
-  gap: 4px;
   width: 100%;
+  gap: 4px;
 }
 
-.sg-ql-link-row {
+.sg-ql-table-header,
+.sg-ql-table-row {
+  display: grid;
+  grid-template-columns: 1.6fr 1.1fr 0.9fr auto auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.sg-ql-table-header {
+  padding: 0 8px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.45;
+}
+
+.sg-ql-table-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sg-ql-table-group {
   border-radius: 6px;
   background: rgba(128, 128, 128, 0.08);
   overflow: hidden;
 }
 
-.sg-ql-link-summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.sg-ql-table-row {
   padding: 5px 8px;
-  gap: 8px;
 }
 
-.sg-ql-link-url {
-  font-size: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  opacity: 0.85;
-  min-width: 0;
+.sg-ql-table-subrow {
+  padding: 0 8px 6px;
 }
 
-.sg-ql-link-actions {
+.sg-ql-table-actions {
   display: flex;
   gap: 2px;
   flex-shrink: 0;
 }
 
-.sg-ql-link-edit {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 6px 8px;
+.sg-ql-icon-select {
+  width: 100%;
+  font-size: 11px;
+  color: inherit;
+  background: rgba(128, 128, 128, 0.1);
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  border-radius: 5px;
+  padding: 3px 4px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.12s;
+}
+
+.sg-ql-icon-select:focus { border-color: rgba(128, 128, 128, 0.6); }
+
+/* The closed <select> inherits the widget's theme via `color: inherit`, but
+   the native dropdown popup ignores that and falls back to the OS light
+   theme unless each <option> is given an explicit opaque background/color —
+   otherwise light-on-white text becomes nearly unreadable in dark mode. */
+.sg-ql-icon-select option {
+  background: var(--surface, #1a1d2e);
+  color: var(--text, #e2e8f0);
 }
 
 .sg-ql-input {

@@ -192,7 +192,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 10px;
+  padding: 10px 0;
   height: 100%;
   overflow-y: auto;
   box-sizing: border-box;
@@ -220,6 +220,12 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  /* Shares --sg-control-h with SegmentedControl/Dropdown/SettingsSwitch —
+     without this, the browser's default <input type="range"> box metrics
+     make this row a different height than its siblings, throwing off
+     row-to-row spacing even though every row shares the same SettingsRow
+     padding. */
+  height: var(--sg-control-h);
 }
 
 .sg-cal-slider {
@@ -227,6 +233,7 @@
   appearance: none;
   width: 90px;
   height: 4px;
+  margin: 0;
   border-radius: 2px;
   background: rgba(128, 128, 128, 0.25);
   outline: none;
@@ -260,34 +267,6 @@
   text-align: right;
   opacity: 0.75;
 }
-
-/* Toggle switch */
-
-.sg-cal-switch {
-  position: relative;
-  width: 36px;
-  height: 20px;
-  border-radius: 10px;
-  background: rgba(128, 128, 128, 0.25);
-  flex-shrink: 0;
-  transition: background 0.15s;
-}
-
-.sg-cal-switch--on { background: var(--accent); }
-
-.sg-cal-switch-thumb {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #fff;
-  transition: transform 0.15s;
-  pointer-events: none;
-}
-
-.sg-cal-switch--on .sg-cal-switch-thumb { transform: translateX(16px); }
 
 /* Divider */
 

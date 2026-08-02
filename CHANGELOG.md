@@ -2,6 +2,13 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.6.7] — Widget settings row alignment consistency
+
+- Every widget settings panel's horizontal inset was inconsistent — Quicklinks, BookmarkFolder, BookmarkSearch, Calendar (and OutlookCalendar/OutlookMail, which share its CSS), and Notes/Obsidian widgets each hardcoded their own `10px` padding, while Clock, Greeting, Weather, and the rest of the Obsidian widgets had **none at all**, leaving their rows (and nested Font/Display-settings sliders) flush against the panel edge. Moved this padding to one shared wrapper, `.sg-widget-settings-content` (`WidgetContainer.tsx`/`.css`), around every widget's `renderSettings` output, and stripped the now-redundant per-widget copies — matches the `10%` inset already used by the Local Style section below it
+- Added `--sg-control-h` (`index.css:root`) as the single source of truth for every inline settings-row control's height. `SegmentedControl`, `SettingsSwitch`, and the `Dropdown` trigger (all shared, used by every widget) now size to it explicitly via `height` + `box-sizing: border-box`, instead of each approximating a similar-but-not-identical height through its own padding — this is why a row with a Dropdown (e.g. Timezone, Alignment) previously looked taller than a row with a Switch or SegmentedControl
+- Extended the same `--sg-control-h` variable to the widgets with bespoke, non-shared controls: Calendar/OutlookCalendar/OutlookMail's "days ahead"/"max results" slider (`.sg-cal-slider-wrap`, which also lacked a `margin: 0` reset on the native range input) and BookmarkFolder's sort-order `<select>`
+- Removed `.sg-cal-switch`/`.sg-cal-switch-thumb` from `Calendar.css` — a third, unused toggle-switch implementation, never referenced by any component, left over from before the shared `SettingsSwitch` existed
+
 ## [1.6.6] — Widget settings panel titles, Quicklinks link-table popout
 
 - Dev Panel header now shows the running `APP_VERSION` next to the "DEV" label (`DevPanel.tsx`/`.css`), so the version being tested is visible without opening the Settings sidebar

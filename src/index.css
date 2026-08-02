@@ -22,6 +22,12 @@
   --border-strong: #2d3148;
   --radius: 10px;
   --toolbar-h: 52px;
+  /* Single source of truth for every inline settings-row control's height
+     (SegmentedControl, Dropdown trigger, SettingsSwitch, per-widget sliders
+     like Calendar's "Days ahead") — controls are sized to this explicitly
+     (height + box-sizing), not approximated via padding, so they can't
+     silently drift apart again. */
+  --sg-control-h: 20px;
 
   /* Widget theme — overridden at runtime by ThemeContext */
 
@@ -228,6 +234,19 @@ button {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+
+/* ── Shared thin scrollbar (any widget's scrollable content) ──
+   scrollbar-width/-color cover Firefox; ::-webkit-scrollbar* covers
+   Chromium. Apply .sg-scroll-thin to whichever element sets overflow:
+   auto/scroll — don't duplicate this per widget. */
+.sg-scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.sg-scroll-thin::-webkit-scrollbar        { width: 4px; }
+.sg-scroll-thin::-webkit-scrollbar-track  { background: transparent; }
+.sg-scroll-thin::-webkit-scrollbar-thumb  { background: var(--border-strong); border-radius: 2px; }
+.sg-scroll-thin::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
 /* ── Shared preset tile system (Background + Widget swatches) ── */
 .preset-grid {
