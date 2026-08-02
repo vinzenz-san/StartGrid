@@ -10,6 +10,7 @@ import {
   disconnectGoogle,
   getConnectedEmail,
 } from '../lib/googleAuth';
+import { isExtension } from '../lib/storage';
 
 const STORAGE_KEY = 'sg_google_auth';
 
@@ -49,10 +50,12 @@ export function useGoogleAuth(): GoogleAuthState {
       if (!hasToken) setEmail(undefined);
     };
 
-    import('webextension-polyfill').then(({ default: b }) => {
-      browser = b;
-      browser.storage.local.onChanged.addListener(listener);
-    });
+    if (isExtension) {
+      import('webextension-polyfill').then(({ default: b }) => {
+        browser = b;
+        browser.storage.local.onChanged.addListener(listener);
+      });
+    }
 
     return () => {
       browser?.storage.local.onChanged.removeListener(listener);

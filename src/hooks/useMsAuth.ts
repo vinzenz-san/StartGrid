@@ -10,6 +10,7 @@ import {
   disconnectMicrosoft,
   getConnectedMsEmail,
 } from '../lib/msAuth';
+import { isExtension } from '../lib/storage';
 
 const STORAGE_KEY = 'sg_ms_auth';
 
@@ -49,10 +50,12 @@ export function useMsAuth(): MsAuthState {
       if (!hasToken) setEmail(undefined);
     };
 
-    import('webextension-polyfill').then(({ default: b }) => {
-      browser = b;
-      browser.storage.local.onChanged.addListener(listener);
-    });
+    if (isExtension) {
+      import('webextension-polyfill').then(({ default: b }) => {
+        browser = b;
+        browser.storage.local.onChanged.addListener(listener);
+      });
+    }
 
     return () => {
       browser?.storage.local.onChanged.removeListener(listener);

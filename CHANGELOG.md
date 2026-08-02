@@ -2,6 +2,10 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.6.2] — Fix preview crash when closing OAuth widget settings
+
+- `useMsAuth.ts` and `useGoogleAuth.ts` unconditionally called `import('webextension-polyfill')` and registered a `storage.local.onChanged` listener on mount, with no `isExtension` guard (unlike every other storage adapter, e.g. `storage.ts`). On the public browser preview (`docs/preview/`) there is no `chrome.runtime`, so the polyfill's own top-level guard throws; with no `ErrorBoundary` anywhere in the app, that surfaced as the whole React tree unmounting — a black screen recoverable only by a hard refresh — specifically when closing the Outlook Mail, Outlook Calendar, or Google Calendar widget's settings panel, the only three widgets using these hooks. Not reproducible in the installed extension, where `chrome.runtime.id` is always present. Both hooks now gate the polyfill import behind `isExtension`, matching the rest of the codebase
+
 ## [1.6.1] — Firefox homepage override
 
 - Firefox manifest (`src/manifest.firefox.json`) gains `chrome_settings_overrides.homepage: "newtab.html"`. Previously only `chrome_url_overrides.newtab` was set, so StartGrid took over every *subsequent* new tab but not the very first window on browser launch (which showed Firefox's default start page) — Firefox treats the initial-window slot and the new-tab slot as separate preferences (`about:preferences#home` → "Neue Fenster" vs. "Neue Tabs"), and only the latter is driven by `chrome_url_overrides`. `chrome_settings_overrides.homepage` is the key Firefox actually reads for the "New Windows" dropdown; no extra permission is required. Chrome is unaffected — `manifest.chrome.json` already covered both slots via its own override key and was left unchanged
