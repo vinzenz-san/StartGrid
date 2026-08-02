@@ -227,7 +227,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition,
       </div>
 
       {/* ── Scrollable content ── */}
-      <div className="sg-settings-content">
+      <div className="sg-settings-content sg-scroll-thin">
         {/* SettingsPanel never unmounts (only slides via CSS transform), so
             <DetailedSettings> reads this to reset itself back to closed on
             every reopen — see SettingsPanelOpenContext for why this doesn't

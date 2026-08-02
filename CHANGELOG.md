@@ -2,6 +2,12 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.6.4] — Shared thin-scrollbar utility, clock date color fix
+
+- Several widgets' scroll containers had no scrollbar styling, so Chromium fell back to its default bulky arrow scrollbar while Firefox already rendered a thin overlay one (e.g. Quicklinks' `.sg-ql-links`, BookmarkFolder's `.sg-bf-body`/`.sg-bf-settings`/`.sg-bf-fp-tree`). `SettingsPanel.css` had its own one-off fix already, gated behind `@supports selector(::-webkit-scrollbar)`
+- Replaced all of these with one shared `.sg-scroll-thin` utility class in `index.css` (`scrollbar-width`/`scrollbar-color` for Firefox, `::-webkit-scrollbar*` for Chromium — no `@supports` guard, matching the already-working unguarded pattern in `BookmarkSearch.css`/`ObsidianSearch.css`) instead of duplicating the rule per widget. Applied to Quicklinks, the global Settings panel, and all three BookmarkFolder scroll regions
+- Clock widget: `.sg-clock-date` used `var(--text-muted)` while `.sg-clock-time` used `var(--text)`, so with the default (non-custom) color the date line rendered dim gray next to a bright white time. Only matched when a custom text color was set, since that's applied inline to both elements identically. Changed `.sg-clock-date` to `var(--text)` so both match by default too
+
 ## [1.6.2] — Fix preview crash when closing OAuth widget settings
 
 - `useMsAuth.ts` and `useGoogleAuth.ts` unconditionally called `import('webextension-polyfill')` and registered a `storage.local.onChanged` listener on mount, with no `isExtension` guard (unlike every other storage adapter, e.g. `storage.ts`). On the public browser preview (`docs/preview/`) there is no `chrome.runtime`, so the polyfill's own top-level guard throws; with no `ErrorBoundary` anywhere in the app, that surfaced as the whole React tree unmounting — a black screen recoverable only by a hard refresh — specifically when closing the Outlook Mail, Outlook Calendar, or Google Calendar widget's settings panel, the only three widgets using these hooks. Not reproducible in the installed extension, where `chrome.runtime.id` is always present. Both hooks now gate the polyfill import behind `isExtension`, matching the rest of the codebase
