@@ -3,6 +3,7 @@ import { useEditMode } from '../../contexts/EditModeContext';
 import { useWidgets } from '../../contexts/WidgetContext';
 import { useSettings } from '../../contexts/SettingsContext';
 import { SettingsSwitch } from '../shared/Form';
+import { APP_VERSION } from '../../lib/appVersion';
 import './DevPanel.css';
 
 const isExtension = typeof chrome !== 'undefined' && !!chrome.storage;
@@ -232,6 +233,7 @@ function DevPanelInner({ position, onPositionChange }: Props) {
     <div ref={panelRef} className="dev-panel" style={devPanelStyle}>
       <div className="dev-panel-header" onMouseDown={handleHeaderMouseDown}>
         <span className="dev-panel-title">DEV</span>
+        <span className="dev-panel-version">v{APP_VERSION}</span>
       </div>
 
       <div className="dev-row">

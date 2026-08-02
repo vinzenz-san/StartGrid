@@ -132,6 +132,7 @@ export function BookmarkFolderSettings({ data, onUpdateData }: SettingsProps) {
   const [rootChildren, setRootChildren]               = useState<BmNode[]>([]);
   const [rootChildrenLoading, setRootChildrenLoading] = useState(true);
   const [editingIconId, setEditingIconId]             = useState<string | null>(null);
+  const [iconOverridesOpen, setIconOverridesOpen]     = useState(false);
 
   useEffect(() => {
     setTreeLoading(true);
@@ -164,7 +165,7 @@ export function BookmarkFolderSettings({ data, onUpdateData }: SettingsProps) {
   };
 
   return (
-    <div className="sg-bf-settings" onClick={e => e.stopPropagation()}>
+    <div className="sg-bf-settings sg-scroll-thin" onClick={e => e.stopPropagation()}>
       <SettingsRow label={t('widget.quicklinks.iconSize')}>
         <SegmentedControl
           options={[
@@ -227,9 +228,18 @@ export function BookmarkFolderSettings({ data, onUpdateData }: SettingsProps) {
 
       <div className="sg-bf-settings-divider" />
 
-      <span className="sg-bf-settings-label">{t('widget.bookmarkFolder.iconOverrides')}</span>
+      <button
+        className="sg-bf-io-toggle"
+        onClick={() => setIconOverridesOpen(o => !o)}
+        aria-expanded={iconOverridesOpen}
+      >
+        <span className="sg-bf-settings-label">{t('widget.bookmarkFolder.iconOverrides')}</span>
+        <span className="sg-bf-io-toggle-chevron">{iconOverridesOpen ? '∨' : '›'}</span>
+      </button>
+      {iconOverridesOpen && (
       <p className="sg-bf-settings-note">{t('widget.bookmarkFolder.iconOverridesNote')}</p>
-      {rootChildrenLoading ? (
+      )}
+      {iconOverridesOpen && (rootChildrenLoading ? (
         <p className="sg-bf-settings-note">{t('widget.bookmarkFolder.loading')}</p>
       ) : rootChildren.length === 0 ? (
         <p className="sg-bf-settings-note">{t('widget.bookmarkFolder.noOverridableItems')}</p>
@@ -298,7 +308,7 @@ export function BookmarkFolderSettings({ data, onUpdateData }: SettingsProps) {
             );
           })}
         </div>
-      )}
+      ))}
 
       <div className="sg-bf-settings-divider" />
 
@@ -316,7 +326,7 @@ export function BookmarkFolderSettings({ data, onUpdateData }: SettingsProps) {
       {treeLoading ? (
         <p className="sg-bf-settings-note">{t('widget.bookmarkFolder.loading')}</p>
       ) : (
-        <div className="sg-bf-fp-tree">
+        <div className="sg-bf-fp-tree sg-scroll-thin">
           {tree[0]?.children?.map(n => (
             <FolderPickerNode
               key={n.id}
@@ -504,7 +514,7 @@ export default function BookmarkFolder({ data, onUpdateData }: Props) {
       )}
 
       {/* Body */}
-      <div className="sg-bf-body">
+      <div className="sg-bf-body sg-scroll-thin">
         {bookmarks.isMock && (
           <div className="sg-bf-preview-badge">{t('widget.bookmarkFolder.previewBadge')}</div>
         )}

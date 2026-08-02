@@ -23,6 +23,10 @@
   border-bottom: 1px solid var(--border);
   padding-bottom: 5px;
   margin-bottom: 2px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .dev-panel-title {
@@ -31,6 +35,13 @@
   color: var(--text-muted);
   text-transform: uppercase;
   opacity: 0.6;
+}
+
+.dev-panel-version {
+  font-size: 9px;
+  color: var(--text-muted);
+  opacity: 0.5;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── Status rows ── */

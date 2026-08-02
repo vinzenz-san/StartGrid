@@ -60,7 +60,7 @@ export default function WidgetContainer({ widget }: Props) {
       // subtree — without this exemption, a pointerdown on either one reads
       // as "outside click" and closes the whole panel before the picker's/
       // dropdown's own click handler (which fires after pointerdown) can run.
-      if (target.closest('.ccp-panel') || target.closest('.sg-dropdown-menu')) return;
+      if (target.closest('.ccp-panel') || target.closest('.sg-dropdown-menu') || target.closest('.sg-ql-links-panel')) return;
       if (!elRef.current?.contains(target) && !refs.floating.current?.contains(target))
         setSettingsOpen(false);
     };
@@ -223,12 +223,12 @@ export default function WidgetContainer({ widget }: Props) {
   const floatingPanel = settingsOpen && createPortal(
     <div
       ref={refs.setFloating}
-      className="sg-widget-float-panel"
+      className="sg-widget-float-panel sg-scroll-thin"
       style={floatingStyles}
       onPointerDown={e => e.stopPropagation()}
     >
       <div className="sg-widget-float-header">
-        <span className="sg-widget-float-title">{t('widgets.floatTitle')}</span>
+        <span className="sg-widget-float-title">{t('widgets.floatTitle', { name: t(WIDGET_TYPE_LABEL_KEYS[widget.type]) })}</span>
         <button className="sg-widget-float-close" onClick={() => setSettingsOpen(false)} title={t('settings.close')}>✕</button>
       </div>
 
@@ -259,7 +259,9 @@ export default function WidgetContainer({ widget }: Props) {
       {entry.titleBehavior === 'optional' && entry.renderSettings && (
         <div className="sg-widget-float-divider" />
       )}
-      {entry.renderSettings?.(widget.data, handleUpdateData, widget.id)}
+      <div className="sg-widget-settings-content">
+        {entry.renderSettings?.(widget.data, handleUpdateData, widget.id)}
+      </div>
 
       {/* Appearance section — shared across all widgets */}
       <div className="sg-widget-float-divider" />
@@ -400,7 +402,7 @@ export default function WidgetContainer({ widget }: Props) {
             onPointerDown={e => e.stopPropagation()}
             onDragStart={e => e.stopPropagation()}
             onClick={e => { e.stopPropagation(); setSettingsOpen(s => !s); }}
-            title={t('widgets.floatTitle')}
+            title={t('widgets.floatTitle', { name: t(WIDGET_TYPE_LABEL_KEYS[widget.type]) })}
           >⚙</button>
         )}
 

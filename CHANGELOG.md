@@ -2,6 +2,15 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.6.6] — Widget settings panel titles, Quicklinks link-table popout
+
+- Dev Panel header now shows the running `APP_VERSION` next to the "DEV" label (`DevPanel.tsx`/`.css`), so the version being tested is visible without opening the Settings sidebar
+- Widget settings panel title/tooltip changed from generic "Widget Settings" to "{{name}} Settings" (e.g. "Clock Settings", "Google Calendar Settings"), driven by the existing `WIDGET_TYPE_LABEL_KEYS` registry (`WidgetContainer.tsx`) — no new per-widget strings needed
+- Bookmark Folder settings: the "Icon overrides" list now always starts collapsed when settings are opened (local component state, not persisted), so it no longer eats the panel on open
+- Quicklinks settings: replaced the old expand/collapse-to-edit link list with a "Manage Links (N)" button that opens a second floating panel (`.sg-ql-links-panel`, 480px) next to the main settings panel, containing an always-open table (URL / Name / Icon / Badge / reorder+delete). The main settings panel stays at the shared 300px width used by every other widget — only the link table itself gets the extra room, via its own `useFloating` instance (same `flip`/`shift`/`offset` middleware as the main panel) so it repositions correctly near screen edges. Icon source changed from a 3-button segmented control to a `<select>` dropdown; selecting Custom URL/Upload reveals an extra row beneath that link for the corresponding input, as before
+- Fixed the Icon-source `<select>`'s native dropdown popup rendering light/unreadable text in dark mode — the closed control inherits theme color, but the OS-rendered option list ignores `color: inherit` unless each `<option>` gets an explicit background/color
+- Shared thin-scrollbar utility (`.sg-scroll-thin`, added in 1.6.4) also applied to the shared `.sg-widget-float-panel`, so every widget's settings window gets the thin scrollbar, not just the widgets that had it applied individually
+
 ## [1.6.4] — Shared thin-scrollbar utility, clock date color fix
 
 - Several widgets' scroll containers had no scrollbar styling, so Chromium fell back to its default bulky arrow scrollbar while Firefox already rendered a thin overlay one (e.g. Quicklinks' `.sg-ql-links`, BookmarkFolder's `.sg-bf-body`/`.sg-bf-settings`/`.sg-bf-fp-tree`). `SettingsPanel.css` had its own one-off fix already, gated behind `@supports selector(::-webkit-scrollbar)`

@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { useFloating, flip, shift, offset, autoUpdate } from '@floating-ui/react';
 import type { QuickLink, QuicklinksData } from '../../../types/widget';
 import { SettingsRow, SegmentedControl, SettingsSwitch, Dropdown } from '../../shared/Form';
 import { useSettings } from '../../../contexts/SettingsContext';
@@ -144,8 +146,25 @@ interface SettingsProps {
 
 export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
   const { t } = useSettings();
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [newUrl, setNewUrl] = useState('');
+  const [linksPanelOpen, setLinksPanelOpen] = useState(false);
+
+  const { refs: linksRefs, floatingStyles: linksFloatingStyles } = useFloating({
+    placement: 'right-start',
+    middleware: [offset(8), flip(), shift({ padding: 8 })],
+    whileElementsMounted: autoUpdate,
+  });
+
+  useEffect(() => {
+    if (!linksPanelOpen) return;
+    const handler = (e: PointerEvent) => {
+      const target = e.target as Element;
+      if (!linksRefs.reference.current?.contains?.(target as Node) && !linksRefs.floating.current?.contains(target))
+        setLinksPanelOpen(false);
+    };
+    document.addEventListener('pointerdown', handler, { capture: true });
+    return () => document.removeEventListener('pointerdown', handler, { capture: true });
+  }, [linksPanelOpen, linksRefs.floating, linksRefs.reference]);
 
   const iconSize   = data.iconSize   ?? 'medium';
   const showTitles = data.showTitles ?? true;
@@ -166,7 +185,6 @@ export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
 
   const removeLink = (id: string) => {
     onUpdateData({ links: data.links.filter(l => l.id !== id) });
-    if (editingId === id) setEditingId(null);
   };
 
   const addLink = () => {
@@ -225,89 +243,115 @@ export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
         />
       </SettingsRow>
 
-      <div className="sg-ql-link-list">
-        {data.links.map((link, idx) => (
-          <div key={link.id} className="sg-ql-link-row">
-            {editingId === link.id ? (
-              <div className="sg-ql-link-edit">
-                <input className="sg-ql-input" placeholder={t('widget.quicklinks.urlPlaceholder')} draggable={false}
-                  value={link.url} onChange={e => updateLink(link.id, { url: e.target.value })}
-                  onPointerDown={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}
-                  onDragStart={e => e.stopPropagation()} />
-                <input className="sg-ql-input" placeholder={t('widget.quicklinks.titlePlaceholder')} draggable={false}
-                  value={link.title ?? ''} onChange={e => updateLink(link.id, { title: e.target.value || undefined })}
-                  onPointerDown={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}
-                  onDragStart={e => e.stopPropagation()} />
-                <SettingsRow label={t('widget.quicklinks.icon')}>
-                  <SegmentedControl
-                    options={[{ value: 'auto', label: t('widget.quicklinks.iconAuto') }, { value: 'custom-url', label: t('widget.quicklinks.iconUrl') }, { value: 'upload', label: t('widget.quicklinks.iconUpload') }]}
-                    value={link.iconSource ?? 'auto'}
-                    onChange={v => updateLink(link.id, { iconSource: v, customIcon: undefined })}
-                  />
-                </SettingsRow>
-                {link.iconSource === 'custom-url' && (
-                  <input className="sg-ql-input" placeholder={t('widget.quicklinks.imageUrlPlaceholder')} draggable={false}
-                    value={link.customIcon ?? ''}
-                    onChange={e => updateLink(link.id, { customIcon: e.target.value || undefined })}
-                    onPointerDown={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}
-                    onDragStart={e => e.stopPropagation()} />
-                )}
-                {link.iconSource === 'upload' && (
-                  <div className="sg-ql-upload-row">
-                    {link.customIcon && <img className="sg-ql-upload-preview" src={link.customIcon} alt="" />}
-                    <label className="sg-ql-upload-label">
-                      {link.customIcon ? t('widget.quicklinks.changeImage') : t('widget.quicklinks.chooseImage')}
-                      <input type="file" accept="image/*" style={{ display: 'none' }}
-                        onChange={async e => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          const dataUrl = await processIconUpload(file, t);
-                          if (dataUrl) updateLink(link.id, { customIcon: dataUrl });
-                          e.target.value = '';
-                        }}
-                        onPointerDown={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} />
-                    </label>
-                    {link.customIcon && (
-                      <button className="sg-ql-action-btn danger" onClick={() => updateLink(link.id, { customIcon: undefined })}>✕</button>
-                    )}
-                  </div>
-                )}
-                <SettingsRow label={t('widget.quicklinks.whiteBadge')}>
-                  <SettingsSwitch
-                    checked={link.showWhiteBadge ?? false}
-                    onChange={v => updateLink(link.id, { showWhiteBadge: v })}
-                    label={t('widget.quicklinks.whiteBadgeSwitchLabel')}
-                  />
-                </SettingsRow>
-                <button className="sg-ql-action-btn" onClick={() => setEditingId(null)}>{t('widget.quicklinks.done')}</button>
-              </div>
-            ) : (
-              <div className="sg-ql-link-summary">
-                <span className="sg-ql-link-url">{link.title || displayTitle(link)}</span>
-                <div className="sg-ql-link-actions">
-                  <button className="sg-ql-action-btn" title={t('widget.quicklinks.moveUp')}   onClick={() => moveLink(link.id, -1)} disabled={idx === 0}>↑</button>
-                  <button className="sg-ql-action-btn" title={t('widget.quicklinks.moveDown')} onClick={() => moveLink(link.id, 1)}  disabled={idx === data.links.length - 1}>↓</button>
-                  <button className="sg-ql-action-btn" title={t('widget.quicklinks.edit')} onClick={() => setEditingId(link.id)}>
-                    <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/></svg>
-                  </button>
-                  <button className="sg-ql-action-btn danger" title={t('widget.quicklinks.delete')} onClick={() => removeLink(link.id)}>
-                    <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      <button
+        ref={linksRefs.setReference}
+        className="sg-ql-manage-links-btn"
+        onClick={e => { e.stopPropagation(); setLinksPanelOpen(o => !o); }}
+      >
+        {t('widget.quicklinks.manageLinks', { count: data.links.length })}
+      </button>
 
-      <div className="sg-ql-add-row">
-        <input className="sg-ql-input" placeholder={t('widget.quicklinks.addUrlPlaceholder')} draggable={false}
-          value={newUrl} onChange={e => setNewUrl(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') addLink(); }}
-          onPointerDown={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}
-          onDragStart={e => e.stopPropagation()} />
-        <button className="sg-ql-action-btn primary" onClick={addLink}>＋</button>
-      </div>
+      {linksPanelOpen && createPortal(
+        <div
+          ref={linksRefs.setFloating}
+          className="sg-ql-links-panel sg-scroll-thin"
+          style={linksFloatingStyles}
+          onPointerDown={e => e.stopPropagation()}
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="sg-widget-float-header">
+            <span className="sg-widget-float-title">{t('widget.quicklinks.manageLinksTitle')}</span>
+            <button className="sg-widget-float-close" onClick={() => setLinksPanelOpen(false)} title={t('settings.close')}>✕</button>
+          </div>
+
+          <div className="sg-ql-table">
+            <div className="sg-ql-table-header">
+              <span>{t('widget.quicklinks.urlPlaceholder')}</span>
+              <span>{t('widget.quicklinks.name')}</span>
+              <span>{t('widget.quicklinks.icon')}</span>
+              <span>{t('widget.quicklinks.badge')}</span>
+              <span />
+            </div>
+            <div className="sg-ql-table-body">
+              {data.links.map((link, idx) => (
+                <div key={link.id} className="sg-ql-table-group">
+                  <div className="sg-ql-table-row">
+                    <input className="sg-ql-input" placeholder={t('widget.quicklinks.urlPlaceholder')} draggable={false}
+                      value={link.url} onChange={e => updateLink(link.id, { url: e.target.value })}
+                      onPointerDown={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}
+                      onDragStart={e => e.stopPropagation()} />
+                    <input className="sg-ql-input" placeholder={t('widget.quicklinks.titlePlaceholder')} draggable={false}
+                      value={link.title ?? ''} onChange={e => updateLink(link.id, { title: e.target.value || undefined })}
+                      onPointerDown={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}
+                      onDragStart={e => e.stopPropagation()} />
+                    <select className="sg-ql-icon-select"
+                      value={link.iconSource ?? 'auto'}
+                      onChange={e => updateLink(link.id, { iconSource: e.target.value as QuickLink['iconSource'], customIcon: undefined })}
+                      onPointerDown={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}>
+                      <option value="auto">{t('widget.quicklinks.iconAuto')}</option>
+                      <option value="custom-url">{t('widget.quicklinks.iconUrl')}</option>
+                      <option value="upload">{t('widget.quicklinks.iconUpload')}</option>
+                    </select>
+                    <SettingsSwitch
+                      checked={link.showWhiteBadge ?? false}
+                      onChange={v => updateLink(link.id, { showWhiteBadge: v })}
+                      label={t('widget.quicklinks.whiteBadgeSwitchLabel')}
+                    />
+                    <div className="sg-ql-table-actions">
+                      <button className="sg-ql-action-btn" title={t('widget.quicklinks.moveUp')}   onClick={() => moveLink(link.id, -1)} disabled={idx === 0}>↑</button>
+                      <button className="sg-ql-action-btn" title={t('widget.quicklinks.moveDown')} onClick={() => moveLink(link.id, 1)}  disabled={idx === data.links.length - 1}>↓</button>
+                      <button className="sg-ql-action-btn danger" title={t('widget.quicklinks.delete')} onClick={() => removeLink(link.id)}>
+                        <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                  {link.iconSource === 'custom-url' && (
+                    <div className="sg-ql-table-subrow">
+                      <input className="sg-ql-input" placeholder={t('widget.quicklinks.imageUrlPlaceholder')} draggable={false}
+                        value={link.customIcon ?? ''}
+                        onChange={e => updateLink(link.id, { customIcon: e.target.value || undefined })}
+                        onPointerDown={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}
+                        onDragStart={e => e.stopPropagation()} />
+                    </div>
+                  )}
+                  {link.iconSource === 'upload' && (
+                    <div className="sg-ql-table-subrow">
+                      <div className="sg-ql-upload-row">
+                        {link.customIcon && <img className="sg-ql-upload-preview" src={link.customIcon} alt="" />}
+                        <label className="sg-ql-upload-label">
+                          {link.customIcon ? t('widget.quicklinks.changeImage') : t('widget.quicklinks.chooseImage')}
+                          <input type="file" accept="image/*" style={{ display: 'none' }}
+                            onChange={async e => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const dataUrl = await processIconUpload(file, t);
+                              if (dataUrl) updateLink(link.id, { customIcon: dataUrl });
+                              e.target.value = '';
+                            }}
+                            onPointerDown={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} />
+                        </label>
+                        {link.customIcon && (
+                          <button className="sg-ql-action-btn danger" onClick={() => updateLink(link.id, { customIcon: undefined })}>✕</button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="sg-ql-add-row">
+            <input className="sg-ql-input" placeholder={t('widget.quicklinks.addUrlPlaceholder')} draggable={false}
+              value={newUrl} onChange={e => setNewUrl(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') addLink(); }}
+              onPointerDown={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}
+              onDragStart={e => e.stopPropagation()} />
+            <button className="sg-ql-action-btn primary" onClick={addLink}>＋</button>
+          </div>
+        </div>,
+        document.body,
+      )}
     </div>
   );
 }
@@ -426,7 +470,7 @@ export default function Quicklinks({ data, onUpdateData }: Props) {
           <span className="sg-ql-empty">{t('widget.quicklinks.emptyState')}</span>
         </div>
       ) : (
-        <div className={`sg-ql-links sg-ql-links--${effectiveLayout} sg-ql-links--align-${alignment}`}>
+        <div className={`sg-ql-links sg-scroll-thin sg-ql-links--${effectiveLayout} sg-ql-links--align-${alignment}`}>
           {links.map((link, idx) => (
             <div
               key={link.id}
