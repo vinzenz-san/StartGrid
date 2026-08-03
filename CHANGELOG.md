@@ -2,6 +2,16 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.6.14] — Weather overhaul, per-widget overflow, slider reset buttons, calendar/search polish
+
+- Settings gear button no longer gets covered by the Settings sidebar when it opens on the same side (`top-left`/`bottom-left`/etc.) — the control cluster now shifts clear of the panel in sync with its open/close transition, instead of sitting underneath it
+- New opt-in **"Allow overflow"** toggle on Clock, Greeting, and Weather — lets text spill past the widget's own box instead of being clipped (e.g. a large clock font bleeding into the grid's dead space). Overflowing widgets are never given their own `z-index`; instead every *other* widget is raised above the default stacking level, so overflow reliably renders behind neighbors regardless of DOM order (an earlier attempt lowering the overflowing widget itself broke its own gear button's click-through)
+- Greeting gains a **"Single line (no wrap)"** toggle (shown once overflow is on), so a long greeting can spill sideways instead of wrapping
+- Weather widget: condition/feels-like/location text now uses the primary `--text` color instead of `--text-muted`, matching the temperature number and making the light/dark theme switch actually visible (previously two similar grays made it look unchanged); new **Alignment** setting (left/center/right/top/bottom, top/bottom correctly centering on the cross-axis rather than pinning to a corner); new **Display Settings** panel (Font Size/Scale/Rotation/Padding), with icon/condition/feels-like/location sizes scaling proportionally off the Font Size slider; location display now shows only the city name (full "City, State, Country" is kept for the settings-panel search results); feels-like/location no longer ellipsis-truncate while overflowing
+- `SettingsSlider` gains an optional reset button (small ↺ icon, dimmed once at default) — wired up for Font Size/Scale/Rotation/Padding (Display Settings) and the font outline-size slider
+- Bookmark Search: opt-in **"Fall back to Google search"** — when no bookmark matches, Enter or a results-panel button opens a Google search for the query in a new tab. (An earlier "autofocus on new tab" toggle was added and then removed after confirming new-tab pages can't reliably steal focus from the browser's address bar — no dead code left behind)
+- Calendar/OutlookCalendar now default to **Monday** as first day of week (was Sunday) for anyone who hasn't explicitly changed the setting — the Sunday/Monday toggle itself already existed
+
 ## [1.6.12] — Settings UI: dropdown unification, button-position/theme pickers, row-width alignment
 
 - Every remaining "options" picker built as a hand-rolled `SegmentedControl` (BookmarkFolder/Quicklinks Layout, Weather units, Clock format, Notes storage, ObsidianRandom refresh mode, ObsidianCapture target, Calendar/OutlookCalendar view + first-day-of-week, FontSettingsPanel outline style, and the Background editor's Date mode + Gradient type) is now a shared `Dropdown`, matching Alignment/Sort order/Timezone-style controls elsewhere in the same panels
