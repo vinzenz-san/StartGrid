@@ -101,6 +101,7 @@ export interface OutlookCalendarData {
   showAllDay: boolean;
   viewMode?: 'agenda' | 'monthly';
   firstDayOfWeek?: 0 | 1;
+  calendarIds?: string[]; // Graph calendar IDs to pull events from; 'default' is this widget's alias for /me/calendarView. Default ['default']
 }
 
 export interface OutlookMailData {

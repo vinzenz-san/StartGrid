@@ -16,6 +16,7 @@ export interface CalendarEvent {
   location?: string;
   description?: string;
   htmlLink: string;
+  calendarColor?: string; // fallback tint from the source calendar, used when colorId is absent
 }
 
 export type CalendarViewStatus = 'idle' | 'loading' | 'success' | 'error' | 'unauthenticated';

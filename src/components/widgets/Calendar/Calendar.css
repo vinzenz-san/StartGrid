@@ -346,6 +346,59 @@
   text-align: center;
 }
 
+/* Calendar picker */
+
+.sg-cal-calendar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sg-cal-calendar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.sg-cal-calendar-name {
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sg-cal-calendar-checkbox {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  border: 1.5px solid var(--sg-cal-check-color, currentColor);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+  position: relative;
+}
+
+.sg-cal-calendar-checkbox:checked {
+  background: var(--sg-cal-check-color, var(--accent));
+  border-color: var(--sg-cal-check-color, var(--accent));
+}
+
+.sg-cal-calendar-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+
 /* Segmented view-mode control */
 
 .sg-cal-seg {

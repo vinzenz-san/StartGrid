@@ -131,17 +131,17 @@ export function SkeletonGroup() {
 
 // ── Event / Day (agenda view) ──────────────────────────────────────────────────
 
-export function EventRow({ event, allDayLabel, eventColor }: { event: CalendarEvent; allDayLabel: string; eventColor: (colorId?: string) => string }) {
+export function EventRow({ event, allDayLabel, eventColor }: { event: CalendarEvent; allDayLabel: string; eventColor: (event: CalendarEvent) => string }) {
   return (
     <a className={`sg-cal-event${event.start.date ? ' sg-cal-event--allday' : ''}`} href={event.htmlLink} title={event.summary} target="_blank" rel="noreferrer">
-      <span className="sg-cal-dot" style={{ background: eventColor(event.colorId) }} aria-hidden="true"/>
+      <span className="sg-cal-dot" style={{ background: eventColor(event) }} aria-hidden="true"/>
       <span className="sg-cal-time">{formatTimeBlock(event, allDayLabel)}</span>
       <span className="sg-cal-title">{event.summary}</span>
     </a>
   );
 }
 
-export function DayGroupView({ group, locale, todayLabel, tomorrowLabel, allDayLabel, eventColor }: { group: DayGroup; locale: string; todayLabel: string; tomorrowLabel: string; allDayLabel: string; eventColor: (colorId?: string) => string }) {
+export function DayGroupView({ group, locale, todayLabel, tomorrowLabel, allDayLabel, eventColor }: { group: DayGroup; locale: string; todayLabel: string; tomorrowLabel: string; allDayLabel: string; eventColor: (event: CalendarEvent) => string }) {
   return (
     <div className="sg-cal-day">
       <div className="sg-cal-day-heading">{formatDayHeading(group.dateKey, locale, todayLabel, tomorrowLabel)}</div>
@@ -163,7 +163,7 @@ interface EventDetailsPopoverProps {
   closeAriaLabel: string;
   locationLabel: string;
   descriptionLabel: string;
-  eventColor: (colorId?: string) => string;
+  eventColor: (event: CalendarEvent) => string;
   onClose: () => void;
 }
 
@@ -209,7 +209,7 @@ function EventDetailsPopover({
         ) : events.map(evt => (
           <div key={evt.id} className="sg-cal-event-popover-item">
             <div className="sg-cal-event-popover-item-heading">
-              <span className="sg-cal-dot" style={{ background: eventColor(evt.colorId) }} aria-hidden="true"/>
+              <span className="sg-cal-dot" style={{ background: eventColor(evt) }} aria-hidden="true"/>
               <span className="sg-cal-event-popover-item-title">{evt.summary}</span>
             </div>
             <div className="sg-cal-event-popover-item-time">{formatTimeBlock(evt, allDayLabel)}</div>
@@ -245,7 +245,7 @@ export interface MonthlyCalendarProps {
   closeAriaLabel: string;
   locationLabel: string;
   descriptionLabel: string;
-  eventColor: (colorId?: string) => string;
+  eventColor: (event: CalendarEvent) => string;
 }
 
 export function MonthlyCalendar({ events, showAllDay, locale, firstDayOfWeek, prevMonthLabel, nextMonthLabel, allDayLabel, noEventsLabel, closeAriaLabel, locationLabel, descriptionLabel, eventColor }: MonthlyCalendarProps) {
@@ -295,7 +295,7 @@ export function MonthlyCalendar({ events, showAllDay, locale, firstDayOfWeek, pr
               <span className="sg-cal-monthly-day-num">{day}</span>
               {dayEvts.length > 0 && (
                 <div className="sg-cal-monthly-dots">
-                  {dayEvts.slice(0,3).map(evt => <span key={evt.id} className="sg-cal-monthly-dot" style={{background:eventColor(evt.colorId)}}/>)}
+                  {dayEvts.slice(0,3).map(evt => <span key={evt.id} className="sg-cal-monthly-dot" style={{background:eventColor(evt)}}/>)}
                   {dayEvts.length > 3 && <span className="sg-cal-monthly-more">+{dayEvts.length-3}</span>}
                 </div>
               )}

@@ -2,6 +2,14 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.6.11] — Multi-calendar support for Google Calendar and Outlook Calendar
+
+- Both calendar widgets previously only ever fetched the account's single default calendar (Google's `primary` alias / Outlook's `/me/calendarView`), with no way to see events from any secondary calendar (e.g. a custom Google calendar like "Birthdays" or a shared Outlook calendar). Settings now gain a **"My Calendars"** checkbox list (shown once connected) listing every calendar on the account, colored to match each calendar's own color from the provider — same interaction as Google/Outlook's own native calendar UI
+- `CalendarData`/`OutlookCalendarData` gain a `calendarIds?: string[]` field (default `['primary']` / `['default']`, i.e. unchanged behavior for existing installs). Both hooks now fetch events per selected calendar ID in parallel via `Promise.all`, merge, and sort by start time, instead of a single fixed-calendar request
+- Event color resolution now falls back to the *source calendar's* color (Google's `calendarList.backgroundColor`, Outlook's `hexColor`) when an event has no explicit per-event color (`colorId`/category) — previously any event without its own color rendered in one flat default color regardless of which calendar it came from. Added via a new shared `calendarColor` field on the provider-agnostic `CalendarEvent` type (`shared/calendarEvent.types.ts`)
+- `CalendarCore.tsx`'s shared `eventColor` callback prop changed signature from `(colorId?: string) => string` to `(event: CalendarEvent) => string`, since the calendar-color fallback needs the whole event, not just its `colorId`. Updated in both widgets — Outlook Calendar's own callback is otherwise behavior-unchanged
+- No new OAuth scopes needed for either provider — Google's existing `calendar.readonly` already covers `calendarList`/non-primary calendars, and Outlook's existing `Calendars.Read` already covers `/me/calendars`/secondary calendars
+
 ## [1.6.10] — Glass effect slider, shadow intensity rework, settings UI consistency
 
 - Added a **Glass Effect** slider, both global (Settings → Appearance) and per-widget (Local Style) — previously the frosted/blur look was implicitly tied to the Transparency slider and only rendered in light mode. Now controlled independently via its own `--widget-glass` CSS variable (default 0, no effect) and applies identically in dark mode too. The shared `backdrop-filter` formula also gained a `brightness()` term so the blur/saturate boost stays visible against dark mode's low-chroma backgrounds, which `saturate()` alone had nothing to work with

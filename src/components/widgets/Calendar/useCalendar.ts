@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import type { CalendarState, CalendarEvent } from './calendar.types';
 import { getValidToken } from '../../../lib/googleAuth';
 
@@ -18,8 +18,8 @@ interface RawEventList {
   error?: { code: number; message: string };
 }
 
-async function fetchCalendarEvents(token: string, maxResults: number): Promise<CalendarEvent[]> {
-  const url = new URL(`${CALENDAR_BASE}/calendars/primary/events`);
+async function fetchCalendarEvents(token: string, maxResults: number, calendarId: string, calendarColor?: string): Promise<CalendarEvent[]> {
+  const url = new URL(`${CALENDAR_BASE}/calendars/${encodeURIComponent(calendarId)}/events`);
   url.searchParams.set('timeMin',       new Date().toISOString());
   url.searchParams.set('singleEvents',  'true');
   url.searchParams.set('orderBy',       'startTime');
@@ -37,7 +37,45 @@ async function fetchCalendarEvents(token: string, maxResults: number): Promise<C
 
   const data = await res.json() as RawEventList;
   if (data.error) throw new Error(data.error.message);
+  return (data.items ?? []).map(item => ({ ...item, calendarColor }));
+}
+
+// ── Calendar list (for multi-calendar selection in Settings) ───────────────────
+
+export interface GoogleCalendarListEntry {
+  id: string;
+  summary: string;
+  backgroundColor?: string;
+  primary?: boolean;
+}
+
+interface RawCalendarList {
+  items?: GoogleCalendarListEntry[];
+  error?: { code: number; message: string };
+}
+
+async function fetchCalendarList(token: string): Promise<GoogleCalendarListEntry[]> {
+  const url = new URL(`${CALENDAR_BASE}/users/me/calendarList`);
+  url.searchParams.set('fields', 'items(id,summary,backgroundColor,primary)');
+
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (res.status === 401) throw new Error('UNAUTHORIZED');
+  if (!res.ok) throw new Error(`Calendar list fetch failed: ${res.status}`);
+
+  const data = await res.json() as RawCalendarList;
+  if (data.error) throw new Error(data.error.message);
   return data.items ?? [];
+}
+
+// Resolves the 'primary' sentinel used in stored settings to that calendar's
+// own color, since calendarList never lists an entry with id 'primary' itself
+// (its real id is the account's email address, flagged via `primary: true`).
+function colorForCalendarId(id: string, list: GoogleCalendarListEntry[]): string | undefined {
+  if (id === 'primary') return list.find(c => c.primary)?.backgroundColor;
+  return list.find(c => c.id === id)?.backgroundColor;
 }
 
 // ── Mock data — used in dev mode when extension APIs are unavailable ───────────
@@ -103,7 +141,7 @@ export function useCalendar() {
 
   const fetchingRef = useRef(false);
 
-  const refresh = useCallback(async (maxResults = 50) => {
+  const refresh = useCallback(async (maxResults = 50, calendarIds: string[] = ['primary']) => {
     if (fetchingRef.current) return;
     fetchingRef.current = true;
     setState(s => ({ ...s, status: 'loading', error: null }));
@@ -120,7 +158,12 @@ export function useCalendar() {
           return;
         }
         try {
-          events = await fetchCalendarEvents(token, maxResults);
+          const list = await fetchCalendarList(token);
+          const perCalendar = await Promise.all(
+            calendarIds.map(id => fetchCalendarEvents(token, maxResults, id, colorForCalendarId(id, list))),
+          );
+          events = perCalendar.flat().sort((a, b) =>
+            (a.start.date ?? a.start.dateTime ?? '').localeCompare(b.start.date ?? b.start.dateTime ?? ''));
         } catch (err) {
           if (err instanceof Error && err.message === 'UNAUTHORIZED') {
             setState(s => ({ ...s, status: 'unauthenticated', error: null }));
@@ -148,4 +191,35 @@ export function useCalendar() {
   }, []);
 
   return { ...state, refresh, isMock: !isExtension };
+}
+
+// ── Calendar list hook (Settings picker) ────────────────────────────────────────
+
+interface CalendarListState {
+  calendars: GoogleCalendarListEntry[];
+  loading: boolean;
+  error: string | null;
+}
+
+export function useGoogleCalendarList(enabled: boolean) {
+  const [state, setState] = useState<CalendarListState>({ calendars: [], loading: false, error: null });
+
+  const load = useCallback(async () => {
+    if (!isExtension) return;
+    setState(s => ({ ...s, loading: true, error: null }));
+    try {
+      const token = await getValidToken();
+      if (!token) { setState({ calendars: [], loading: false, error: null }); return; }
+      const calendars = await fetchCalendarList(token);
+      setState({ calendars, loading: false, error: null });
+    } catch (err) {
+      setState({ calendars: [], loading: false, error: err instanceof Error ? err.message : 'Failed to load calendars' });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (enabled) load();
+  }, [enabled, load]);
+
+  return state;
 }

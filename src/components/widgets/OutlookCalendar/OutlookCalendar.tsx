@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
+import type { CSSProperties } from 'react';
 import type { OutlookCalendarData } from '../../../types/widget';
+import type { CalendarEvent } from '../shared/calendarEvent.types';
 import { OUTLOOK_CATEGORY_COLORS, DEFAULT_EVENT_COLOR } from './outlookCalendar.types';
-import { useOutlookCalendar } from './useOutlookCalendar';
+import { useOutlookCalendar, useOutlookCalendarList } from './useOutlookCalendar';
 import { useMsAuth } from '../../../hooks/useMsAuth';
 import { SettingsRow, SegmentedControl, SettingsSwitch } from '../../shared/Form';
 import { useSettings } from '../../../contexts/SettingsContext';
@@ -12,8 +14,9 @@ import {
 } from '../shared/CalendarCore';
 import './OutlookCalendar.css';
 
-function eventColor(colorId?: string): string {
-  return colorId ? (OUTLOOK_CATEGORY_COLORS[colorId] ?? DEFAULT_EVENT_COLOR) : DEFAULT_EVENT_COLOR;
+function eventColor(event: CalendarEvent): string {
+  if (event.colorId) return OUTLOOK_CATEGORY_COLORS[event.colorId] ?? DEFAULT_EVENT_COLOR;
+  return event.calendarColor ?? DEFAULT_EVENT_COLOR;
 }
 
 function IconOutlookCalendar() {
@@ -43,7 +46,18 @@ export function OutlookCalendarSettings({ data, onUpdateData }: SettingsProps) {
   const showAllDay = data.showAllDay ?? true;
   const viewMode   = data.viewMode   ?? 'agenda';
   const firstDayOfWeek = data.firstDayOfWeek ?? 0;
+  const calendarIds = data.calendarIds ?? ['default'];
   const { isConnected, isConnecting, email, error, connect, disconnect } = useMsAuth();
+  const { calendars } = useOutlookCalendarList(isConnected);
+
+  function toggleCalendar(cal: { id: string; isDefaultCalendar?: boolean }) {
+    const key = cal.isDefaultCalendar ? 'default' : cal.id;
+    const checked = calendarIds.includes(key);
+    const next = checked
+      ? calendarIds.filter(id => id !== key)
+      : [...calendarIds, key];
+    onUpdateData({ calendarIds: next });
+  }
 
   return (
     <div className="sg-cal-settings" onClick={e => e.stopPropagation()}>
@@ -102,6 +116,33 @@ export function OutlookCalendarSettings({ data, onUpdateData }: SettingsProps) {
           </>
         )}
       </div>
+
+      {isConnected && calendars.length > 0 && (
+        <>
+          <div className="sg-cal-settings-divider"/>
+          <div className="sg-cal-settings-section">
+            <span className="sg-cal-settings-label">{t('widget.outlookCalendar.myCalendars')}</span>
+            <div className="sg-cal-calendar-list">
+              {calendars.map(cal => {
+                const key = cal.isDefaultCalendar ? 'default' : cal.id;
+                const checked = calendarIds.includes(key);
+                return (
+                  <label key={cal.id} className="sg-cal-calendar-item">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleCalendar(cal)}
+                      className="sg-cal-calendar-checkbox"
+                      style={{ '--sg-cal-check-color': cal.hexColor ?? DEFAULT_EVENT_COLOR } as CSSProperties}
+                    />
+                    <span className="sg-cal-calendar-name">{cal.name}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -122,9 +163,11 @@ export default function OutlookCalendar({ data }: Props) {
   const showAllDay = data.showAllDay ?? true;
   const viewMode   = data.viewMode   ?? 'agenda';
   const firstDayOfWeek = data.firstDayOfWeek ?? 0;
+  const calendarIds = data.calendarIds ?? ['default'];
+  const calendarIdsKey = calendarIds.join(',');
 
-  useEffect(() => { refresh(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { refresh(); }, [isConnected]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { refresh(50, calendarIds); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { refresh(50, calendarIds); }, [isConnected, calendarIdsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isLoading  = status === 'idle' || status === 'loading';
   const isUnauthed = status === 'unauthenticated';
@@ -136,7 +179,7 @@ export default function OutlookCalendar({ data }: Props) {
           <IconOutlookCalendar/>
           <span>{formatHeaderDate(locale)}</span>
         </div>
-        <button className="sg-cal-refresh" onClick={() => refresh()}
+        <button className="sg-cal-refresh" onClick={() => refresh(50, calendarIds)}
           disabled={isLoading || isUnauthed} title={t('widget.outlookCalendar.refresh')} aria-label={t('widget.outlookCalendar.refreshAria')}>
           <IconRefresh spinning={isLoading}/>
         </button>

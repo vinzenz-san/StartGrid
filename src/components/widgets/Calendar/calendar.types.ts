@@ -5,6 +5,7 @@ export interface CalendarData {
   showAllDay: boolean;           // include all-day events, default true
   viewMode?: 'agenda' | 'monthly'; // default 'agenda'
   firstDayOfWeek?: 0 | 1;         // 0=Sunday, 1=Monday; monthly view only, default 0
+  calendarIds?: string[];        // Google calendar IDs to pull events from; 'primary' is the API's alias for the main calendar. Default ['primary']
 }
 
 // ── API-mirroring types (matches Google Calendar REST API event resource) ──────
