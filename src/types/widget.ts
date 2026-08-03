@@ -209,6 +209,7 @@ export interface WeatherData {
   units?: 'metric' | 'imperial'; // default 'metric'
   showFeelsLike?: boolean;       // default true
   showLocationName?: boolean;    // default true
+  alignment?: WidgetAlignment;   // default 'left'
 }
 
 // Maps each widget type string to its strongly-typed data interface.

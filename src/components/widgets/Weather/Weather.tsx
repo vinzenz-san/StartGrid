@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { WeatherData } from '../../../types/widget';
+import type { WeatherData, WidgetAlignment } from '../../../types/widget';
 import { SettingsRow, Dropdown, SettingsSwitch, ActionButton } from '../../shared/Form';
 import { useSettings } from '../../../contexts/SettingsContext';
 import { useWeather } from '../../../hooks/useWeather';
@@ -21,6 +21,15 @@ export function WeatherSettings({ data, onUpdateData }: SettingsProps) {
   const units            = data.units ?? 'metric';
   const showFeelsLike     = data.showFeelsLike ?? true;
   const showLocationName  = data.showLocationName ?? true;
+  const alignment         = data.alignment ?? 'left';
+
+  const ALIGNMENT_OPTIONS: { value: WidgetAlignment; label: string }[] = [
+    { value: 'left',   label: t('widget.quicklinks.align.left') },
+    { value: 'center', label: t('widget.quicklinks.align.center') },
+    { value: 'right',  label: t('widget.quicklinks.align.right') },
+    { value: 'top',    label: t('widget.quicklinks.align.top') },
+    { value: 'bottom', label: t('widget.quicklinks.align.bottom') },
+  ];
 
   const [query, setQuery]     = useState('');
   const [results, setResults] = useState<GeocodeResult[]>([]);
@@ -145,6 +154,14 @@ export function WeatherSettings({ data, onUpdateData }: SettingsProps) {
       <SettingsRow label={t('widget.weather.showLocationName')}>
         <SettingsSwitch checked={showLocationName} onChange={v => onUpdateData({ showLocationName: v })} />
       </SettingsRow>
+
+      <SettingsRow label={t('widget.greeting.alignment')}>
+        <Dropdown
+          options={ALIGNMENT_OPTIONS}
+          value={alignment}
+          onChange={v => onUpdateData({ alignment: v })}
+        />
+      </SettingsRow>
     </div>
   );
 }
@@ -161,6 +178,7 @@ export default function Weather({ data }: Props) {
   const units           = data.units ?? 'metric';
   const showFeelsLike    = data.showFeelsLike ?? true;
   const showLocationName = data.showLocationName ?? true;
+  const alignment        = data.alignment ?? 'left';
 
   const { weather, isFetching, error, refetch } = useWeather({
     latitude: data.latitude,
@@ -204,7 +222,7 @@ export default function Weather({ data }: Props) {
   const feelsLike = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(weather.feelsLike);
 
   return (
-    <div className="sg-weather">
+    <div className={`sg-weather sg-weather--align-${alignment}`}>
       <div className="sg-weather-icon">{info.icon}</div>
       <div className="sg-weather-main">
         <div className="sg-weather-temp">{temp}{unitSuffix}</div>

@@ -9,6 +9,18 @@
   user-select: none;
 }
 
+/* ── Alignment ──────────────────────────────────────
+   flex-direction is row (icon beside text): left/center/right map to the
+   main axis (justify-content), top/bottom to the cross axis (align-items).
+   Default 'left' matches the pre-existing unset behavior (flex-start main
+   axis, centered cross axis), so this is a no-op for widgets that never
+   touch the setting. */
+.sg-weather--align-left   { justify-content: flex-start; }
+.sg-weather--align-center { justify-content: center; }
+.sg-weather--align-right  { justify-content: flex-end; }
+.sg-weather--align-top    { justify-content: center; align-items: flex-start; }
+.sg-weather--align-bottom { justify-content: center; align-items: flex-end; }
+
 .sg-weather-icon {
   font-size: 42px;
   line-height: 1;
@@ -32,13 +44,13 @@
 
 .sg-weather-condition {
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--text);
 }
 
 .sg-weather-feelslike,
 .sg-weather-location {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
