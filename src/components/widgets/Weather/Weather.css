@@ -4,7 +4,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
+  /* padding comes from the wrapper's inline style (resolveDisplayStyle) —
+     see the Padding slider in Display Settings */
   box-sizing: border-box;
   user-select: none;
 }
@@ -22,7 +23,8 @@
 .sg-weather--align-bottom { justify-content: center; align-items: flex-end; }
 
 .sg-weather-icon {
-  font-size: 42px;
+  /* font-size comes from the wrapper's inline style — see DEFAULT_TEMP_SIZE
+     and the *_SIZE_RATIO constants in Weather.tsx */
   line-height: 1;
   flex-shrink: 0;
 }
@@ -35,7 +37,6 @@
 }
 
 .sg-weather-temp {
-  font-size: 28px;
   font-weight: 500;
   color: var(--text);
   font-variant-numeric: tabular-nums;
@@ -43,17 +44,24 @@
 }
 
 .sg-weather-condition {
-  font-size: 13px;
   color: var(--text);
 }
 
 .sg-weather-feelslike,
 .sg-weather-location {
-  font-size: 12px;
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* With overflow allowed, let feels-like/location spill past the box edge
+   instead of being clipped into an ellipsis — same idea as the temp/icon
+   text, just for the two lines that were truncating instead of clipping. */
+.sg-weather--overflow .sg-weather-feelslike,
+.sg-weather--overflow .sg-weather-location {
+  overflow: visible;
+  text-overflow: clip;
 }
 
 /* ── Empty / loading / error states ──────────────── */

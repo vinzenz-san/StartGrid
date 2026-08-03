@@ -210,6 +210,10 @@ export interface WeatherData {
   showFeelsLike?: boolean;       // default true
   showLocationName?: boolean;    // default true
   alignment?: WidgetAlignment;   // default 'left'
+  displaySettings?: DisplaySettings;
+  /** Let the rendered content spill past the widget's own box instead of
+   *  being clipped. Default false. */
+  allowOverflow?: boolean;
 }
 
 // Maps each widget type string to its strongly-typed data interface.

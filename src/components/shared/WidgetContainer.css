@@ -18,16 +18,29 @@
   min-height: 0;
 }
 
-/* Opt-in per-widget escape hatch (e.g. Clock/Greeting) — lets content spill
-   past the widget's own box instead of being clipped, for cases like a huge
-   clock font that's meant to bleed into the grid's dead space. Deliberately
-   no z-index override here (an earlier attempt at z-index: -1 sank the whole
-   widget — gear button included — below the grid's background layer,
-   Grid.css:141/216, making the settings icon unclickable). Stacking is left
-   at default/auto, same as every other widget, so overflow paints per normal
-   DOM order instead of being forced above or below neighbors. */
+/* Opt-in per-widget escape hatch (Clock/Greeting/Weather) — lets content
+   spill past the widget's own box instead of being clipped, for cases like
+   a huge clock font that's meant to bleed into the grid's dead space.
+   Overflowing widgets themselves are NEVER given a z-index (see below for
+   why) — instead every *other* widget is raised above the default stacking
+   level, so overflow reliably paints behind neighbors regardless of DOM
+   order, without the overflowing widget ever forming its own stacking
+   context. */
 .sg-widget--overflow {
   overflow: visible;
+}
+
+/* An earlier attempt set z-index: -1 directly on .sg-widget--overflow to
+   sink it behind neighbors. That combined with this element's own
+   position: relative to force it into forming a brand new stacking
+   context, which broke click-through to its own gear button (the button's
+   internal z-index: 1 is only relative to that new context, but something
+   about the widget itself no longer participating in the grid's normal
+   paint/hit-test order broke pointer events reaching it). Raising siblings
+   instead avoids ever giving the overflow widget a z-index of its own, so
+   its internal stacking/click behavior stays completely untouched. */
+.sg-widget:not(.sg-widget--overflow) {
+  z-index: 1;
 }
 
 /* ── Accent glow highlight ────────────────────────

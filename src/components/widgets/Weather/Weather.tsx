@@ -1,11 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import type { WeatherData, WidgetAlignment } from '../../../types/widget';
 import { SettingsRow, Dropdown, SettingsSwitch, ActionButton } from '../../shared/Form';
+import { DisplaySettingsPanel } from '../../shared/Form';
+import { DetailedSettings } from '../../Layout/DetailedSettings';
 import { useSettings } from '../../../contexts/SettingsContext';
 import { useWeather } from '../../../hooks/useWeather';
 import { geocodeCity, type GeocodeResult } from '../../../lib/openMeteoApi';
 import { getWeatherCodeInfo } from '../../../lib/weatherCodes';
+import { resolveDisplayStyle } from '../../../lib/displayStyle';
 import './Weather.css';
+
+// Weather's old fixed sizes (icon 42 / temp 28 / condition 13 / feelslike+location
+// 12) — kept as ratios off the Font Size slider (anchored to temp, the widget's
+// primary text) so every line keeps scaling together instead of only the temp.
+const DEFAULT_TEMP_SIZE = 28;
+const ICON_SIZE_RATIO       = 42 / 28;
+const CONDITION_SIZE_RATIO  = 13 / 28;
+const SECONDARY_SIZE_RATIO  = 12 / 28;
 
 const SEARCH_DEBOUNCE_MS = 450;
 
@@ -162,6 +173,18 @@ export function WeatherSettings({ data, onUpdateData }: SettingsProps) {
           onChange={v => onUpdateData({ alignment: v })}
         />
       </SettingsRow>
+
+      <SettingsRow label={t('widget.allowOverflow')}>
+        <SettingsSwitch checked={data.allowOverflow ?? false} onChange={v => onUpdateData({ allowOverflow: v })} />
+      </SettingsRow>
+
+      <DetailedSettings title={t('widget.displaySettings.title')}>
+        <DisplaySettingsPanel
+          value={data.displaySettings}
+          defaultFontSize={DEFAULT_TEMP_SIZE}
+          onChange={patch => onUpdateData({ displaySettings: { ...data.displaySettings, ...patch } })}
+        />
+      </DetailedSettings>
     </div>
   );
 }
@@ -221,17 +244,25 @@ export default function Weather({ data }: Props) {
   const temp = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(weather.temperature);
   const feelsLike = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(weather.feelsLike);
 
+  const { wrapper, fontSize: tempSize } = resolveDisplayStyle(data.displaySettings, DEFAULT_TEMP_SIZE);
+  const iconSize      = tempSize * ICON_SIZE_RATIO;
+  const conditionSize = tempSize * CONDITION_SIZE_RATIO;
+  const secondarySize = tempSize * SECONDARY_SIZE_RATIO;
+
   return (
-    <div className={`sg-weather sg-weather--align-${alignment}`}>
-      <div className="sg-weather-icon">{info.icon}</div>
+    <div className={`sg-weather sg-weather--align-${alignment}${data.allowOverflow ? ' sg-weather--overflow' : ''}`} style={wrapper}>
+      <div className="sg-weather-icon" style={{ fontSize: iconSize }}>{info.icon}</div>
       <div className="sg-weather-main">
-        <div className="sg-weather-temp">{temp}{unitSuffix}</div>
-        <div className="sg-weather-condition">{t(info.labelKey)}</div>
+        <div className="sg-weather-temp" style={{ fontSize: tempSize }}>{temp}{unitSuffix}</div>
+        <div className="sg-weather-condition" style={{ fontSize: conditionSize }}>{t(info.labelKey)}</div>
         {showFeelsLike && (
-          <div className="sg-weather-feelslike">{t('widget.weather.feelsLike', { value: `${feelsLike}${unitSuffix}` })}</div>
+          <div className="sg-weather-feelslike" style={{ fontSize: secondarySize }}>{t('widget.weather.feelsLike', { value: `${feelsLike}${unitSuffix}` })}</div>
         )}
         {showLocationName && data.locationName && (
-          <div className="sg-weather-location">{data.locationName}</div>
+          // Stored locationName is "City, State, Country" (built for the
+          // settings-panel search results, where the full name disambiguates
+          // similarly-named cities); the widget face only ever shows the city.
+          <div className="sg-weather-location" style={{ fontSize: secondarySize }}>{data.locationName.split(',')[0].trim()}</div>
         )}
       </div>
     </div>
