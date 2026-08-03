@@ -205,6 +205,7 @@ export const en = {
   'widget.greeting.customQuoteLabel':     'Custom quote',
   'widget.greeting.customQuotePlaceholder': 'e.g. Keep going, {{name}}!',
   'widget.greeting.alignment':            'Alignment',
+  'widget.greeting.noWrap':               'Single line (no wrap)',
 
   // ── Weather widget ───────────────────────────────────────────────────────
   'widget.weather.loading':           'Loading weather…',
@@ -353,6 +354,9 @@ export const en = {
   'widget.clock.tzUtc':         'UTC',
   'widget.clock.formattingSettings': 'Formatting',
 
+  // ── Shared per-widget toggles (Clock, Greeting, …) ───────────────────────
+  'widget.allowOverflow':            'Allow overflow',
+
   // ── Shared Display Settings panel (Clock, …) ─────────────────────────────
   'widget.displaySettings.title':    'Display',
   'widget.displaySettings.fontSize': 'Font Size',
@@ -388,6 +392,7 @@ export const en = {
   // ── Bookmark Search widget ───────────────────────────────────────────────
   'widget.bookmarkSearch.maxResults':       'Max results',
   'widget.bookmarkSearch.focusShortcut':    'Focus shortcut',
+  'widget.bookmarkSearch.autoFocusOnNewTab':'Autofocus on new tab',
   'widget.bookmarkSearch.searchPlaceholder':'Search bookmarks…',
   'widget.bookmarkSearch.previewBadge':     'Preview data (browser preview)',
   'widget.bookmarkSearch.loading':          'Loading…',

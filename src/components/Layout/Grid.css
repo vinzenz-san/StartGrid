@@ -74,6 +74,14 @@ html.sg-glow-all-widgets .sg-widget {
 .sg-controls--bottom       { bottom: 14px; left: 50%; transform: translateX(-50%); transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
 .sg-controls--bottom-right { bottom: 14px; right: 14px; }
 
+/* When the Settings Sidebar opens on the same side as the control cluster
+   (gear/theme/lock), it would otherwise slide over top of it (sidebar is
+   340px wide, see SettingsPanel.css). Shift the cluster clear of the panel
+   using the same transition curve/duration as the panel itself so both
+   move in lockstep. Center position never overlaps, so it's excluded. */
+.sg-controls--side-left.sg-controls--panel-open  { transform: translateX(340px); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+.sg-controls--side-right.sg-controls--panel-open { transform: translateX(-340px); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+
 /* ── Visual element order per alignment ──────────────────────────────────
    DOM order is fixed (gear, theme toggle, lock) — `order` alone drives the
    visual arrangement per side, applying identically to top and bottom

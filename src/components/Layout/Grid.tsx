@@ -143,8 +143,9 @@ export default function Grid() {
           : settingsButtonPosition.endsWith('right')
             ? 'right'
             : 'center';
+        const panelVisible = settingsPanelOpen || settingsPinned;
         return (
-          <div className={`sg-controls sg-controls--${settingsButtonPosition} sg-controls--side-${side}`}>
+          <div className={`sg-controls sg-controls--${settingsButtonPosition} sg-controls--side-${side}${panelVisible && side !== 'center' ? ' sg-controls--panel-open' : ''}`}>
             {/* Settings gear — always visible anchor */}
             <button
               className={`sg-btn-control sg-btn-control--settings${settingsPanelOpen ? ' active' : ''}`}

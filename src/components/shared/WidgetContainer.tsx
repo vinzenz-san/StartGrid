@@ -397,6 +397,7 @@ export default function WidgetContainer({ widget }: Props) {
           isEditMode   ? 'sg-widget--edit'            : '',
           settingsOpen ? 'sg-widget--settings-active' : '',
           settingsOpen && !disableWidgetGlow ? 'sg-widget--glow' : '',
+          (widget.data as { allowOverflow?: boolean }).allowOverflow ? 'sg-widget--overflow' : '',
         ].filter(Boolean).join(' ')}
         data-theme={overrideEnabled ? widget.localColorScheme : undefined}
         draggable={isEditMode && !resizePreview}

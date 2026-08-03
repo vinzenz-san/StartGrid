@@ -16,6 +16,11 @@
   overflow-wrap: anywhere;
 }
 
+.sg-greeting-text--nowrap {
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
 /* ── Alignment ────────────────────────────────────── */
 .sg-greeting--align-left   { justify-content: flex-start; text-align: left; }
 .sg-greeting--align-center { justify-content: center;     text-align: center; }

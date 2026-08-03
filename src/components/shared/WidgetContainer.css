@@ -18,6 +18,18 @@
   min-height: 0;
 }
 
+/* Opt-in per-widget escape hatch (e.g. Clock/Greeting) — lets content spill
+   past the widget's own box instead of being clipped, for cases like a huge
+   clock font that's meant to bleed into the grid's dead space. Deliberately
+   no z-index override here (an earlier attempt at z-index: -1 sank the whole
+   widget — gear button included — below the grid's background layer,
+   Grid.css:141/216, making the settings icon unclickable). Stacking is left
+   at default/auto, same as every other widget, so overflow paints per normal
+   DOM order instead of being forced above or below neighbors. */
+.sg-widget--overflow {
+  overflow: visible;
+}
+
 /* ── Accent glow highlight ────────────────────────
    An extra box-shadow layer, off by default (--glow-shadow is transparent), toggled on by
    adding .sg-widget--glow. Layered onto the existing box-shadow (rather than replacing it)

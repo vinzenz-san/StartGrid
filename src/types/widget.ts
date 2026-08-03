@@ -39,6 +39,9 @@ export interface ClockData {
   alignment?: WidgetAlignment;
   fontSettings?: FontSettings;
   displaySettings?: DisplaySettings;
+  /** Let the rendered text spill past the widget's own box instead of being
+   *  clipped — useful for a large clock font. Default false. */
+  allowOverflow?: boolean;
 }
 
 export interface QuickLink {
@@ -88,6 +91,7 @@ export interface BookmarksData {
 
 export interface BookmarkSearchData {
   maxResults: number;
+  autoFocusOnNewTab?: boolean;
 }
 
 export interface CalendarData {
@@ -188,6 +192,13 @@ export interface GreetingData {
   alignment?: WidgetAlignment; // default 'left'
   fontSettings?: FontSettings;
   displaySettings?: DisplaySettings;
+  /** Let the rendered text spill past the widget's own box instead of being
+   *  clipped — useful for a large greeting font. Default false. */
+  allowOverflow?: boolean;
+  /** Force the greeting onto a single line instead of wrapping — pairs with
+   *  allowOverflow so a long line can spill sideways instead of breaking.
+   *  Default false. */
+  noWrap?: boolean;
 }
 
 export interface WeatherData {

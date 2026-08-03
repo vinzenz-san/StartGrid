@@ -132,6 +132,9 @@ export function ClockSettings({ data, onUpdateData }: SettingsProps) {
         <SettingsRow label={t('widget.clock.showDate')}>
           <SettingsSwitch checked={showDate} onChange={v => onUpdateData({ showDate: v })} />
         </SettingsRow>
+        <SettingsRow label={t('widget.allowOverflow')}>
+          <SettingsSwitch checked={data.allowOverflow ?? false} onChange={v => onUpdateData({ allowOverflow: v })} />
+        </SettingsRow>
       </DetailedSettings>
 
       <DetailedSettings title={t('widget.displaySettings.title')}>

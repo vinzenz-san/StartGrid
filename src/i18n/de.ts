@@ -207,6 +207,7 @@ export const de: Record<TranslationKey, string> = {
   'widget.greeting.customQuoteLabel':     'Eigenes Zitat',
   'widget.greeting.customQuotePlaceholder': 'z. B. Weiter so, {{name}}!',
   'widget.greeting.alignment':            'Ausrichtung',
+  'widget.greeting.noWrap':               'Einzeilig (kein Umbruch)',
 
   // ── Weather widget ───────────────────────────────────────────────────────
   'widget.weather.loading':           'Wetter wird geladen…',
@@ -355,6 +356,9 @@ export const de: Record<TranslationKey, string> = {
   'widget.clock.tzUtc':         'UTC',
   'widget.clock.formattingSettings': 'Formatierung',
 
+  // ── Shared per-widget toggles (Clock, Greeting, …) ───────────────────────
+  'widget.allowOverflow':            'Überlauf erlauben',
+
   // ── Shared Display Settings panel (Clock, …) ─────────────────────────────
   'widget.displaySettings.title':    'Anzeige',
   'widget.displaySettings.fontSize': 'Schriftgröße',
@@ -390,6 +394,7 @@ export const de: Record<TranslationKey, string> = {
   // ── Bookmark Search widget ───────────────────────────────────────────────
   'widget.bookmarkSearch.maxResults':       'Max. Ergebnisse',
   'widget.bookmarkSearch.focusShortcut':    'Fokus-Tastenkürzel',
+  'widget.bookmarkSearch.autoFocusOnNewTab':'Bei neuem Tab automatisch fokussieren',
   'widget.bookmarkSearch.searchPlaceholder':'Lesezeichen durchsuchen…',
   'widget.bookmarkSearch.previewBadge':     'Testdaten (Browservorschau)',
   'widget.bookmarkSearch.loading':          'Wird geladen…',

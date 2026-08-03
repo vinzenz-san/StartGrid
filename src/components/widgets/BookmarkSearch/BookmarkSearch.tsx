@@ -4,6 +4,7 @@ import { useFloating, offset, flip, shift, size, autoUpdate } from '@floating-ui
 import type { BookmarkSearchData } from '../../../types/widget';
 import { SettingsSlider } from '../../shared/Form';
 import { SettingsRow } from '../../shared/Form';
+import { SettingsSwitch } from '../../shared/Form';
 import { useBookmarkFolder } from '../BookmarkFolder/useBookmarkFolder';
 import type { BmNode } from '../BookmarkFolder/bookmarks.mock';
 import { useSettings } from '../../../contexts/SettingsContext';
@@ -87,6 +88,12 @@ export function BookmarkSearchSettings({ data, onUpdateData }: SettingsProps) {
       <SettingsRow label={t('widget.bookmarkSearch.focusShortcut')}>
         <span className="sg-bks-shortcut-badge">Ctrl + Shift + F</span>
       </SettingsRow>
+      <SettingsRow label={t('widget.bookmarkSearch.autoFocusOnNewTab')}>
+        <SettingsSwitch
+          checked={data.autoFocusOnNewTab ?? false}
+          onChange={v => onUpdateData({ autoFocusOnNewTab: v })}
+        />
+      </SettingsRow>
     </div>
   );
 }
@@ -163,6 +170,16 @@ export default function BookmarkSearch({ data }: Props) {
     document.addEventListener('pointerdown', handler, { capture: true });
     return () => document.removeEventListener('pointerdown', handler, { capture: true });
   }, [panelOpen]);
+
+  // ── Autofocus on new tab (opt-in) ─────────────────────────────────────────
+  // Runs once per widget mount, i.e. once per new-tab load — not on every
+  // re-render — so typing elsewhere on the page doesn't keep stealing focus.
+
+  useEffect(() => {
+    if (!data.autoFocusOnNewTab) return;
+    setIsFocused(true);
+    searchRef.current?.focus();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Global focus shortcut ─────────────────────────────────────────────────
 

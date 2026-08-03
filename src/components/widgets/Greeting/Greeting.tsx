@@ -90,6 +90,16 @@ export function GreetingSettings({ data, onUpdateData }: SettingsProps) {
         />
       </SettingsRow>
 
+      <SettingsRow label={t('widget.allowOverflow')}>
+        <SettingsSwitch checked={data.allowOverflow ?? false} onChange={v => onUpdateData({ allowOverflow: v })} />
+      </SettingsRow>
+
+      {data.allowOverflow && (
+        <SettingsRow label={t('widget.greeting.noWrap')}>
+          <SettingsSwitch checked={data.noWrap ?? false} onChange={v => onUpdateData({ noWrap: v })} />
+        </SettingsRow>
+      )}
+
       <DetailedSettings title={t('widget.displaySettings.title')}>
         <DisplaySettingsPanel
           value={data.displaySettings}
@@ -142,7 +152,12 @@ export default function Greeting({ data }: Props) {
 
   return (
     <div className={`sg-greeting sg-greeting--align-${alignment}`} style={wrapper}>
-      <span className="sg-greeting-text" style={{ ...fontStyle, fontSize }}>{text}</span>
+      <span
+        className={`sg-greeting-text${data.noWrap ? ' sg-greeting-text--nowrap' : ''}`}
+        style={{ ...fontStyle, fontSize }}
+      >
+        {text}
+      </span>
     </div>
   );
 }
