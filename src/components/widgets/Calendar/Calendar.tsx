@@ -45,7 +45,7 @@ export function CalendarSettings({ data, onUpdateData }: SettingsProps) {
   const maxDays    = data.maxDays    ?? 3;
   const showAllDay = data.showAllDay ?? true;
   const viewMode   = data.viewMode   ?? 'agenda';
-  const firstDayOfWeek = data.firstDayOfWeek ?? 0;
+  const firstDayOfWeek = data.firstDayOfWeek ?? 1;
   const calendarIds = data.calendarIds ?? ['primary'];
   const { isConnected, isConnecting, email, error, connect, disconnect } = useGoogleAuth();
   const { calendars } = useGoogleCalendarList(isConnected);
@@ -162,7 +162,7 @@ export default function Calendar({ data, onUpdateData: _onUpdateData }: Props) {
   const maxDays    = data.maxDays    ?? 3;
   const showAllDay = data.showAllDay ?? true;
   const viewMode   = data.viewMode   ?? 'agenda';
-  const firstDayOfWeek = data.firstDayOfWeek ?? 0;
+  const firstDayOfWeek = data.firstDayOfWeek ?? 1;
   const calendarIds = data.calendarIds ?? ['primary'];
   const calendarIdsKey = calendarIds.join(',');
 

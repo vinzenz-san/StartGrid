@@ -45,7 +45,7 @@ export function OutlookCalendarSettings({ data, onUpdateData }: SettingsProps) {
   const maxDays    = data.maxDays    ?? 3;
   const showAllDay = data.showAllDay ?? true;
   const viewMode   = data.viewMode   ?? 'agenda';
-  const firstDayOfWeek = data.firstDayOfWeek ?? 0;
+  const firstDayOfWeek = data.firstDayOfWeek ?? 1;
   const calendarIds = data.calendarIds ?? ['default'];
   const { isConnected, isConnecting, email, error, connect, disconnect } = useMsAuth();
   const { calendars } = useOutlookCalendarList(isConnected);
@@ -162,7 +162,7 @@ export default function OutlookCalendar({ data }: Props) {
   const maxDays    = data.maxDays    ?? 3;
   const showAllDay = data.showAllDay ?? true;
   const viewMode   = data.viewMode   ?? 'agenda';
-  const firstDayOfWeek = data.firstDayOfWeek ?? 0;
+  const firstDayOfWeek = data.firstDayOfWeek ?? 1;
   const calendarIds = data.calendarIds ?? ['default'];
   const calendarIdsKey = calendarIds.join(',');
 

@@ -395,7 +395,8 @@ export const de: Record<TranslationKey, string> = {
   // ── Bookmark Search widget ───────────────────────────────────────────────
   'widget.bookmarkSearch.maxResults':       'Max. Ergebnisse',
   'widget.bookmarkSearch.focusShortcut':    'Fokus-Tastenkürzel',
-  'widget.bookmarkSearch.autoFocusOnNewTab':'Bei neuem Tab automatisch fokussieren',
+  'widget.bookmarkSearch.googleFallback':   'Auf Google-Suche zurückgreifen',
+  'widget.bookmarkSearch.searchGoogleFor':  'Bei Google nach „{{query}}" suchen',
   'widget.bookmarkSearch.searchPlaceholder':'Lesezeichen durchsuchen…',
   'widget.bookmarkSearch.previewBadge':     'Testdaten (Browservorschau)',
   'widget.bookmarkSearch.loading':          'Wird geladen…',

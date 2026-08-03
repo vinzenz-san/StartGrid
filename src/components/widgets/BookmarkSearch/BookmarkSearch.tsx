@@ -88,10 +88,10 @@ export function BookmarkSearchSettings({ data, onUpdateData }: SettingsProps) {
       <SettingsRow label={t('widget.bookmarkSearch.focusShortcut')}>
         <span className="sg-bks-shortcut-badge">Ctrl + Shift + F</span>
       </SettingsRow>
-      <SettingsRow label={t('widget.bookmarkSearch.autoFocusOnNewTab')}>
+      <SettingsRow label={t('widget.bookmarkSearch.googleFallback')}>
         <SettingsSwitch
-          checked={data.autoFocusOnNewTab ?? false}
-          onChange={v => onUpdateData({ autoFocusOnNewTab: v })}
+          checked={data.googleFallback ?? false}
+          onChange={v => onUpdateData({ googleFallback: v })}
         />
       </SettingsRow>
     </div>
@@ -171,16 +171,6 @@ export default function BookmarkSearch({ data }: Props) {
     return () => document.removeEventListener('pointerdown', handler, { capture: true });
   }, [panelOpen]);
 
-  // ── Autofocus on new tab (opt-in) ─────────────────────────────────────────
-  // Runs once per widget mount, i.e. once per new-tab load — not on every
-  // re-render — so typing elsewhere on the page doesn't keep stealing focus.
-
-  useEffect(() => {
-    if (!data.autoFocusOnNewTab) return;
-    setIsFocused(true);
-    searchRef.current?.focus();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   // ── Global focus shortcut ─────────────────────────────────────────────────
 
   useEffect(() => {
@@ -218,6 +208,10 @@ export default function BookmarkSearch({ data }: Props) {
       } else {
         openBookmark(first.url);
       }
+      return;
+    }
+    if (e.key === 'Enter' && displayItems.length === 0 && !isInFolder && hasQuery && data.googleFallback) {
+      searchGoogle(query);
     }
   };
 
@@ -255,6 +249,10 @@ export default function BookmarkSearch({ data }: Props) {
 
   function openBookmark(url: string) {
     bookmarks.openUrl(url);
+  }
+
+  function searchGoogle(q: string) {
+    bookmarks.openUrl(`https://www.google.com/search?q=${encodeURIComponent(q)}`);
   }
 
   // ── Floating panel content ─────────────────────────────────────────────────
@@ -296,6 +294,14 @@ export default function BookmarkSearch({ data }: Props) {
           <div className="sg-bks-empty">
             <span className="sg-bks-empty-icon">🔍</span>
             <span className="sg-bks-empty-text">{t('widget.bookmarkSearch.typeToSearch')}</span>
+          </div>
+        ) : displayItems.length === 0 && !isInFolder && data.googleFallback ? (
+          <div className="sg-bks-empty">
+            <span className="sg-bks-empty-icon">🔍</span>
+            <span className="sg-bks-empty-text">{t('widget.bookmarkSearch.noResults')}</span>
+            <button className="sg-bks-grant-btn" onClick={() => searchGoogle(query)}>
+              {t('widget.bookmarkSearch.searchGoogleFor', { query })}
+            </button>
           </div>
         ) : displayItems.length === 0 ? (
           <div className="sg-bks-empty">

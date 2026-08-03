@@ -91,7 +91,9 @@ export interface BookmarksData {
 
 export interface BookmarkSearchData {
   maxResults: number;
-  autoFocusOnNewTab?: boolean;
+  /** When no bookmark matches the query, offer a "Search Google" fallback
+   *  (click, or Enter). Off by default — sends the query to Google. */
+  googleFallback?: boolean;
 }
 
 export interface CalendarData {
