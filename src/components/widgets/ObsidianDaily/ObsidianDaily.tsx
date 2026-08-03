@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react';
 import type { ObsidianDailyData } from '../../../types/widget';
 import { useObsidianDaily } from './useObsidianDaily';
 import { useObsidian } from '../../../hooks/useObsidian';
-import { SettingsRow, SegmentedControl, SettingsSwitch, SettingsSlider } from '../../shared/Form';
+import { SettingsRow, SettingsSwitch, SettingsSlider } from '../../shared/Form';
 import { useSettings } from '../../../contexts/SettingsContext';
 import { DEFAULT_DAILY_TEMPLATE, resolvePathTemplate, vaultPathToTitle } from '../../../lib/obsidianPath';
 import { sliceSection, type MdBlock } from '../../../lib/obsidianMarkdown';
@@ -82,13 +82,15 @@ export function ObsidianDailySettings({ data, onUpdateData }: SettingsProps) {
         valueFormatter={v => (v ? String(v) : t('widget.obsidianDaily.noLimit'))}
       />
 
-      <SettingsRow label={t('widget.obsidianDaily.fontSize')}>
-        <SegmentedControl
-          options={[{ value: 'S', label: 'S' }, { value: 'M', label: 'M' }, { value: 'L', label: 'L' }]}
-          value={data.fontSize ?? 'M'}
-          onChange={v => onUpdateData({ fontSize: v as 'S' | 'M' | 'L' })}
-        />
-      </SettingsRow>
+      <SettingsSlider
+        label={t('widget.obsidianDaily.fontSize')}
+        value={data.fontSize ?? 13}
+        min={9}
+        max={20}
+        step={1}
+        valueFormatter={v => `${v}px`}
+        onChange={v => onUpdateData({ fontSize: v })}
+      />
 
       <div className="sg-cal-settings-divider"/>
       <ObsidianConnect />
@@ -124,7 +126,6 @@ export default function ObsidianDaily({ data }: Props) {
   const visible = useMemo(() => applyDailyFilters(blocks, data), [blocks, data]);
 
   const isLoading = status === 'idle' || status === 'loading';
-  const sizeCls   = `sg-obsd--${(data.fontSize ?? 'M').toLowerCase()}`;
 
   // Not configured at all yet — the connection block lives in settings, so the
   // body just points there.
@@ -148,7 +149,7 @@ export default function ObsidianDaily({ data }: Props) {
         </button>
       </div>
 
-      <div className={`sg-cal-body sg-obsd ${sizeCls}`}>
+      <div className="sg-cal-body sg-obsd" style={{ fontSize: data.fontSize ?? 13 }}>
         {isMock && <div className="sg-cal-preview-badge">{t('widget.obsidian.previewBadge')}</div>}
 
         {notConfigured ? (

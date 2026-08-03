@@ -69,13 +69,15 @@ export function ObsidianRandomSettings({ data, onUpdateData }: SettingsProps) {
         valueFormatter={v => String(v)}
       />
 
-      <SettingsRow label={t('widget.obsidianRandom.fontSize')}>
-        <SegmentedControl
-          options={[{ value: 'S', label: 'S' }, { value: 'M', label: 'M' }, { value: 'L', label: 'L' }]}
-          value={data.fontSize ?? 'M'}
-          onChange={v => onUpdateData({ fontSize: v as 'S' | 'M' | 'L' })}
-        />
-      </SettingsRow>
+      <SettingsSlider
+        label={t('widget.obsidianRandom.fontSize')}
+        value={data.fontSize ?? 13}
+        min={9}
+        max={20}
+        step={1}
+        valueFormatter={v => `${v}px`}
+        onChange={v => onUpdateData({ fontSize: v })}
+      />
 
       <ActionButton variant="ghost" onClick={() => void clearVaultIndex()}>
         {t('widget.obsidianRandom.rebuildIndex')}
@@ -114,7 +116,6 @@ export default function ObsidianRandom({ data }: Props) {
 
   const isBusy        = status === 'indexing' || status === 'loading';
   const notConfigured = !isMock && !checking && !isReady;
-  const sizeCls       = `sg-obsr--${(data.fontSize ?? 'M').toLowerCase()}`;
 
   const excerpt = data.showExcerpt ? firstLines(blocks, data.excerptLines ?? 4) : '';
 
@@ -148,7 +149,7 @@ export default function ObsidianRandom({ data }: Props) {
         </div>
       </div>
 
-      <div className={`sg-cal-body sg-obsr ${sizeCls}`}>
+      <div className="sg-cal-body sg-obsr" style={{ fontSize: data.fontSize ?? 13 }}>
         {isMock && <div className="sg-cal-preview-badge">{t('widget.obsidian.previewBadge')}</div>}
 
         {notConfigured ? (

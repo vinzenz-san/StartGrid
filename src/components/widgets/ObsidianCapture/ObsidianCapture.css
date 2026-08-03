@@ -27,10 +27,6 @@
   opacity: 0.6;
 }
 
-.sg-obsc--s { font-size: 11px; }
-.sg-obsc--m { font-size: 13px; }
-.sg-obsc--l { font-size: 16px; }
-
 .sg-obsc-footer {
   flex-shrink: 0;
   display: flex;

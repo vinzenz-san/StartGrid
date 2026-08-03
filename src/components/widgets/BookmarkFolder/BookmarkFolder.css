@@ -149,9 +149,9 @@
   gap: 3px;
 }
 
-.sg-bf-list--grid .sg-bf-item--small  { width: 42px; flex-shrink: 0; }
-.sg-bf-list--grid .sg-bf-item--medium { width: 56px; flex-shrink: 0; }
-.sg-bf-list--grid .sg-bf-item--large  { width: 70px; flex-shrink: 0; }
+/* Width is an inline style now (iconSize is a free px value) — this just
+   keeps grid tiles from shrinking below that inline width. */
+.sg-bf-list--grid .sg-bf-item { flex-shrink: 0; }
 
 .sg-bf-list--grid .sg-bf-item-title {
   white-space: nowrap;
@@ -202,7 +202,10 @@
 
 .sg-bf-item:hover { background: rgba(128, 128, 128, 0.15); }
 
-/* ── Icon sizes (pixel-identical to Quicklinks' small/medium/large scale) ───── */
+/* ── Icon sizes ──
+   Box/image/tile sizes are inline styles now (iconSize is a free px value,
+   not a fixed S/M/L class) — see iconImgPx/iconTilePx in BookmarkFolder.tsx,
+   matches Quicklinks' formula exactly. */
 
 .sg-bf-item-icon {
   display: flex;
@@ -214,12 +217,7 @@
   background: rgba(128, 128, 128, 0.1);
 }
 
-.sg-bf-item-icon--small                    { width: 22px; height: 22px; }
-.sg-bf-item-icon--small  img                { width: 14px; height: 14px; object-fit: contain; }
-.sg-bf-item-icon--medium                   { width: 30px; height: 30px; }
-.sg-bf-item-icon--medium img                { width: 20px; height: 20px; object-fit: contain; }
-.sg-bf-item-icon--large                    { width: 40px; height: 40px; }
-.sg-bf-item-icon--large  img                { width: 26px; height: 26px; object-fit: contain; }
+.sg-bf-item-icon img { object-fit: contain; }
 
 /* White container for favicon images so dark logos show on any background —
    matches Quicklinks' .sg-ql-icon--favicon exactly. */
@@ -231,7 +229,7 @@
 .sg-bf-icon-emoji    { font-size: 16px; line-height: 1; }
 .sg-bf-icon-fallback { font-size: 12px; font-weight: 600; opacity: 0.7; }
 
-/* ── Text sizes (pixel-identical to Quicklinks' S/M/L scale) ────────────────── */
+/* ── Text ── */
 
 .sg-bf-item-title {
   white-space: nowrap;
@@ -242,10 +240,6 @@
   opacity: 0.8;
   line-height: 1.2;
 }
-
-.sg-bf-text--s { font-size: 9px; }
-.sg-bf-text--m { font-size: 11px; }
-.sg-bf-text--l { font-size: 13px; }
 
 .sg-bf-item--folder .sg-bf-item-title { font-weight: 500; }
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import type { BookmarksData as BookmarkFolderData, BookmarkSortMode, BookmarkIconOverride } from '../../../types/widget';
-import { SettingsRow, SegmentedControl, SettingsSwitch, Dropdown } from '../../shared/Form';
+import { SettingsRow, SegmentedControl, SettingsSlider, SettingsSwitch, Dropdown } from '../../shared/Form';
 import { useBookmarkFolder } from './useBookmarkFolder';
 import type { BmNode } from './bookmarks.mock';
 import { useSettings } from '../../../contexts/SettingsContext';
@@ -166,31 +166,27 @@ export function BookmarkFolderSettings({ data, onUpdateData }: SettingsProps) {
 
   return (
     <div className="sg-bf-settings sg-scroll-thin" onClick={e => e.stopPropagation()}>
-      <SettingsRow label={t('widget.quicklinks.iconSize')}>
-        <SegmentedControl
-          options={[
-            { value: 'small',  label: 'S' },
-            { value: 'medium', label: 'M' },
-            { value: 'large',  label: 'L' },
-          ]}
-          value={data.iconSize ?? 'medium'}
-          onChange={v => onUpdateData({ iconSize: v as BookmarkFolderData['iconSize'] })}
-        />
-      </SettingsRow>
+      <SettingsSlider
+        label={t('widget.quicklinks.iconSize')}
+        value={data.iconSize ?? 30}
+        min={18}
+        max={48}
+        step={2}
+        valueFormatter={v => `${v}px`}
+        onChange={v => onUpdateData({ iconSize: v })}
+      />
       <SettingsRow label={t('widget.quicklinks.showTitles')}>
         <SettingsSwitch checked={data.showTitles ?? true} onChange={v => onUpdateData({ showTitles: v })} />
       </SettingsRow>
-      <SettingsRow label={t('widget.quicklinks.textSize')}>
-        <SegmentedControl
-          options={[
-            { value: 'S', label: 'S' },
-            { value: 'M', label: 'M' },
-            { value: 'L', label: 'L' },
-          ]}
-          value={data.textSize ?? 'M'}
-          onChange={v => onUpdateData({ textSize: v as BookmarkFolderData['textSize'] })}
-        />
-      </SettingsRow>
+      <SettingsSlider
+        label={t('widget.quicklinks.textSize')}
+        value={data.textSize ?? 13}
+        min={9}
+        max={20}
+        step={1}
+        valueFormatter={v => `${v}px`}
+        onChange={v => onUpdateData({ textSize: v })}
+      />
       <SettingsRow label={t('widget.quicklinks.layout')}>
         <SegmentedControl
           options={[
@@ -346,15 +342,22 @@ export function BookmarkFolderSettings({ data, onUpdateData }: SettingsProps) {
 // ── Item row ───────────────────────────────────────────────────────────────────
 
 interface ItemRowProps {
-  node:          BmNode;
-  iconSize:      'small' | 'medium' | 'large';
-  showTitle:     boolean;
-  textSize:      'S' | 'M' | 'L';
-  onFolderClick: (node: BmNode) => void;
-  override?:     BookmarkIconOverride;
+  node:           BmNode;
+  iconSize:       number;
+  showTitle:      boolean;
+  textSize:       number;
+  onFolderClick:  (node: BmNode) => void;
+  override?:      BookmarkIconOverride;
+  /** Tile width only applies in grid layout — list rows stretch full width. */
+  applyTileWidth: boolean;
 }
 
-function ItemRow({ node, iconSize, showTitle, textSize, onFolderClick, override }: ItemRowProps) {
+// Icon box is the stored px value directly; image/tile scale proportionally —
+// matches Quicklinks' iconImgPx/iconTilePx exactly.
+const iconImgPx  = (iconSize: number) => Math.round(iconSize * 0.65);
+const iconTilePx = (iconSize: number) => Math.round(iconSize * 1.6);
+
+function ItemRow({ node, iconSize, showTitle, textSize, onFolderClick, override, applyTileWidth }: ItemRowProps) {
   const { t } = useSettings();
   const [iconError, setIconError] = useState(false);
   const [customImgError, setCustomImgError] = useState(false);
@@ -363,24 +366,29 @@ function ItemRow({ node, iconSize, showTitle, textSize, onFolderClick, override 
   const favicon     = hostname ? faviconUrl(hostname) : null;
   const initial     = (node.title || node.url || '?').charAt(0).toUpperCase();
   const iconSource  = override?.iconSource ?? 'auto';
-  const cls         = `sg-bf-item sg-bf-item--${iconSize}${isFolder ? ' sg-bf-item--folder' : ''}`;
-  const iconCls     = `sg-bf-item-icon sg-bf-item-icon--${iconSize}`;
-  const titleCls    = `sg-bf-item-title sg-bf-text--${textSize.toLowerCase()}`;
-  const fallback    = <span className={`${iconCls} sg-bf-item-icon--initial`}><span className="sg-bf-icon-fallback">{initial}</span></span>;
+  const cls         = `sg-bf-item${isFolder ? ' sg-bf-item--folder' : ''}`;
+  const tileStyle   = applyTileWidth ? { width: iconTilePx(iconSize) } : undefined;
+  const iconCls     = 'sg-bf-item-icon';
+  const iconStyle   = { width: iconSize, height: iconSize };
+  const imgPx       = iconImgPx(iconSize);
+  const imgStyle    = { width: imgPx, height: imgPx };
+  const titleCls    = 'sg-bf-item-title';
+  const titleStyle  = { fontSize: textSize };
+  const fallback    = <span className={iconCls} style={iconStyle}><span className="sg-bf-icon-fallback">{initial}</span></span>;
 
   let icon: React.ReactNode;
   if (isFolder) {
-    icon = <span className={iconCls}><span className="sg-bf-icon-emoji">📁</span></span>;
+    icon = <span className={iconCls} style={iconStyle}><span className="sg-bf-icon-emoji">📁</span></span>;
   } else if (iconSource !== 'auto' && override?.customIcon) {
     icon = customImgError ? fallback : (
-      <span className={`${iconCls} sg-bf-item-icon--favicon${override.showWhiteBadge ? ' sg-bf-item-icon--white-badge' : ''}`}>
-        <img src={override.customIcon} alt="" onError={() => setCustomImgError(true)} />
+      <span className={`${iconCls} sg-bf-item-icon--favicon${override.showWhiteBadge ? ' sg-bf-item-icon--white-badge' : ''}`} style={iconStyle}>
+        <img src={override.customIcon} alt="" style={imgStyle} onError={() => setCustomImgError(true)} />
       </span>
     );
   } else if (favicon && !iconError) {
     icon = (
-      <span className={`${iconCls} sg-bf-item-icon--favicon${override?.showWhiteBadge ? ' sg-bf-item-icon--white-badge' : ''}`}>
-        <img src={favicon} alt="" onError={() => setIconError(true)} />
+      <span className={`${iconCls} sg-bf-item-icon--favicon${override?.showWhiteBadge ? ' sg-bf-item-icon--white-badge' : ''}`} style={iconStyle}>
+        <img src={favicon} alt="" style={imgStyle} onError={() => setIconError(true)} />
       </span>
     );
   } else {
@@ -389,18 +397,18 @@ function ItemRow({ node, iconSize, showTitle, textSize, onFolderClick, override 
 
   if (isFolder) {
     return (
-      <div className={cls} title={node.title} onClick={() => onFolderClick(node)}>
+      <div className={cls} style={tileStyle} title={node.title} onClick={() => onFolderClick(node)}>
         {icon}
-        {showTitle && <span className={titleCls}>{node.title || t('widget.bookmarkFolder.unnamedFolder')}</span>}
+        {showTitle && <span className={titleCls} style={titleStyle}>{node.title || t('widget.bookmarkFolder.unnamedFolder')}</span>}
         <span className="sg-bf-item-chevron">›</span>
       </div>
     );
   }
 
   return (
-    <a className={cls} href={node.url} title={node.title}>
+    <a className={cls} style={tileStyle} href={node.url} title={node.title}>
       {icon}
-      {showTitle && <span className={titleCls}>{node.title || hostname || node.url}</span>}
+      {showTitle && <span className={titleCls} style={titleStyle}>{node.title || hostname || node.url}</span>}
     </a>
   );
 }
@@ -484,9 +492,9 @@ export default function BookmarkFolder({ data, onUpdateData }: Props) {
 
   const breadcrumbs  = [{ id: rootFolderId, name: rootName }, ...navStack];
   const displayItems = applySorting(items, data?.sortingMode ?? 'original');
-  const iconSize      = data.iconSize ?? 'medium';
+  const iconSize      = data.iconSize ?? 30;
   const showTitles    = data.showTitles ?? true;
-  const textSize      = data.textSize ?? 'M';
+  const textSize      = data.textSize ?? 13;
   const alignment     = data.alignment ?? 'left';
   // Icon overrides only ever apply to the root folder's own direct children —
   // navigating into a subfolder shows those items with no overrides at all.
@@ -546,6 +554,7 @@ export default function BookmarkFolder({ data, onUpdateData }: Props) {
                 textSize={textSize}
                 onFolderClick={enterFolder}
                 override={overridesActive ? data.iconOverrides?.[item.id] : undefined}
+                applyTileWidth={data.layout === 'grid'}
               />
             ))}
           </div>

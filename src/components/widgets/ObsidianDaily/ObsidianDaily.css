@@ -2,10 +2,6 @@
   padding: 2px 10px 8px;
 }
 
-.sg-obsd--s { font-size: 11px; }
-.sg-obsd--m { font-size: 12.5px; }
-.sg-obsd--l { font-size: 15px; }
-
 /* Shown when a write was refused because the note changed in Obsidian since
    the last read — the widget has already reloaded, this explains why the row
    the user clicked may look different now. */

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useFloating, flip, shift, offset, autoUpdate } from '@floating-ui/react';
 import type { QuickLink, QuicklinksData } from '../../../types/widget';
-import { SettingsRow, SegmentedControl, SettingsSwitch, Dropdown } from '../../shared/Form';
+import { SettingsRow, SegmentedControl, SettingsSlider, SettingsSwitch, Dropdown } from '../../shared/Form';
 import { useSettings } from '../../../contexts/SettingsContext';
 import type { TranslationKey } from '../../../i18n';
 import './Quicklinks.css';
@@ -71,13 +71,21 @@ function openInternalUrl(url: string, newTab: boolean, t: TFn) {
 
 interface LinkItemProps {
   link: QuickLink;
-  iconSize: 'small' | 'medium' | 'large';
+  iconSize: number;
   showTitle: boolean;
   showWhiteBadge: boolean;
-  textSize: 'S' | 'M' | 'L';
+  textSize: number;
+  /** Tile width only applies in grid/row layout — list rows stretch full width. */
+  applyTileWidth: boolean;
 }
 
-function LinkItem({ link, iconSize, showTitle, showWhiteBadge, textSize }: LinkItemProps) {
+// Icon box is the stored px value directly; image/tile scale proportionally
+// so they still look right across the full 18-48px slider range, not just
+// the 3 fixed stops (22/30/40) the old S/M/L classes covered exactly.
+const iconImgPx  = (iconSize: number) => Math.round(iconSize * 0.65);
+const iconTilePx = (iconSize: number) => Math.round(iconSize * 1.6);
+
+function LinkItem({ link, iconSize, showTitle, showWhiteBadge, textSize, applyTileWidth }: LinkItemProps) {
   const { t } = useSettings();
   const [faviconIdx, setFaviconIdx] = useState(0);
   const [customImgError, setCustomImgError] = useState(false);
@@ -88,51 +96,61 @@ function LinkItem({ link, iconSize, showTitle, showWhiteBadge, textSize }: LinkI
   const chain = faviconChain(hostname);
   const faviconSrc = chain[faviconIdx] ?? null;
   const fallback = <span className="sg-ql-fallback">{label.charAt(0).toUpperCase()}</span>;
+  const imgPx = iconImgPx(iconSize);
+  const imgStyle = { width: imgPx, height: imgPx };
 
   let iconInner: React.ReactNode;
   let isFaviconImg: boolean;
   if (iconSource !== 'auto' && link.customIcon) {
-    iconInner = customImgError ? fallback : <img src={link.customIcon} alt="" draggable={false} onError={() => setCustomImgError(true)} />;
+    iconInner = customImgError ? fallback : <img src={link.customIcon} alt="" draggable={false} style={imgStyle} onError={() => setCustomImgError(true)} />;
     isFaviconImg = !customImgError;
   } else if (iconSource === 'auto' && link.customIcon) {
     iconInner = link.customIcon.startsWith('data:')
-      ? <img src={link.customIcon} alt="" draggable={false} />
+      ? <img src={link.customIcon} alt="" draggable={false} style={imgStyle} />
       : <span className="sg-ql-emoji">{link.customIcon}</span>;
     isFaviconImg = link.customIcon.startsWith('data:');
   } else {
-    iconInner = faviconSrc ? <img src={faviconSrc} alt="" draggable={false} onError={() => setFaviconIdx(i => i + 1)} /> : fallback;
+    iconInner = faviconSrc ? <img src={faviconSrc} alt="" draggable={false} style={imgStyle} onError={() => setFaviconIdx(i => i + 1)} /> : fallback;
     isFaviconImg = !!faviconSrc;
   }
 
   const iconContent = (
-    <span className={`sg-ql-icon sg-ql-icon--${iconSize}${isFaviconImg ? ' sg-ql-icon--favicon' : ''}${showWhiteBadge && isFaviconImg ? ' sg-ql-icon--white-badge' : ''}`}>
+    <span
+      className={`sg-ql-icon${isFaviconImg ? ' sg-ql-icon--favicon' : ''}${showWhiteBadge && isFaviconImg ? ' sg-ql-icon--white-badge' : ''}`}
+      style={{ width: iconSize, height: iconSize }}
+    >
       {iconInner}
     </span>
   );
 
+  const titleStyle = { fontSize: textSize };
+  const tileStyle = applyTileWidth ? { width: iconTilePx(iconSize) } : undefined;
+
   if (isInternal) {
     return (
       <button
-        className={`sg-ql-link sg-ql-link--${iconSize}`}
+        className="sg-ql-link"
+        style={tileStyle}
         title={label}
         onMouseDown={e => { if (e.button === 1) { e.preventDefault(); openInternalUrl(link.url, true, t); } }}
         onClick={() => openInternalUrl(link.url, false, t)}
       >
         {iconContent}
-        {showTitle && <span className={`sg-ql-title sg-ql-text--${textSize.toLowerCase()}`}>{label}</span>}
+        {showTitle && <span className="sg-ql-title" style={titleStyle}>{label}</span>}
       </button>
     );
   }
 
   return (
     <a
-      className={`sg-ql-link sg-ql-link--${iconSize}`}
+      className="sg-ql-link"
+      style={tileStyle}
       href={link.url}
       title={label}
       draggable={false}
     >
       {iconContent}
-      {showTitle && <span className={`sg-ql-title sg-ql-text--${textSize.toLowerCase()}`}>{label}</span>}
+      {showTitle && <span className="sg-ql-title" style={titleStyle}>{label}</span>}
     </a>
   );
 }
@@ -167,10 +185,10 @@ export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
     return () => document.removeEventListener('pointerdown', handler, { capture: true });
   }, [linksPanelOpen, linksRefs.floating, linksRefs.reference]);
 
-  const iconSize   = data.iconSize   ?? 'medium';
+  const iconSize   = data.iconSize   ?? 30;
   const showTitles = data.showTitles ?? true;
   const layout     = data.layout     ?? 'grid';
-  const textSize   = data.textSize   ?? 'M';
+  const textSize   = data.textSize   ?? 13;
   const alignment  = data.alignment  ?? 'left';
 
   const ALIGNMENT_OPTIONS = [
@@ -216,25 +234,29 @@ export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
         />
       </SettingsRow>
 
-      <SettingsRow label={t('widget.quicklinks.iconSize')}>
-        <SegmentedControl
-          options={[{ value: 'small', label: 'S' }, { value: 'medium', label: 'M' }, { value: 'large', label: 'L' }]}
-          value={iconSize}
-          onChange={v => onUpdateData({ iconSize: v })}
-        />
-      </SettingsRow>
+      <SettingsSlider
+        label={t('widget.quicklinks.iconSize')}
+        value={iconSize}
+        min={18}
+        max={48}
+        step={2}
+        valueFormatter={v => `${v}px`}
+        onChange={v => onUpdateData({ iconSize: v })}
+      />
 
       <SettingsRow label={t('widget.quicklinks.showTitles')}>
         <SettingsSwitch checked={showTitles} onChange={v => onUpdateData({ showTitles: v })} />
       </SettingsRow>
 
-      <SettingsRow label={t('widget.quicklinks.textSize')}>
-        <SegmentedControl
-          options={[{ value: 'S', label: 'S' }, { value: 'M', label: 'M' }, { value: 'L', label: 'L' }]}
-          value={textSize}
-          onChange={v => onUpdateData({ textSize: v as 'S' | 'M' | 'L' })}
-        />
-      </SettingsRow>
+      <SettingsSlider
+        label={t('widget.quicklinks.textSize')}
+        value={textSize}
+        min={9}
+        max={20}
+        step={1}
+        valueFormatter={v => `${v}px`}
+        onChange={v => onUpdateData({ textSize: v })}
+      />
 
       <SettingsRow label={t('widget.quicklinks.alignment')}>
         <Dropdown
@@ -367,9 +389,9 @@ interface Props {
 export default function Quicklinks({ data, onUpdateData }: Props) {
   const { t } = useSettings();
   const { links = [], layout = 'grid' } = data;
-  const iconSize    = data.iconSize   ?? 'medium';
+  const iconSize    = data.iconSize   ?? 30;
   const showTitles  = data.showTitles ?? true;
-  const textSize    = data.textSize   ?? 'M';
+  const textSize    = data.textSize   ?? 13;
   const alignment   = data.alignment  ?? 'left';
 
   const containerRef                    = useRef<HTMLDivElement>(null);
@@ -392,9 +414,9 @@ export default function Quicklinks({ data, onUpdateData }: Props) {
     return () => ro.disconnect();
   }, []);
 
-  const effectiveLayout     = compact ? 'row'   : layout;
-  const effectiveIconSize   = compact ? 'small' : iconSize;
-  const effectiveShowTitles = compact ? false   : showTitles;
+  const effectiveLayout     = compact ? 'row' : layout;
+  const effectiveIconSize   = compact ? 18    : iconSize;
+  const effectiveShowTitles = compact ? false : showTitles;
 
   // Explorer-style drag: the entire item tile is the drag target.
   // Listeners go on `document` so pointermove fires before pointer capture is
@@ -500,6 +522,7 @@ export default function Quicklinks({ data, onUpdateData }: Props) {
                 showTitle={effectiveShowTitles}
                 showWhiteBadge={link.showWhiteBadge ?? false}
                 textSize={textSize}
+                applyTileWidth={effectiveLayout === 'grid' || effectiveLayout === 'row'}
               />
             </div>
           ))}

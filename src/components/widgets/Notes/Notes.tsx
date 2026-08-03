@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { NotesData } from '../../../types/widget';
-import { SettingsRow, SegmentedControl } from '../../shared/Form';
+import { SettingsRow, SegmentedControl, SettingsSlider } from '../../shared/Form';
 import { storageLocal } from '../../../lib/storageLocal';
 import { useSettings } from '../../../contexts/SettingsContext';
 import './Notes.css';
@@ -36,13 +36,15 @@ export function NotesSettings({ data, onUpdateData, widgetId }: SettingsProps) {
 
   return (
     <div className="sg-notes-settings" onClick={e => e.stopPropagation()}>
-      <SettingsRow label={t('widget.notes.fontSize')}>
-        <SegmentedControl
-          options={[{ value: 'S', label: 'S' }, { value: 'M', label: 'M' }, { value: 'L', label: 'L' }]}
-          value={data.fontSize ?? 'M'}
-          onChange={v => onUpdateData({ fontSize: v as 'S' | 'M' | 'L' })}
-        />
-      </SettingsRow>
+      <SettingsSlider
+        label={t('widget.notes.fontSize')}
+        value={data.fontSize ?? 13}
+        min={9}
+        max={20}
+        step={1}
+        valueFormatter={v => `${v}px`}
+        onChange={v => onUpdateData({ fontSize: v })}
+      />
       <SettingsRow label={t('widget.notes.storage')}>
         <SegmentedControl
           options={[{ value: 'local', label: t('widget.notes.storageLocal') }, { value: 'synced', label: t('widget.notes.storageCloud') }]}
@@ -107,13 +109,13 @@ export default function Notes({ data, onUpdateData, widgetId }: Props) {
   };
 
   const content  = storageMode === 'local' ? localContent : (data.content ?? '');
-  const sizeCls  = `sg-notes--${(data.fontSize ?? 'M').toLowerCase()}`;
   const charsPct = storageMode === 'synced' ? content.length / SYNC_CHAR_LIMIT : 0;
 
   return (
     <div className="sg-notes-wrap">
       <textarea
-        className={`sg-notes ${sizeCls}`}
+        className="sg-notes"
+        style={{ fontSize: data.fontSize ?? 13 }}
         value={content}
         placeholder={t('widget.notes.placeholder')}
         spellCheck={false}

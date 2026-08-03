@@ -27,10 +27,6 @@
   opacity: 0.6;
 }
 
-.sg-notes--s { font-size: 11px; }
-.sg-notes--m { font-size: 13px; }
-.sg-notes--l { font-size: 16px; }
-
 .sg-notes-counter {
   flex-shrink: 0;
   text-align: right;

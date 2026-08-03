@@ -2,6 +2,13 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.6.9] — Continuous icon/text size sliders
+
+- `iconSize`/`textSize`/`fontSize` changed from a discrete `'S'|'M'|'L'` (or `'small'|'medium'|'large'`) string enum to a free `number` (px) across all 7 fields that used it: Quicklinks, BookmarkFolder (icon + text size), Notes, ObsidianCapture, ObsidianDaily, ObsidianNote, ObsidianRandom (font size). Each is now a continuous slider — icon size 18-48px (step 2, default 30px), text/font size 9-20px (step 1, default 13px) — instead of 3 fixed stops
+- Icon box, favicon/image size, and grid/row tile width now scale proportionally from the raw px value (`iconImgPx`/`iconTilePx` helpers in `Quicklinks.tsx`/`BookmarkFolder.tsx`) instead of switching between 3 fixed CSS classes; removed the now-dead `.sg-*--small/medium/large` and `.sg-*--s/m/l` CSS across 7 widgets
+- No migration for existing saved `'S'`/`'medium'`/etc. values — by design, per explicit decision. A widget with a legacy string still in storage renders with an invalid inline style until its slider is touched
+- Built and then removed a `StepSlider` component (snapped discrete-option slider) — briefly used to convert the old segmented S/M/L pickers to sliders while keeping the enum data model, before the numeric-value approach above was chosen instead. Zero remaining consumers, so it and its CSS were deleted rather than left as unused shared code
+
 ## [1.6.8] — Widget settings row-gap fix, ESLint guard against future drift
 
 - Clock, Greeting, and Weather's settings wrapper is `display: contents` (no box of its own), so unlike every other widget they got no `gap` between rows — only each row's own 4px padding, making their settings panels visibly more cramped than Calendar/BookmarkFolder/Quicklinks/Notes/Obsidian's 18px (padding + gap) row spacing. Moved `gap: 10px` onto the shared `.sg-widget-settings-content` wrapper (`WidgetContainer.css`) instead of each widget's own settings root, so `display: contents` widgets inherit it directly and widgets with their own flex+gap wrapper render as a single child here (no doubling up)

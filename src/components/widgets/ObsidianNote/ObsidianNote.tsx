@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react';
 import type { ObsidianNoteData } from '../../../types/widget';
 import { useObsidianNote } from './useObsidianNote';
 import { useObsidian } from '../../../hooks/useObsidian';
-import { SettingsRow, SegmentedControl, SettingsSlider } from '../../shared/Form';
+import { SettingsRow, SettingsSlider } from '../../shared/Form';
 import { useSettings } from '../../../contexts/SettingsContext';
 import { normalizeVaultPath, vaultPathToTitle } from '../../../lib/obsidianPath';
 import { sliceSection } from '../../../lib/obsidianMarkdown';
@@ -66,13 +66,15 @@ export function ObsidianNoteSettings({ data, onUpdateData }: SettingsProps) {
         valueFormatter={v => (v ? `${v} min` : t('widget.obsidianNote.refreshOnLoad'))}
       />
 
-      <SettingsRow label={t('widget.obsidianNote.fontSize')}>
-        <SegmentedControl
-          options={[{ value: 'S', label: 'S' }, { value: 'M', label: 'M' }, { value: 'L', label: 'L' }]}
-          value={data.fontSize ?? 'M'}
-          onChange={v => onUpdateData({ fontSize: v as 'S' | 'M' | 'L' })}
-        />
-      </SettingsRow>
+      <SettingsSlider
+        label={t('widget.obsidianNote.fontSize')}
+        value={data.fontSize ?? 13}
+        min={9}
+        max={20}
+        step={1}
+        valueFormatter={v => `${v}px`}
+        onChange={v => onUpdateData({ fontSize: v })}
+      />
 
       <p className="sg-obs-hint">{t('widget.obsidianNote.readOnlyNote')}</p>
 
@@ -119,7 +121,6 @@ export default function ObsidianNote({ data }: Props) {
 
   const isLoading     = status === 'idle' || status === 'loading';
   const notConfigured = !isMock && !checking && !isReady;
-  const sizeCls       = `sg-obsn--${(data.fontSize ?? 'M').toLowerCase()}`;
 
   return (
     <div className="sg-cal">
@@ -151,7 +152,7 @@ export default function ObsidianNote({ data }: Props) {
         </div>
       </div>
 
-      <div className={`sg-cal-body sg-obsn ${sizeCls}`}>
+      <div className="sg-cal-body sg-obsn" style={{ fontSize: data.fontSize ?? 13 }}>
         {isMock && <div className="sg-cal-preview-badge">{t('widget.obsidian.previewBadge')}</div>}
 
         {notConfigured ? (

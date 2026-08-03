@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ObsidianCaptureData } from '../../../types/widget';
-import { SettingsRow, SegmentedControl, SettingsSwitch } from '../../shared/Form';
+import { SettingsRow, SegmentedControl, SettingsSlider, SettingsSwitch } from '../../shared/Form';
 import { storageLocal } from '../../../lib/storageLocal';
 import { useSettings } from '../../../contexts/SettingsContext';
 import { useObsidian } from '../../../hooks/useObsidian';
@@ -141,13 +141,15 @@ export function ObsidianCaptureSettings({ data, onUpdateData }: SettingsProps) {
         />
       </SettingsRow>
 
-      <SettingsRow label={t('widget.obsidianCapture.fontSize')}>
-        <SegmentedControl
-          options={[{ value: 'S', label: 'S' }, { value: 'M', label: 'M' }, { value: 'L', label: 'L' }]}
-          value={data.fontSize ?? 'M'}
-          onChange={v => onUpdateData({ fontSize: v as 'S' | 'M' | 'L' })}
-        />
-      </SettingsRow>
+      <SettingsSlider
+        label={t('widget.obsidianCapture.fontSize')}
+        value={data.fontSize ?? 13}
+        min={9}
+        max={20}
+        step={1}
+        valueFormatter={v => `${v}px`}
+        onChange={v => onUpdateData({ fontSize: v })}
+      />
 
       <div className="sg-cal-settings-divider"/>
       <p className="sg-obs-hint">{t('widget.obsidianCapture.restNote')}</p>
@@ -305,12 +307,11 @@ export default function ObsidianCapture({ data, widgetId }: Props) {
     );
   }
 
-  const sizeCls = `sg-obsc--${(data.fontSize ?? 'M').toLowerCase()}`;
-
   return (
     <div className="sg-obsc">
       <textarea
-        className={`sg-obsc-input ${sizeCls}`}
+        className="sg-obsc-input"
+        style={{ fontSize: data.fontSize ?? 13 }}
         value={text}
         placeholder={t('widget.obsidianCapture.placeholder')}
         spellCheck={false}

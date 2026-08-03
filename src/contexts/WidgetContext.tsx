@@ -12,7 +12,7 @@ const DEFAULT_WIDGETS: Widget[] = [
         { id: 'ql-github', url: 'https://github.com', title: 'GitHub', showTitle: true, iconSource: 'auto' },
       ],
       layout: 'grid',
-      iconSize: 'medium',
+      iconSize: 30,
       showTitles: true,
     },
   },

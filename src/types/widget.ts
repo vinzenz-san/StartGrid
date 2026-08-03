@@ -56,9 +56,9 @@ export type WidgetAlignment = 'left' | 'center' | 'right' | 'top' | 'bottom';
 export interface QuicklinksData {
   links: QuickLink[];
   layout: 'grid' | 'list';
-  iconSize?: 'small' | 'medium' | 'large';
+  iconSize?: number; // px, 18-48, default 30
   showTitles?: boolean;
-  textSize?: 'S' | 'M' | 'L';
+  textSize?: number; // px, 9-20, default 13
   alignment?: WidgetAlignment; // default 'left'
 }
 
@@ -73,9 +73,9 @@ export interface BookmarkIconOverride {
 export interface BookmarksData {
   rootFolderId?: string;
   folderTitle?:  string;
-  iconSize?:     'small' | 'medium' | 'large'; // default 'medium'
-  showTitles?:   boolean;                      // default true
-  textSize?:     'S' | 'M' | 'L';               // default 'M'
+  iconSize?:     number;  // px, 18-48, default 30
+  showTitles?:   boolean; // default true
+  textSize?:     number;  // px, 9-20, default 13
   layout?:       'list' | 'grid';               // default 'list'
   alignment?:    WidgetAlignment;                // default 'left'
   sortingMode?:  BookmarkSortMode;
@@ -110,7 +110,7 @@ export interface OutlookMailData {
 
 export interface NotesData {
   content:      string;
-  fontSize?:    'S' | 'M' | 'L';
+  fontSize?:    number; // px, 9-20, default 13
   storageMode?: 'local' | 'synced';
 }
 
@@ -131,7 +131,7 @@ export interface ObsidianCaptureData {
   /** Time format for prependTimestamp, in the token subset of lib/obsidianPath. */
   timestampFormat?: string;
   clearAfterSend?:  boolean;
-  fontSize?:        'S' | 'M' | 'L';
+  fontSize?:        number; // px, 9-20, default 13
 }
 
 /** Daily Note — reads today's note over the REST transport. The path comes
@@ -146,7 +146,7 @@ export interface ObsidianDailyData {
   /** Show already-ticked tasks. Default true. */
   showChecked?:    boolean;
   maxLines?:       number;
-  fontSize?:       'S' | 'M' | 'L';
+  fontSize?:       number; // px, 9-20, default 13
 }
 
 /** Pinned Note — one note rendered read-only. Editing deliberately stays in
@@ -157,7 +157,7 @@ export interface ObsidianNoteData {
   maxLines?:       number;
   /** Auto-refresh interval in minutes; 0/undefined = only on load. */
   refreshMinutes?: number;
-  fontSize?:       'S' | 'M' | 'L';
+  fontSize?:       number; // px, 9-20, default 13
 }
 
 export interface ObsidianSearchData {
@@ -173,7 +173,7 @@ export interface ObsidianRandomData {
   excerptLines?:   number;
   /** 'load' picks a fresh note on every new tab; 'manual' only on the button. */
   refreshOn?:      'load' | 'manual';
-  fontSize?:       'S' | 'M' | 'L';
+  fontSize?:       number; // px, 9-20, default 13
 }
 
 export interface PlaceholderData {
