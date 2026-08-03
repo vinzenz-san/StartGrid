@@ -52,9 +52,9 @@ interface Props {
 
 export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition, onReplayTour }: Props) {
   const {
-    globalColor, globalColorScheme, globalOpacity, globalDim, globalGradientIntensity, widgetShadowOpacity, globalPresetId,
+    globalColor, globalColorScheme, globalOpacity, globalDim, globalGradientIntensity, widgetShadowOpacity, globalGlassIntensity, globalPresetId,
     setGlobalColor, setGlobalOpacity, setGlobalDim, setGlobalGradientIntensity,
-    setWidgetShadowOpacity, setGlobalPresetId,
+    setWidgetShadowOpacity, setGlobalGlassIntensity, setGlobalPresetId,
   } = useTheme();
   const {
     colorScheme, accentColor, language, developerOptionsEnabled,
@@ -159,6 +159,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition,
     setGlobalDim(THEME_DEFAULTS.globalDim);
     setGlobalGradientIntensity(THEME_DEFAULTS.globalGradientIntensity);
     setWidgetShadowOpacity(THEME_DEFAULTS.widgetShadowOpacity);
+    setGlobalGlassIntensity(THEME_DEFAULTS.globalGlassIntensity);
     setGlobalPresetId(THEME_DEFAULTS.globalPresetId);
     updateSettings({ colorScheme: SETTINGS_DEFAULTS.colorScheme, accentColor: SETTINGS_DEFAULTS.accentColor, enableCustomContextMenu: SETTINGS_DEFAULTS.enableCustomContextMenu });
   }
@@ -290,6 +291,11 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition,
                 label={t('widgets.shadowIntensity')}
                 value={widgetShadowOpacity}
                 onChange={setWidgetShadowOpacity}
+              />
+              <SettingsSlider
+                label={t('widgets.glassIntensity')}
+                value={globalGlassIntensity}
+                onChange={setGlobalGlassIntensity}
               />
               <SettingsSlider
                 label={t('widgets.gradientIntensity')}

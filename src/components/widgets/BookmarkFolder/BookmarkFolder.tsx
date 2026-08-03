@@ -211,15 +211,15 @@ export function BookmarkFolderSettings({ data, onUpdateData }: SettingsProps) {
         />
       </SettingsRow>
       <SettingsRow label={t('widget.bookmarkFolder.sortOrder')}>
-        <select
-          className="sg-bf-sort-select"
+        <Dropdown
+          options={[
+            { value: 'original',      label: t('widget.bookmarkFolder.sortOriginal') },
+            { value: 'foldersFirst',  label: t('widget.bookmarkFolder.sortFoldersFirst') },
+            { value: 'alphabetical',  label: t('widget.bookmarkFolder.sortAlphabetical') },
+          ]}
           value={data?.sortingMode ?? 'original'}
-          onChange={e => onUpdateData({ sortingMode: e.target.value as BookmarkSortMode })}
-        >
-          <option value="original">{t('widget.bookmarkFolder.sortOriginal')}</option>
-          <option value="foldersFirst">{t('widget.bookmarkFolder.sortFoldersFirst')}</option>
-          <option value="alphabetical">{t('widget.bookmarkFolder.sortAlphabetical')}</option>
-        </select>
+          onChange={v => onUpdateData({ sortingMode: v as BookmarkSortMode })}
+        />
       </SettingsRow>
 
       <div className="sg-bf-settings-divider" />
@@ -233,12 +233,12 @@ export function BookmarkFolderSettings({ data, onUpdateData }: SettingsProps) {
         <span className="sg-bf-io-toggle-chevron">{iconOverridesOpen ? '∨' : '›'}</span>
       </button>
       {iconOverridesOpen && (
-      <p className="sg-bf-settings-note">{t('widget.bookmarkFolder.iconOverridesNote')}</p>
+      <p className="sg-form-hint">{t('widget.bookmarkFolder.iconOverridesNote')}</p>
       )}
       {iconOverridesOpen && (rootChildrenLoading ? (
-        <p className="sg-bf-settings-note">{t('widget.bookmarkFolder.loading')}</p>
+        <p className="sg-form-hint">{t('widget.bookmarkFolder.loading')}</p>
       ) : rootChildren.length === 0 ? (
-        <p className="sg-bf-settings-note">{t('widget.bookmarkFolder.noOverridableItems')}</p>
+        <p className="sg-form-hint">{t('widget.bookmarkFolder.noOverridableItems')}</p>
       ) : (
         <div className="sg-bf-io-list">
           {rootChildren.map(child => {
@@ -311,16 +311,16 @@ export function BookmarkFolderSettings({ data, onUpdateData }: SettingsProps) {
       <span className="sg-bf-settings-label">{t('widget.bookmarkFolder.rootFolder')}</span>
       {bookmarks.needsPermission ? (
         <div className="sg-bf-permission-prompt">
-          <p className="sg-bf-settings-note">{t('widget.bookmarkFolder.permissionNeeded')}</p>
+          <p className="sg-form-hint">{t('widget.bookmarkFolder.permissionNeeded')}</p>
           <button className="sg-bf-io-action-btn" onClick={bookmarks.requestAccess}>
             {t('widget.bookmarkFolder.grantAccess')}
           </button>
         </div>
       ) : bookmarks.isMock && !bookmarks.checkingPermission && (
-        <p className="sg-bf-settings-note">{t('widget.bookmarkFolder.mockNote')}</p>
+        <p className="sg-form-hint">{t('widget.bookmarkFolder.mockNote')}</p>
       )}
       {treeLoading ? (
-        <p className="sg-bf-settings-note">{t('widget.bookmarkFolder.loading')}</p>
+        <p className="sg-form-hint">{t('widget.bookmarkFolder.loading')}</p>
       ) : (
         <div className="sg-bf-fp-tree sg-scroll-thin">
           {tree[0]?.children?.map(n => (

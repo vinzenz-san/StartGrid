@@ -34,6 +34,7 @@ export const en = {
   'widgets.globalStyleNote':     'Note: Global settings apply only to widgets without an active Local Style.',
   'widgets.transparency':        'Transparency',
   'widgets.shadowIntensity':     'Shadow Intensity',
+  'widgets.glassIntensity':      'Glass Effect',
   'widgets.gradientIntensity':   'Gradient Intensity',
   'widgets.dimming':             'Dimming',
   'widgets.contextMenus':        'Widget Context Menus',

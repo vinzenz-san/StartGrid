@@ -196,7 +196,7 @@
   height: 100%;
   overflow-y: auto;
   box-sizing: border-box;
-  font-size: 13px;
+  font-size: 0.8rem;
 }
 
 .sg-cal-settings-row {
@@ -207,7 +207,7 @@
 }
 
 .sg-cal-settings-label {
-  font-size: 11px;
+  font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -261,7 +261,7 @@
 }
 
 .sg-cal-slider-val {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   min-width: 14px;
   text-align: right;
@@ -324,7 +324,7 @@
 }
 
 .sg-cal-account-email {
-  font-size: 11.5px;
+  font-size: 0.8rem;
   opacity: 0.7;
   text-align: center;
   overflow: hidden;
@@ -333,14 +333,14 @@
 }
 
 .sg-cal-connect-note {
-  font-size: 10.5px;
+  font-size: 0.75rem;
   opacity: 0.4;
   line-height: 1.5;
   text-align: center;
 }
 
 .sg-cal-connect-error {
-  font-size: 10.5px;
+  font-size: 0.75rem;
   color: #f87171;
   line-height: 1.5;
   text-align: center;

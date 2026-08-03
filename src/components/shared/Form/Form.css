@@ -19,6 +19,49 @@
   flex-shrink: 0;
 }
 
+/* ── Settings text input ─────────────────────────────────────────────────── */
+/* Shared free-text input for settings rows (URLs, tokens, search queries, etc.)
+   — was previously copy-pasted per-widget (Obsidian, Quicklinks, Greeting,
+   Weather) each at a slightly different font-size; consolidated here so they
+   move together. */
+.sg-form-input {
+  width: 100%;
+  box-sizing: border-box;
+  height: var(--sg-control-h);
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-hover);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.12s;
+}
+.sg-form-input:focus { border-color: var(--accent); }
+.sg-form-input::placeholder { color: var(--text-muted); opacity: 0.6; }
+.sg-form-input:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Monospace variant — API keys/hosts/paths, etc. */
+.sg-form-input--mono { font-family: ui-monospace, monospace; }
+
+/* ── Settings hint / note / error footnote ───────────────────────────────── */
+/* Shared muted footnote under a control — was previously copy-pasted per-widget
+   (Calendar, Obsidian, BookmarkFolder) at 10/10.5/11px; consolidated to match
+   the existing slider-label/value size (0.75rem) so all footnote text agrees. */
+.sg-form-hint {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+.sg-form-hint code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+}
+.sg-form-hint--error {
+  color: #f87171;
+}
+
 /* ── SegmentedControl ────────────────────────────────────────────────────── */
 .sg-form-seg {
   display: flex;

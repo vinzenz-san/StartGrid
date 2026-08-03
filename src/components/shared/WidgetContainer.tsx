@@ -23,7 +23,7 @@ export default function WidgetContainer({ widget }: Props) {
   const { isEditMode } = useEditMode();
   const { removeWidget, updateWidget } = useWidgets();
   const { gridConfig } = useGridConfig();
-  const { globalColor, globalColorScheme, globalOpacity, globalDim, globalGradientIntensity, globalPresetId, widgetShadowOpacity } = useTheme();
+  const { globalColor, globalColorScheme, globalOpacity, globalDim, globalGradientIntensity, globalPresetId, widgetShadowOpacity, globalGlassIntensity } = useTheme();
   const { colorScheme, enableCustomContextMenu, disableWidgetGlow, t } = useSettings();
   const elRef = useRef<HTMLDivElement>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -175,6 +175,7 @@ export default function WidgetContainer({ widget }: Props) {
   const localTransparencyPct = 100 - localOpacityPct;
   const localDimPct          = Math.round(widget.bgDim ?? globalDim);
   const localShadowPct       = Math.round(widget.bgShadow ?? widgetShadowOpacity);
+  const localGlassPct        = Math.round(widget.bgGlass ?? globalGlassIntensity);
 
   // Effective intensity: per-widget value if set, else backwards-compat from old boolean, else global
   const localIntensity = widget.bgGradientIntensity
@@ -209,10 +210,13 @@ export default function WidgetContainer({ widget }: Props) {
     ? (() => {
         const t = localIntensity / 100;
         const colorEnd = mixHex(effectiveColor, darkenHex(effectiveColor), t);
+        const shadowPct = widget.bgShadow ?? widgetShadowOpacity;
         return {
           '--widget-bg-opacity':     String(widget.bgOpacity ?? globalOpacity),
           '--widget-dim':            String(widget.bgDim ?? globalDim),
-          '--widget-shadow-opacity': String(widget.bgShadow ?? widgetShadowOpacity),
+          '--widget-shadow-opacity': String(shadowPct),
+          '--widget-shadow-factor':  String((shadowPct / 100) ** 2),
+          '--widget-glass':          String((widget.bgGlass ?? globalGlassIntensity) / 100),
           '--widget-bg-preset-css':  `linear-gradient(135deg, ${effectiveColor} 0%, ${colorEnd} 100%)`,
         } as React.CSSProperties;
       })()
@@ -333,6 +337,15 @@ export default function WidgetContainer({ widget }: Props) {
 
             <div className="sg-widget-appearance-section">
               <SettingsSlider
+                label={t('widgets.glassIntensity')}
+                value={localGlassPct}
+                onChange={v => updateWidget(widget.id, { bgGlass: v })}
+                onPointerDown={e => e.stopPropagation()}
+              />
+            </div>
+
+            <div className="sg-widget-appearance-section">
+              <SettingsSlider
                 label={t('widgets.gradientIntensity')}
                 value={localIntensity}
                 onChange={v => updateWidget(widget.id, { bgGradientIntensity: v })}
@@ -359,6 +372,7 @@ export default function WidgetContainer({ widget }: Props) {
                   bgOpacity: undefined,
                   bgDim: undefined,
                   bgShadow: undefined,
+                  bgGlass: undefined,
                   bgGradientIntensity: undefined,
                   localColorScheme: undefined,
                 })}

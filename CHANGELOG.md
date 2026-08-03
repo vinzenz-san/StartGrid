@@ -2,6 +2,13 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.6.10] — Glass effect slider, shadow intensity rework, settings UI consistency
+
+- Added a **Glass Effect** slider, both global (Settings → Appearance) and per-widget (Local Style) — previously the frosted/blur look was implicitly tied to the Transparency slider and only rendered in light mode. Now controlled independently via its own `--widget-glass` CSS variable (default 0, no effect) and applies identically in dark mode too. The shared `backdrop-filter` formula also gained a `brightness()` term so the blur/saturate boost stays visible against dark mode's low-chroma backgrounds, which `saturate()` alone had nothing to work with
+- Fixed Shadow Intensity doing nothing in light mode — the light-theme `box-shadow` was hardcoded and never actually read `--widget-shadow-opacity`, unlike the dark-theme rule. Both themes now use one identical formula
+- Reworked the shadow curve: raw linear alpha was dominated by the top half of the slider's range, making 0-50% look nearly identical. Now eased via a squared `--widget-shadow-factor`, with a higher ceiling so cranking the slider reads as a real, visible shadow instead of a faint alpha shift
+- Settings UI: found and fixed two controls that had drifted from the shared `SegmentedControl`/`Dropdown` components — BookmarkFolder's "Sort order" and Quicklinks' per-link icon-source picker were both hand-rolled native `<select>` elements at a smaller font-size than every other control in the same panel (this is also what fixed Quicklinks' icon-source popup ignoring dark mode, a bug noted but not fixed in 1.6.6). Added shared `.sg-form-input`/`.sg-form-hint` primitives (`Form.css`) and migrated the copy-pasted, hand-typed px values in BookmarkFolder, Quicklinks, Calendar (+ OutlookCalendar/OutlookMail), the five Obsidian widgets' shared chrome, Greeting, and Weather onto the same `rem`-based tokens the rest of the settings UI already used
+
 ## [1.6.9] — Continuous icon/text size sliders
 
 - Quicklinks: adding a link no longer blindly prepends `https://` to any URL missing a recognized internal scheme — now any existing scheme (`file:`, `ftp:`, etc.) is left untouched, only bare domains/IPs get `https://` added. `file:` links now also open via the `browser.tabs` API path (like `about:`/`chrome:`) instead of a plain anchor, since Firefox blocks direct anchor navigation to `file://` from extension pages. `javascript:`/`data:` links are rejected with an alert

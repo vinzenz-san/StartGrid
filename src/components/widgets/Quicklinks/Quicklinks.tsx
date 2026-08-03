@@ -309,14 +309,18 @@ export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
                       value={link.title ?? ''} onChange={e => updateLink(link.id, { title: e.target.value || undefined })}
                       onPointerDown={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}
                       onDragStart={e => e.stopPropagation()} />
-                    <select className="sg-ql-icon-select"
-                      value={link.iconSource ?? 'auto'}
-                      onChange={e => updateLink(link.id, { iconSource: e.target.value as QuickLink['iconSource'], customIcon: undefined })}
-                      onPointerDown={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}>
-                      <option value="auto">{t('widget.quicklinks.iconAuto')}</option>
-                      <option value="custom-url">{t('widget.quicklinks.iconUrl')}</option>
-                      <option value="upload">{t('widget.quicklinks.iconUpload')}</option>
-                    </select>
+                    <div onPointerDown={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}>
+                      <Dropdown
+                        menuWidth="auto"
+                        options={[
+                          { value: 'auto',       label: t('widget.quicklinks.iconAuto') },
+                          { value: 'custom-url', label: t('widget.quicklinks.iconUrl') },
+                          { value: 'upload',     label: t('widget.quicklinks.iconUpload') },
+                        ]}
+                        value={link.iconSource ?? 'auto'}
+                        onChange={v => updateLink(link.id, { iconSource: v as QuickLink['iconSource'], customIcon: undefined })}
+                      />
+                    </div>
                     <SettingsSwitch
                       checked={link.showWhiteBadge ?? false}
                       onChange={v => updateLink(link.id, { showWhiteBadge: v })}

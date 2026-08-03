@@ -36,6 +36,7 @@ export const de: Record<TranslationKey, string> = {
   'widgets.globalStyleNote':     'Hinweis: Globale Einstellungen gelten nur für Widgets ohne aktiven lokalen Stil.',
   'widgets.transparency':        'Transparenz',
   'widgets.shadowIntensity':     'Schattenintensität',
+  'widgets.glassIntensity':      'Glaseffekt',
   'widgets.gradientIntensity':   'Verlaufsintensität',
   'widgets.dimming':             'Abdunkelung',
   'widgets.contextMenus':        'Widget-Kontextmenüs',
