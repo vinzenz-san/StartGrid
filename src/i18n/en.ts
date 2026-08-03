@@ -449,7 +449,8 @@ export const en = {
   'widget.quicklinks.imageDimensionsTooLarge':  'Image must be 64×64 px or smaller (got {{w}}×{{h}}).',
   'widget.quicklinks.couldNotReadImage':        'Could not read image.',
   'widget.quicklinks.couldNotReadFile':         'Could not read file.',
-  'widget.quicklinks.internalUrlClipboard':     "Firefox security restricts opening 'about:' pages directly. The URL '{{url}}' has been copied to your clipboard.",
+  'widget.quicklinks.internalUrlClipboard':     "Firefox security restricts opening this link directly. The URL '{{url}}' has been copied to your clipboard.",
+  'widget.quicklinks.unsupportedUrlScheme':     "This link type isn't supported.",
 
 
   // ── Calendar widget ──────────────────────────────────────────────────────

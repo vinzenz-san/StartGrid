@@ -54,7 +54,9 @@ function generateId() {
 
 // ── Single link item ───────────────────────────────────────────────────────
 
-const INTERNAL_URL = /^(about|chrome|edge|moz-extension):/i;
+const INTERNAL_URL = /^(about|chrome|edge|moz-extension|file):/i;
+const DANGEROUS_URL = /^(javascript|data):/i;
+const SCHEME_URL = /^[a-z][a-z0-9+.-]*:/i;
 
 function clipboardFallback(url: string, t: TFn) {
   navigator.clipboard.writeText(url).catch(() => {});
@@ -209,8 +211,8 @@ export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
   const addLink = () => {
     const url = newUrl.trim();
     if (!url) return;
-    const isInternal = /^(about|chrome|edge|moz-extension):/i.test(url);
-    const fullUrl = (isInternal || url.startsWith('http')) ? url : `https://${url}`;
+    if (DANGEROUS_URL.test(url)) { alert(t('widget.quicklinks.unsupportedUrlScheme')); return; }
+    const fullUrl = SCHEME_URL.test(url) ? url : `https://${url}`;
     onUpdateData({ links: [...data.links, { id: generateId(), url: fullUrl, showTitle: true }] });
     setNewUrl('');
   };

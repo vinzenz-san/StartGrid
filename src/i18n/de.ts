@@ -451,7 +451,8 @@ export const de: Record<TranslationKey, string> = {
   'widget.quicklinks.imageDimensionsTooLarge':  'Das Bild darf höchstens 64×64 px groß sein (erhalten: {{w}}×{{h}}).',
   'widget.quicklinks.couldNotReadImage':        'Bild konnte nicht gelesen werden.',
   'widget.quicklinks.couldNotReadFile':         'Datei konnte nicht gelesen werden.',
-  'widget.quicklinks.internalUrlClipboard':     'Firefox verhindert das direkte Öffnen von „about:“-Seiten. Die URL „{{url}}“ wurde in die Zwischenablage kopiert.',
+  'widget.quicklinks.internalUrlClipboard':     'Firefox verhindert das direkte Öffnen dieses Links. Die URL „{{url}}“ wurde in die Zwischenablage kopiert.',
+  'widget.quicklinks.unsupportedUrlScheme':     'Dieser Link-Typ wird nicht unterstützt.',
 
 
   // ── Calendar widget ──────────────────────────────────────────────────────
