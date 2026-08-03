@@ -146,6 +146,17 @@
   font-variant-numeric: tabular-nums;
 }
 
+.sg-settings-slider-reset {
+  width: var(--sg-control-h);
+  height: var(--sg-control-h);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.sg-settings-slider-reset--default {
+  opacity: 0.35;
+}
+
 .sg-settings-slider input[type="range"] {
   width: 100%;
   height: 20px;       /* tall enough for thumb in all browsers; track is styled via pseudo-elements */

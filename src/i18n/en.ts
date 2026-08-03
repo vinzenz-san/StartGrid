@@ -356,6 +356,7 @@ export const en = {
 
   // ── Shared per-widget toggles (Clock, Greeting, …) ───────────────────────
   'widget.allowOverflow':            'Allow overflow',
+  'widget.resetToDefault':           'Reset to default',
 
   // ── Shared Display Settings panel (Clock, …) ─────────────────────────────
   'widget.displaySettings.title':    'Display',

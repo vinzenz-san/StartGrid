@@ -1,3 +1,4 @@
+import IconButton from './IconButton';
 import './Form.css';
 
 interface Props {
@@ -9,6 +10,10 @@ interface Props {
   step?:           number;
   valueFormatter?: (val: number) => string;
   onPointerDown?:  (e: React.PointerEvent<HTMLInputElement>) => void;
+  /** Value to restore when the reset button is clicked. Reset button only
+   *  renders when this is provided, and is disabled while already at it. */
+  defaultValue?:   number;
+  resetTitle?:     string;
 }
 
 const pct = (v: number) => `${v}%`;
@@ -18,17 +23,30 @@ export default function SettingsSlider({
   min = 0, max = 100, step = 5,
   valueFormatter = pct,
   onPointerDown,
+  defaultValue,
+  resetTitle = 'Reset to default',
 }: Props) {
   // Percentage of the track that is "filled" left of the thumb. Firefox paints
   // this natively via ::-moz-range-progress; WebKit has no such pseudo-element,
   // so we expose it as a CSS var and paint a hard-stop gradient on the track.
   const fillPct = max > min ? ((value - min) / (max - min)) * 100 : 0;
+  const isDefault = defaultValue !== undefined && value === defaultValue;
 
   return (
     <div className="sg-settings-slider">
       <div className="sg-settings-slider-header">
         <span className="sg-settings-slider-label">{label}</span>
         <span className="sg-settings-slider-val">{valueFormatter(value)}</span>
+        {defaultValue !== undefined && (
+          <IconButton
+            className={`sg-settings-slider-reset${isDefault ? ' sg-settings-slider-reset--default' : ''}`}
+            variant="ghost"
+            title={resetTitle}
+            onClick={() => onChange(defaultValue)}
+            active={false}
+            icon={<span aria-hidden="true">↺</span>}
+          />
+        )}
       </div>
       <input
         type="range"

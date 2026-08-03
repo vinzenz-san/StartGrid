@@ -24,6 +24,8 @@ export default function DisplaySettingsPanel({ value, onChange, defaultFontSize 
   const { t } = useSettings();
   const ds = value ?? {};
 
+  const resetTitle = t('widget.resetToDefault');
+
   return (
     <div className="sg-fs-panel" onClick={e => e.stopPropagation()}>
       <SettingsSlider
@@ -34,6 +36,8 @@ export default function DisplaySettingsPanel({ value, onChange, defaultFontSize 
         step={2}
         valueFormatter={v => `${v}px`}
         onChange={v => onChange({ fontSize: v })}
+        defaultValue={defaultFontSize}
+        resetTitle={resetTitle}
       />
 
       <SettingsSlider
@@ -44,6 +48,8 @@ export default function DisplaySettingsPanel({ value, onChange, defaultFontSize 
         step={0.1}
         valueFormatter={v => `${v.toFixed(1)}x`}
         onChange={v => onChange({ scale: v })}
+        defaultValue={1}
+        resetTitle={resetTitle}
       />
 
       <SettingsSlider
@@ -54,6 +60,8 @@ export default function DisplaySettingsPanel({ value, onChange, defaultFontSize 
         step={1}
         valueFormatter={v => `${v}°`}
         onChange={v => onChange({ rotation: v })}
+        defaultValue={0}
+        resetTitle={resetTitle}
       />
 
       <SettingsSlider
@@ -64,6 +72,8 @@ export default function DisplaySettingsPanel({ value, onChange, defaultFontSize 
         step={2}
         valueFormatter={v => `${v}px`}
         onChange={v => onChange({ padding: v })}
+        defaultValue={defaultPadding}
+        resetTitle={resetTitle}
       />
     </div>
   );

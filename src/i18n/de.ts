@@ -358,6 +358,7 @@ export const de: Record<TranslationKey, string> = {
 
   // ── Shared per-widget toggles (Clock, Greeting, …) ───────────────────────
   'widget.allowOverflow':            'Überlauf erlauben',
+  'widget.resetToDefault':           'Zurücksetzen',
 
   // ── Shared Display Settings panel (Clock, …) ─────────────────────────────
   'widget.displaySettings.title':    'Anzeige',
