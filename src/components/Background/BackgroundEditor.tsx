@@ -6,7 +6,7 @@ import { COLOR_PRESETS } from '../../lib/presets';
 import { getAdaptiveColor } from '../../lib/colorUtils';
 import { BACKGROUND_PROVIDERS } from './providers';
 import CustomColorPicker from '../shared/CustomColorPicker';
-import { SettingsSlider, SettingsRow, SettingsSwitch, SegmentedControl, Dropdown } from '../shared/Form';
+import { SettingsSlider, SettingsRow, SettingsSwitch, Dropdown } from '../shared/Form';
 import UnsplashSettings from './UnsplashSettings';
 import { DetailedSettings } from '../Layout/DetailedSettings';
 import './BackgroundEditor.css';
@@ -315,14 +315,13 @@ export default function BackgroundEditor() {
                   />
                 </SettingsRow>
 
-                <div className="bg-position-row">
-                  <span className="sg-form-label">{t('background.position')}</span>
+                <SettingsRow label={t('background.position')}>
                   <Dropdown
                     options={POSITION_OPTIONS}
                     value={customCfg.position ?? 'center'}
                     onChange={v => setConfig({ ...customCfg, position: v })}
                   />
-                </div>
+                </SettingsRow>
 
                 <SettingsRow label={t('background.autoDimNight')}>
                   <SettingsSwitch
@@ -369,7 +368,7 @@ export default function BackgroundEditor() {
           {bing.error && <p className="bg-bing-error">{bing.error}</p>}
 
           <SettingsRow label={t('background.date')}>
-            <SegmentedControl
+            <Dropdown
               options={DATE_MODE_OPTIONS}
               value={bingCfg.dateMode ?? 'today'}
               onChange={v => setConfig({ ...bingCfg, dateMode: v })}
@@ -435,14 +434,13 @@ export default function BackgroundEditor() {
               />
             </SettingsRow>
 
-            <div className="bg-position-row">
-              <span className="sg-form-label">{t('background.position')}</span>
+            <SettingsRow label={t('background.position')}>
               <Dropdown
                 options={POSITION_OPTIONS}
                 value={bingCfg.position ?? 'center'}
                 onChange={v => setConfig({ ...bingCfg, position: v })}
               />
-            </div>
+            </SettingsRow>
 
             <SettingsRow label={t('background.autoDimNight')}>
               <SettingsSwitch
@@ -484,7 +482,7 @@ export default function BackgroundEditor() {
           {astronomy.error && <p className="bg-bing-error">{astronomy.error}</p>}
 
           <SettingsRow label={t('background.date')}>
-            <SegmentedControl
+            <Dropdown
               options={DATE_MODE_OPTIONS}
               value={astro.dateMode ?? 'today'}
               onChange={v => setConfig({ ...astro, dateMode: v })}
@@ -550,14 +548,13 @@ export default function BackgroundEditor() {
               />
             </SettingsRow>
 
-            <div className="bg-position-row">
-              <span className="sg-form-label">{t('background.position')}</span>
+            <SettingsRow label={t('background.position')}>
               <Dropdown
                 options={POSITION_OPTIONS}
                 value={astro.position ?? 'center'}
                 onChange={v => setConfig({ ...astro, position: v })}
               />
-            </div>
+            </SettingsRow>
 
             <SettingsRow label={t('background.autoDimNight')}>
               <SettingsSwitch
@@ -598,7 +595,7 @@ export default function BackgroundEditor() {
           <div className="settings-section-label">{t('background.panel.gradient')}</div>
 
           <SettingsRow label={t('background.gradientTypeLabel')}>
-            <SegmentedControl
+            <Dropdown
               options={GRADIENT_TYPE_OPTIONS}
               value={grad.gradientType ?? 'linear'}
               onChange={v => setConfig({ ...grad, gradientType: v })}
@@ -722,14 +719,13 @@ export default function BackgroundEditor() {
                   />
                 </SettingsRow>
 
-                <div className="bg-position-row">
-                  <span className="sg-form-label">{t('background.position')}</span>
+                <SettingsRow label={t('background.position')}>
                   <Dropdown
                     options={POSITION_OPTIONS}
                     value={onlineCfg.position ?? 'center'}
                     onChange={v => setConfig({ ...onlineCfg, position: v })}
                   />
-                </div>
+                </SettingsRow>
 
                 <SettingsRow label={t('background.autoDimNight')}>
                   <SettingsSwitch
@@ -773,7 +769,7 @@ export default function BackgroundEditor() {
           {wikimedia.error && <p className="bg-bing-error">{wikimedia.error}</p>}
 
           <SettingsRow label={t('background.date')}>
-            <SegmentedControl
+            <Dropdown
               options={DATE_MODE_OPTIONS}
               value={wikiCfg.dateMode ?? 'today'}
               onChange={v => setConfig({ ...wikiCfg, dateMode: v })}
@@ -839,14 +835,13 @@ export default function BackgroundEditor() {
               />
             </SettingsRow>
 
-            <div className="bg-position-row">
-              <span className="sg-form-label">{t('background.position')}</span>
+            <SettingsRow label={t('background.position')}>
               <Dropdown
                 options={POSITION_OPTIONS}
                 value={wikiCfg.position ?? 'center'}
                 onChange={v => setConfig({ ...wikiCfg, position: v })}
               />
-            </div>
+            </SettingsRow>
 
             <SettingsRow label={t('background.autoDimNight')}>
               <SettingsSwitch

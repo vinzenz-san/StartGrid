@@ -5,7 +5,7 @@ import { GCAL_COLORS, DEFAULT_EVENT_COLOR } from './calendar.types';
 import type { CalendarEvent } from '../shared/calendarEvent.types';
 import { useCalendar, useGoogleCalendarList } from './useCalendar';
 import { useGoogleAuth } from '../../../hooks/useGoogleAuth';
-import { SettingsRow, SegmentedControl, SettingsSwitch } from '../../shared/Form';
+import { SettingsRow, Dropdown, SettingsSwitch } from '../../shared/Form';
 import { useSettings } from '../../../contexts/SettingsContext';
 import { LOCALES } from '../../../i18n';
 import {
@@ -62,7 +62,7 @@ export function CalendarSettings({ data, onUpdateData }: SettingsProps) {
   return (
     <div className="sg-cal-settings" onClick={e => e.stopPropagation()}>
       <SettingsRow label={t('widget.calendar.view')}>
-        <SegmentedControl
+        <Dropdown
           options={[{ value: 'agenda', label: t('widget.calendar.viewAgenda') }, { value: 'monthly', label: t('widget.calendar.viewMonthly') }]}
           value={viewMode}
           onChange={v => onUpdateData({ viewMode: v })}
@@ -71,7 +71,7 @@ export function CalendarSettings({ data, onUpdateData }: SettingsProps) {
 
       {viewMode === 'monthly' && (
         <SettingsRow label={t('widget.calendar.firstDayOfWeek')}>
-          <SegmentedControl
+          <Dropdown
             options={[{ value: 'sunday', label: t('widget.calendar.firstDaySunday') }, { value: 'monday', label: t('widget.calendar.firstDayMonday') }]}
             value={firstDayOfWeek === 1 ? 'monday' : 'sunday'}
             onChange={v => onUpdateData({ firstDayOfWeek: v === 'monday' ? 1 : 0 })}

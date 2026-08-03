@@ -19,11 +19,11 @@
 }
 
 .bg-color-swatch {
-  width: 36px;
-  height: 28px;
+  width: var(--sg-control-h);
+  height: var(--sg-control-h);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 2px;
+  border-radius: 5px;
+  padding: 1px;
   background: none;
   cursor: pointer;
 }
@@ -197,15 +197,6 @@
   color: var(--text);
   cursor: pointer;
   box-sizing: border-box;
-}
-
-/* Position — label sits on its own line above a full-width <Dropdown>,
-   matching the mode-switcher's own layout rather than a side-by-side row. */
-.bg-position-row {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 4px 0;
 }
 
 /* Luminosity slider — subtle tick at the 100 (middle) mark of its 0–200 range */

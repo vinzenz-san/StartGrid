@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import type { FontSettings } from '../../../types/widget';
 import SettingsRow from './SettingsRow';
-import SegmentedControl from './SegmentedControl';
 import SettingsSwitch from './SettingsSwitch';
 import SettingsSlider from './SettingsSlider';
 import Dropdown from './Dropdown';
@@ -110,7 +109,7 @@ export default function FontSettingsPanel({ value, onChange }: Props) {
       {fs.textOutline && (
         <>
           <SettingsRow label={t('widget.fontSettings.outlineStyle')}>
-            <SegmentedControl
+            <Dropdown
               options={[
                 { value: 'basic',    label: t('widget.fontSettings.outlineStyleBasic') },
                 { value: 'advanced', label: t('widget.fontSettings.outlineStyleAdvanced') },

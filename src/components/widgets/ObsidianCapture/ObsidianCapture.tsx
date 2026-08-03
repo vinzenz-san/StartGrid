@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ObsidianCaptureData } from '../../../types/widget';
-import { SettingsRow, SegmentedControl, SettingsSlider, SettingsSwitch } from '../../shared/Form';
+import { SettingsRow, Dropdown, SettingsSlider, SettingsSwitch } from '../../shared/Form';
 import { storageLocal } from '../../../lib/storageLocal';
 import { useSettings } from '../../../contexts/SettingsContext';
 import { useObsidian } from '../../../hooks/useObsidian';
@@ -78,7 +78,7 @@ export function ObsidianCaptureSettings({ data, onUpdateData }: SettingsProps) {
       <p className="sg-obs-hint">{t('widget.obsidianCapture.vaultHint')}</p>
 
       <SettingsRow label={t('widget.obsidianCapture.target')}>
-        <SegmentedControl
+        <Dropdown
           options={[
             { value: 'daily', label: t('widget.obsidianCapture.targetDaily') },
             { value: 'file',  label: t('widget.obsidianCapture.targetFile') },

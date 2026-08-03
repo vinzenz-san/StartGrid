@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useFloating, flip, shift, offset, autoUpdate } from '@floating-ui/react';
 import type { QuickLink, QuicklinksData } from '../../../types/widget';
-import { SettingsRow, SegmentedControl, SettingsSlider, SettingsSwitch, Dropdown } from '../../shared/Form';
+import { SettingsRow, SettingsSlider, SettingsSwitch, Dropdown } from '../../shared/Form';
 import { useSettings } from '../../../contexts/SettingsContext';
 import type { TranslationKey } from '../../../i18n';
 import './Quicklinks.css';
@@ -229,7 +229,7 @@ export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
   return (
     <div className="sg-ql-settings" onClick={e => e.stopPropagation()}>
       <SettingsRow label={t('widget.quicklinks.layout')}>
-        <SegmentedControl
+        <Dropdown
           options={[{ value: 'grid', label: t('widget.quicklinks.layoutGrid') }, { value: 'list', label: t('widget.quicklinks.layoutList') }]}
           value={layout}
           onChange={v => onUpdateData({ layout: v })}

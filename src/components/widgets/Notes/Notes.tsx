@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { NotesData } from '../../../types/widget';
-import { SettingsRow, SegmentedControl, SettingsSlider } from '../../shared/Form';
+import { SettingsRow, Dropdown, SettingsSlider } from '../../shared/Form';
 import { storageLocal } from '../../../lib/storageLocal';
 import { useSettings } from '../../../contexts/SettingsContext';
 import './Notes.css';
@@ -46,7 +46,7 @@ export function NotesSettings({ data, onUpdateData, widgetId }: SettingsProps) {
         onChange={v => onUpdateData({ fontSize: v })}
       />
       <SettingsRow label={t('widget.notes.storage')}>
-        <SegmentedControl
+        <Dropdown
           options={[{ value: 'local', label: t('widget.notes.storageLocal') }, { value: 'synced', label: t('widget.notes.storageCloud') }]}
           value={storageMode}
           onChange={v => handleModeChange(v as 'local' | 'synced')}

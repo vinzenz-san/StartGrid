@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { ClockData, WidgetAlignment } from '../../../types/widget';
-import { SettingsRow, SegmentedControl, SettingsSwitch, Dropdown, FontSettingsPanel, DisplaySettingsPanel } from '../../shared/Form';
+import { SettingsRow, SettingsSwitch, Dropdown, FontSettingsPanel, DisplaySettingsPanel } from '../../shared/Form';
 import { DetailedSettings } from '../../Layout/DetailedSettings';
 import { useSettings } from '../../../contexts/SettingsContext';
 import { LOCALES } from '../../../i18n';
@@ -103,7 +103,7 @@ export function ClockSettings({ data, onUpdateData }: SettingsProps) {
   return (
     <div className="sg-clock-settings" onClick={e => e.stopPropagation()}>
       <SettingsRow label={t('widget.clock.format')}>
-        <SegmentedControl
+        <Dropdown
           options={[{ value: '24h', label: '24h' }, { value: '12h', label: '12h' }]}
           value={format}
           onChange={v => onUpdateData({ format: v })}

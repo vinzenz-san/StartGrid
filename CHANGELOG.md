@@ -2,6 +2,16 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.6.12] — Settings UI: dropdown unification, button-position/theme pickers, row-width alignment
+
+- Every remaining "options" picker built as a hand-rolled `SegmentedControl` (BookmarkFolder/Quicklinks Layout, Weather units, Clock format, Notes storage, ObsidianRandom refresh mode, ObsidianCapture target, Calendar/OutlookCalendar view + first-day-of-week, FontSettingsPanel outline style, and the Background editor's Date mode + Gradient type) is now a shared `Dropdown`, matching Alignment/Sort order/Timezone-style controls elsewhere in the same panels
+- Global Settings → Button Position is now a `Dropdown` (arrow + label) instead of the 6-button `DirectionPicker` grid — the grid's own box height didn't follow `--sg-control-h`, so it visibly threw off row-to-row spacing in the sidebar. `DirectionPicker` had no other consumers and was deleted along with its CSS
+- Global Settings → Global Theme is now a Dark/Light `Dropdown` instead of the pill `ThemeToggle` switch (same root cause — the toggle's 28px box didn't match `--sg-control-h`). The toggle's dip-to-dark fade transition was pulled out into a shared `runThemeTransition` helper (`lib/themeTransition.ts`) so both this dropdown and the two remaining `ThemeToggle` instances (top-bar cluster, per-widget local override) trigger the identical effect from one place instead of duplicating it
+- `.bg-color-swatch` (accent-color swatch, letterbox-color swatches, gradient from/to swatches) shrunk from 36×28px to a `var(--sg-control-h)` square everywhere it's used, for the same row-alignment reason
+- Every `Dropdown`/`SegmentedControl` control inside a `SettingsRow` now gets a shared `width: 50%` (`Form.css`), so a panel's controls line up at a consistent right edge instead of each sizing to its own content
+- Background editor's Position row (Image, Online Image, Bing, Astronomy, Unsplash, Wikimedia) moved from a bespoke stacked `bg-position-row` layout (label above a full-width dropdown) onto the standard `SettingsRow`, consistent with every other row in the same panels; the now-unused `.bg-position-row` CSS was removed
+- Removed dead `.sg-cal-seg`/`.sg-cal-seg-btn` CSS in `Calendar.css` — an orphaned, unreferenced segmented-control implementation predating the shared `SegmentedControl` component
+
 ## [1.6.11] — Multi-calendar support for Google Calendar and Outlook Calendar
 
 - Both calendar widgets previously only ever fetched the account's single default calendar (Google's `primary` alias / Outlook's `/me/calendarView`), with no way to see events from any secondary calendar (e.g. a custom Google calendar like "Birthdays" or a shared Outlook calendar). Settings now gain a **"My Calendars"** checkbox list (shown once connected) listing every calendar on the account, colored to match each calendar's own color from the provider — same interaction as Google/Outlook's own native calendar UI

@@ -188,7 +188,7 @@ export function BookmarkFolderSettings({ data, onUpdateData }: SettingsProps) {
         onChange={v => onUpdateData({ textSize: v })}
       />
       <SettingsRow label={t('widget.quicklinks.layout')}>
-        <SegmentedControl
+        <Dropdown
           options={[
             { value: 'grid', label: t('widget.quicklinks.layoutGrid') },
             { value: 'list', label: t('widget.quicklinks.layoutList') },

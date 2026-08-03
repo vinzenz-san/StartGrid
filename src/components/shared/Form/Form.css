@@ -19,6 +19,16 @@
   flex-shrink: 0;
 }
 
+/* Pins expanding row controls (dropdown, segmented control) to a shared
+   width so their right edges align across a settings panel instead of each
+   one sizing to its own content. Fixed-size controls (switch, swatch button,
+   icon button, ...) are left alone — stretching those would distort them. */
+.sg-form-row > .sg-dropdown,
+.sg-form-row > .sg-form-seg {
+  width: 50%;
+  flex-shrink: 0;
+}
+
 /* ── Settings text input ─────────────────────────────────────────────────── */
 /* Shared free-text input for settings rows (URLs, tokens, search queries, etc.)
    — was previously copy-pasted per-widget (Obsidian, Quicklinks, Greeting,

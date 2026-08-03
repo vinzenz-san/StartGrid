@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import type { ObsidianRandomData } from '../../../types/widget';
 import { useObsidianRandom, firstLines } from './useObsidianRandom';
 import { useObsidian } from '../../../hooks/useObsidian';
-import { SettingsRow, SegmentedControl, SettingsSwitch, SettingsSlider, ActionButton } from '../../shared/Form';
+import { SettingsRow, Dropdown, SettingsSwitch, SettingsSlider, ActionButton } from '../../shared/Form';
 import { useSettings } from '../../../contexts/SettingsContext';
 import { vaultPathToTitle } from '../../../lib/obsidianPath';
 import { openInObsidian } from '../../../lib/obsidianApi';
@@ -31,7 +31,7 @@ export function ObsidianRandomSettings({ data, onUpdateData }: SettingsProps) {
   return (
     <div className="sg-obs-settings" onClick={e => e.stopPropagation()}>
       <SettingsRow label={t('widget.obsidianRandom.refreshOn')}>
-        <SegmentedControl
+        <Dropdown
           options={[
             { value: 'load',   label: t('widget.obsidianRandom.refreshLoad') },
             { value: 'manual', label: t('widget.obsidianRandom.refreshManual') },

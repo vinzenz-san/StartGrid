@@ -5,7 +5,7 @@ import type { CalendarEvent } from '../shared/calendarEvent.types';
 import { OUTLOOK_CATEGORY_COLORS, DEFAULT_EVENT_COLOR } from './outlookCalendar.types';
 import { useOutlookCalendar, useOutlookCalendarList } from './useOutlookCalendar';
 import { useMsAuth } from '../../../hooks/useMsAuth';
-import { SettingsRow, SegmentedControl, SettingsSwitch } from '../../shared/Form';
+import { SettingsRow, Dropdown, SettingsSwitch } from '../../shared/Form';
 import { useSettings } from '../../../contexts/SettingsContext';
 import { LOCALES } from '../../../i18n';
 import {
@@ -62,7 +62,7 @@ export function OutlookCalendarSettings({ data, onUpdateData }: SettingsProps) {
   return (
     <div className="sg-cal-settings" onClick={e => e.stopPropagation()}>
       <SettingsRow label={t('widget.outlookCalendar.view')}>
-        <SegmentedControl
+        <Dropdown
           options={[{ value: 'agenda', label: t('widget.outlookCalendar.viewAgenda') }, { value: 'monthly', label: t('widget.outlookCalendar.viewMonthly') }]}
           value={viewMode}
           onChange={v => onUpdateData({ viewMode: v })}
@@ -71,7 +71,7 @@ export function OutlookCalendarSettings({ data, onUpdateData }: SettingsProps) {
 
       {viewMode === 'monthly' && (
         <SettingsRow label={t('widget.outlookCalendar.firstDayOfWeek')}>
-          <SegmentedControl
+          <Dropdown
             options={[{ value: 'sunday', label: t('widget.outlookCalendar.firstDaySunday') }, { value: 'monday', label: t('widget.outlookCalendar.firstDayMonday') }]}
             value={firstDayOfWeek === 1 ? 'monday' : 'sunday'}
             onChange={v => onUpdateData({ firstDayOfWeek: v === 'monday' ? 1 : 0 })}

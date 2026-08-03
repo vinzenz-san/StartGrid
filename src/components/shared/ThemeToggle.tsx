@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSettings } from '../../contexts/SettingsContext';
+import { runThemeTransition } from '../../lib/themeTransition';
 import './ThemeToggle.css';
 
 interface Props {
@@ -31,25 +32,7 @@ export default function ThemeToggle({ isDark: controlledIsDark, onToggle }: Prop
     // Always a dark overlay — no white involved in either direction.
     // dark→light: invisible fade-in over dark page, slow reveal of light theme.
     // light→dark: cinematic dip to dark, theme switches, reveals dark theme.
-    // Max opacity 0.85 keeps widgets dimmed-but-visible rather than fully hidden.
-    const overlay = document.createElement('div');
-    overlay.style.cssText = [
-      'position:fixed', 'inset:0', 'z-index:999999',
-      'background:#0f1117',
-      'opacity:0', 'pointer-events:none',
-      'transition:opacity 0.2s ease',
-    ].join(';');
-    document.body.appendChild(overlay);
-
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      overlay.style.opacity = '0.85';
-      setTimeout(() => {
-        updateSettings({ colorScheme: isDark ? 'light' : 'dark' });
-        overlay.style.transition = 'opacity 0.9s ease';
-        overlay.style.opacity = '0';
-        overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
-      }, 160);
-    }));
+    runThemeTransition(() => updateSettings({ colorScheme: isDark ? 'light' : 'dark' }));
   };
 
   return (

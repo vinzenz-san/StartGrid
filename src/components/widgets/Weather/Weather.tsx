@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { WeatherData } from '../../../types/widget';
-import { SettingsRow, SegmentedControl, SettingsSwitch, ActionButton } from '../../shared/Form';
+import { SettingsRow, Dropdown, SettingsSwitch, ActionButton } from '../../shared/Form';
 import { useSettings } from '../../../contexts/SettingsContext';
 import { useWeather } from '../../../hooks/useWeather';
 import { geocodeCity, type GeocodeResult } from '../../../lib/openMeteoApi';
@@ -128,7 +128,7 @@ export function WeatherSettings({ data, onUpdateData }: SettingsProps) {
       {locateError && <div className="sg-weather-search-error">{locateError}</div>}
 
       <SettingsRow label={t('widget.weather.units')}>
-        <SegmentedControl
+        <Dropdown
           options={[
             { value: 'metric',   label: t('widget.weather.unitsMetric') },
             { value: 'imperial', label: t('widget.weather.unitsImperial') },

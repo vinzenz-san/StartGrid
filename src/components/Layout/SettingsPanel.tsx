@@ -6,7 +6,7 @@ import { COLOR_PRESETS } from '../../lib/presets';
 import { performFactoryReset, exportBackup, importBackup } from './BackupRestore';
 import CustomColorPicker from '../shared/CustomColorPicker';
 import ConfirmDialog from '../shared/ConfirmDialog';
-import { SettingsRow, SettingsSwitch, SettingsSlider, ActionButton, DirectionPicker, IconButton, Dropdown } from '../shared/Form';
+import { SettingsRow, SettingsSwitch, SettingsSlider, ActionButton, IconButton, Dropdown } from '../shared/Form';
 import { PanelSection, PanelSectionList } from './PanelSection';
 import { DetailedSettings } from './DetailedSettings';
 import { SettingsPanelOpenContext } from '../../contexts/SettingsPanelOpenContext';
@@ -14,7 +14,6 @@ import { useTheme, DEFAULTS as THEME_DEFAULTS } from '../../contexts/ThemeContex
 import { useSettings, SETTINGS_DEFAULTS } from '../../contexts/SettingsContext';
 import { useBackground } from '../../contexts/BackgroundContext';
 import { useEditMode } from '../../contexts/EditModeContext';
-import ThemeToggle from '../shared/ThemeToggle';
 import { useWidgets } from '../../contexts/WidgetContext';
 import { useGridConfig } from '../../contexts/GridConfigContext';
 import { useApplyGridConfig } from '../../hooks/useApplyGridConfig';
@@ -22,6 +21,8 @@ import { compactWidgets } from '../../lib/gridUtils';
 import { DEFAULT_BG } from '../../types/background';
 import AddWidgetMenu from '../shared/AddWidgetMenu';
 import type { Language, SettingsButtonPosition } from '../../contexts/SettingsContext';
+import type { TranslationKey } from '../../i18n';
+import { runThemeTransition } from '../../lib/themeTransition';
 import { DEFAULT_GRID_CONFIG, type GridConfig } from '../../types/grid';
 import { APP_VERSION } from '../../lib/appVersion';
 import './SettingsPanel.css';
@@ -33,14 +34,13 @@ const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
   { value: 'de', label: 'Deutsch' },
 ];
 
-// col/row placement in a 3×2 grid (left col = left-side, center = centered, right col = right-side)
-const SETTINGS_BTN_CELLS = [
-  { value: 'top-left'    as SettingsButtonPosition, arrow: '↖', col: 1, row: 1 },
-  { value: 'top'         as SettingsButtonPosition, arrow: '↑', col: 2, row: 1 },
-  { value: 'top-right'   as SettingsButtonPosition, arrow: '↗', col: 3, row: 1 },
-  { value: 'bottom-left' as SettingsButtonPosition, arrow: '↙', col: 1, row: 2 },
-  { value: 'bottom'      as SettingsButtonPosition, arrow: '↓', col: 2, row: 2 },
-  { value: 'bottom-right'as SettingsButtonPosition, arrow: '↘', col: 3, row: 2 },
+const SETTINGS_BTN_OPTIONS: { value: SettingsButtonPosition; arrow: string; labelKey: TranslationKey }[] = [
+  { value: 'top-left',     arrow: '↖', labelKey: 'settings.buttonPosition.topLeft' },
+  { value: 'top',          arrow: '↑', labelKey: 'settings.buttonPosition.top' },
+  { value: 'top-right',    arrow: '↗', labelKey: 'settings.buttonPosition.topRight' },
+  { value: 'bottom-left',  arrow: '↙', labelKey: 'settings.buttonPosition.bottomLeft' },
+  { value: 'bottom',       arrow: '↓', labelKey: 'settings.buttonPosition.bottom' },
+  { value: 'bottom-right', arrow: '↘', labelKey: 'settings.buttonPosition.bottomRight' },
 ];
 
 interface Props {
@@ -376,7 +376,14 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition,
               />
             </SettingsRow>
             <SettingsRow label={t('settings.globalTheme')}>
-              <ThemeToggle />
+              <Dropdown
+                options={[
+                  { value: 'dark',  label: t('settings.globalTheme.dark') },
+                  { value: 'light', label: t('settings.globalTheme.light') },
+                ]}
+                value={colorScheme === 'light' ? 'light' : 'dark'}
+                onChange={v => runThemeTransition(() => updateSettings({ colorScheme: v }))}
+              />
             </SettingsRow>
             <SettingsRow label={t('settings.accentColor')}>
               <button
@@ -388,12 +395,10 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition,
               />
             </SettingsRow>
             <SettingsRow label={t('settings.buttonPosition')}>
-              <DirectionPicker
-                cells={SETTINGS_BTN_CELLS}
+              <Dropdown
+                options={SETTINGS_BTN_OPTIONS.map(o => ({ value: o.value, label: `${o.arrow} ${t(o.labelKey)}` }))}
                 value={settingsButtonPosition}
                 onChange={v => updateSettings({ settingsButtonPosition: v })}
-                cols={3}
-                rows={2}
               />
             </SettingsRow>
 

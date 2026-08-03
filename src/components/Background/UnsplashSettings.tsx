@@ -182,14 +182,13 @@ export default function UnsplashSettings() {
           />
         </SettingsRow>
 
-        <div className="bg-position-row">
-          <span className="sg-form-label">{t('background.position')}</span>
+        <SettingsRow label={t('background.position')}>
           <Dropdown
             options={POSITION_OPTIONS}
             value={uc.position ?? 'center'}
             onChange={v => update({ position: v })}
           />
-        </div>
+        </SettingsRow>
 
         <SettingsRow label={t('background.autoDimNight')}>
           <SettingsSwitch
