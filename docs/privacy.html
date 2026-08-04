@@ -13,7 +13,7 @@
 <body>
   <div class="wrap">
     <h1>Privacy Policy</h1>
-    <p class="updated">Last updated: 2026-07-29 (added the Obsidian widgets and their loopback host permission; corrected stale wording that described the Calendar and Outlook widgets as not yet enabled)</p>
+    <p class="updated">Last updated: 2026-08-04 (documented the background weather effect's independent location use, and corrected the Calendar scope description to cover multi-calendar selection, not just the primary calendar)</p>
 
     <p>StartGrid is a browser extension (Firefox &amp; Chrome) that replaces your new tab page with a customizable widget grid. This policy explains what data StartGrid accesses, why, and how it's stored — in particular for the optional Google Calendar and Outlook Calendar/Mail widgets, which require signing in with your Google or Microsoft account, and the optional Obsidian widgets, which read notes from a vault on your own device. All of these are off by default and do nothing until you add the widget and connect it.</p>
 
@@ -35,7 +35,7 @@
       <tr><th>Scope</th><th>What it's used for</th></tr>
       <tr>
         <td><code>calendar.readonly</code></td>
-        <td>Fetches upcoming events from your primary calendar — title, start/end time, location, color, and a link back to the event — via a field-restricted Calendar API request. Used to render the Calendar widget. No event is ever created, edited, or deleted.</td>
+        <td>Fetches upcoming events from your primary calendar, plus any additional Google calendars you select in the widget's "My Calendars" list — title, start/end time, location, color, and a link back to the event — via a field-restricted Calendar API request. Used to render the Calendar widget. No event is ever created, edited, or deleted.</td>
       </tr>
       <tr>
         <td><code>openid</code>, <code>email</code></td>
@@ -104,8 +104,9 @@
     <p>The Random Note widget is the one exception to "nothing is written to storage": because the plugin can only list one folder at a time, that widget caches a list of your vault's Markdown <em>file paths</em> (not their contents) in <code>browser.storage.local</code> for six hours, so it does not have to re-scan your vault on every new tab. You can clear it at any time with "Rebuild vault index" in the widget's settings, and removing the widget or uninstalling StartGrid removes it too.</p>
     <p>Daily Note can tick checkboxes off in today's note, and Quick Capture appends the text you type. These are the only writes StartGrid makes to your vault; it never deletes notes, and it never modifies a note you have not pointed a widget at. Revoking the host permission, clicking "Disconnect", or quitting Obsidian stops all of it immediately.</p>
 
-    <h2>Location (Weather widget)</h2>
+    <h2>Location (Weather widget and background weather effect)</h2>
     <p>The optional Weather widget, if you enable it and grant permission, uses your browser's geolocation API to get your device's coordinates. These coordinates are sent directly from your browser to the third-party weather provider <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> to fetch local weather data — StartGrid's developer never receives or stores this location data. You can alternatively search for a location by name instead of sharing your device's position, and you can deny or revoke the location permission at any time via your browser's site permissions for this extension. The coordinates you choose are saved with that widget's settings in the browser's sync storage described above, so the same location appears on your other signed-in devices; removing the Weather widget removes them.</p>
+    <p>Separately, the optional background weather effect (Settings → Settings, off by default) — which renders animated rain or snow behind the widget grid — has its own independently-set location, used only to decide whether to show rain, snow, or nothing. It is not tied to the Weather widget and works whether or not that widget is on your grid. Enabling it requests location the same way (device geolocation or search-by-name) and sends coordinates directly to Open-Meteo the same way; the resulting location is saved with your global settings in sync storage. Denying, revoking, or never enabling the effect means no location is requested for it.</p>
 
     <h2>Other data StartGrid accesses</h2>
     <p>Optional background-image providers fetch a public photo URL and its attribution text. Each sends your IP address to the provider, as any web request does; none involves your Google Account or any personal data:</p>
