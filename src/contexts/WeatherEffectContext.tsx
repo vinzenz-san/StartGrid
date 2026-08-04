@@ -27,16 +27,6 @@ interface WeatherEffectCtx {
   /** Dev-panel debug override — in-memory only, resets on reload. */
   devOverride:    WeatherEffectType | null;
   setDevOverride: (type: WeatherEffectType | null) => void;
-  /** Live temperature in °C (units are pinned to 'metric' above), or null
-   *  until resolved — drives the corner-frost overlay (< 0°C). */
-  temperatureC: number | null;
-  /** Real frost state derived from temperatureC, ignoring any dev override. */
-  liveFrostActive: boolean;
-  /** Frost state actually shown by <WeatherEffect> — devFrostOverride wins when set. */
-  frostActive:      boolean;
-  /** Dev-panel debug override — in-memory only, resets on reload. */
-  devFrostOverride:    boolean | null;
-  setDevFrostOverride: (value: boolean | null) => void;
 }
 
 const Ctx = createContext<WeatherEffectCtx | null>(null);
@@ -44,7 +34,6 @@ const Ctx = createContext<WeatherEffectCtx | null>(null);
 export function WeatherEffectProvider({ children }: { children: ReactNode }) {
   const [config, setConfig] = useStorage<WeatherEffectConfig>(STORAGE_KEY, DEFAULTS);
   const [devOverride, setDevOverride] = useState<WeatherEffectType | null>(null);
-  const [devFrostOverride, setDevFrostOverride] = useState<boolean | null>(null);
 
   const c = config ?? DEFAULTS;
   const hasLocation = c.latitude !== undefined && c.longitude !== undefined;
@@ -58,10 +47,6 @@ export function WeatherEffectProvider({ children }: { children: ReactNode }) {
   const liveEffectType = weather ? getWeatherEffectType(weather.weatherCode) : 'none';
   const effectType = devOverride ?? liveEffectType;
 
-  const temperatureC = weather ? weather.temperature : null;
-  const liveFrostActive = temperatureC !== null && temperatureC < 0;
-  const frostActive = devFrostOverride ?? liveFrostActive;
-
   const setEnabled  = (enabled: boolean) => setConfig(prev => ({ ...(prev ?? DEFAULTS), enabled }));
   const setLocation = (latitude: number, longitude: number, locationName?: string) =>
     setConfig(prev => ({ ...(prev ?? DEFAULTS), latitude, longitude, locationName }));
@@ -71,7 +56,6 @@ export function WeatherEffectProvider({ children }: { children: ReactNode }) {
       enabled: c.enabled, locationName: c.locationName, hasLocation,
       setEnabled, setLocation,
       liveEffectType, effectType, devOverride, setDevOverride,
-      temperatureC, liveFrostActive, frostActive, devFrostOverride, setDevFrostOverride,
     }}>
       {children}
     </Ctx.Provider>

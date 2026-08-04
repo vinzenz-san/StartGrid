@@ -1,41 +1,20 @@
-// Small hand-drawn weather sprites — the same cheap "reuse a few small
-// textures via GPU-blitted quads" technique behind HTC Sense's iconic
-// weather animations, instead of trying to fake optics with procedural
-// gradients. Copied into public/weather/ so they resolve as extension-
-// relative paths at runtime, same as public/icons/. Sources:
-//  - rain-*/snowflake: "Weather particle sprites" by EMI EMI GAMES / E.
-//    Wouters (emiemigames.itch.io/weather-particle-sprites) — free use
-//    permitted per the author's own comment on that page.
-//  - cloud-*: "Old frogatto clouds" by Jetrel (opengameart.org/content/
-//    old-frogatto-clouds), CC0 — chroma-keyed from their original solid
-//    background to add real alpha transparency.
-//  - frost-*: "Frosted Screen Effect" by ScratchBattles (squaremeapixel.
-//    itch.io/frosted-screen-effect) — free for personal/commercial use,
-//    no credit required. Downscaled from the original 1920x1080 source.
+// Small hand-drawn weather sprites (from "Weather particle sprites" by
+// EMI EMI GAMES / E. Wouters — emiemigames.itch.io/weather-particle-sprites,
+// free use permitted per the author's own comment on that page) — the same
+// cheap "reuse a few small textures via GPU-blitted quads" technique behind
+// HTC Sense's iconic weather animations, instead of trying to fake optics
+// with procedural gradients. Copied into public/weather/ so they resolve
+// as extension-relative paths at runtime, same as public/icons/.
 const SPRITE_PATHS = {
   rainDark:   'weather/rain-dark.png',
   rainLight:  'weather/rain-light.png',
   rainSplash: 'weather/rain-splash.png', // 80x16 strip — 5 frames of 16x16
   snowflake:  'weather/snowflake.png',
-  cloud1:     'weather/cloud-1.png',
-  cloud2:     'weather/cloud-2.png',
-  cloud3:     'weather/cloud-3.png',
-  cloud4:     'weather/cloud-4.png',
-  cloud5:     'weather/cloud-5.png',
-  cloud6:     'weather/cloud-6.png',
-  cloud7:     'weather/cloud-7.png',
-  frostLight:  'weather/frost-light.png',
-  frostMist:   'weather/frost-mist.png',
-  frostMedium: 'weather/frost-medium.png',
-  frostHeavy:  'weather/frost-heavy.png',
 } as const;
 
 export type SpriteKey = keyof typeof SPRITE_PATHS;
 
-export const RAIN_SPRITES:  readonly SpriteKey[] = ['rainDark', 'rainLight'];
-export const CLOUD_SPRITES: readonly SpriteKey[] = ['cloud1', 'cloud2', 'cloud3', 'cloud4', 'cloud5', 'cloud6', 'cloud7'];
-// Ordered lightest → heaviest, so a coldness value can index straight in.
-export const FROST_SPRITES: readonly SpriteKey[] = ['frostLight', 'frostMist', 'frostMedium', 'frostHeavy'];
+export const RAIN_SPRITES: readonly SpriteKey[] = ['rainDark', 'rainLight'];
 
 const cache = new Map<SpriteKey, HTMLImageElement>();
 

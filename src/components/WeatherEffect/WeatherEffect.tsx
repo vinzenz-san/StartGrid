@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { useWeatherEffect } from '../../contexts/WeatherEffectContext';
 import type { WeatherEffectType } from '../../lib/weatherEffectMap';
-import { getSprite, preloadSprites, RAIN_SPRITES, CLOUD_SPRITES, FROST_SPRITES, type SpriteKey } from '../../lib/weatherSprites';
+import { getSprite, preloadSprites, RAIN_SPRITES, type SpriteKey } from '../../lib/weatherSprites';
 import './WeatherEffect.css';
 
-// Rain, snow, clouds and frost are all small pre-drawn sprites (see
-// weatherSprites.ts) blitted via drawImage — the same cheap "reuse a few
-// small textures many times" technique behind HTC Sense's iconic weather
-// animations, rather than trying to fake realism with procedural gradients.
-const MAX_RAIN   = 90;
-const MAX_SNOW   = 70;
-const MAX_CLOUDS = 6;
+// Rain and snow are small pre-drawn sprites (see weatherSprites.ts) blitted
+// via drawImage — the same cheap "reuse a few small textures many times"
+// technique behind HTC Sense's iconic weather animations, rather than
+// trying to fake realism with procedural gradients.
+const MAX_RAIN = 90;
+const MAX_SNOW = 70;
 
 // The effect runs for a short window after a new tab opens, then fades back
 // out on its own rather than animating indefinitely or cutting off abruptly.
@@ -19,7 +18,6 @@ const FADE_IN_MS  = 900;
 const FADE_OUT_MS = 1800;
 
 function rand(min: number, max: number) { return min + Math.random() * (max - min); }
-function clamp(v: number, min: number, max: number) { return Math.max(min, Math.min(max, v)); }
 
 // Recolors a sprite once into an offscreen canvas (source-atop is scoped to
 // that canvas alone, so no risk of it bleeding into whatever else is on the
@@ -106,85 +104,18 @@ function drawSnowFlake(ctx: CanvasRenderingContext2D, f: SnowFlake, sprite: HTML
   ctx.restore();
 }
 
-// ── Clouds: two overlapping sprite instances per cloud (different variants
-// picked at random, offset/scaled) for shape variety from the 7 source
-// textures. Drawn at their own painted colors/shading (no tint) — that
-// baked-in light/dark texture is what makes them read as fluffy rather
-// than flat. ───────────────────────────────────────────────────────────
-interface CloudShape {
-  x: number; y: number; scale: number; speed: number; opacity: number; bobPhase: number;
-  spriteA: SpriteKey; spriteB: SpriteKey; offB: { dx: number; dy: number; scale: number };
-}
-function makeClouds(w: number, h: number, count: number): CloudShape[] {
-  return Array.from({ length: count }, () => ({
-    x: rand(-w * 0.2, w), y: rand(0, h * 0.35), scale: rand(1.1, 2.2), speed: rand(6, 16), opacity: rand(0.7, 0.95),
-    bobPhase: rand(0, Math.PI * 2),
-    spriteA: CLOUD_SPRITES[Math.floor(Math.random() * CLOUD_SPRITES.length)],
-    spriteB: CLOUD_SPRITES[Math.floor(Math.random() * CLOUD_SPRITES.length)],
-    offB: { dx: rand(-0.5, 0.5), dy: rand(-0.15, 0.15), scale: rand(0.5, 0.8) },
-  }));
-}
-function drawCloud(ctx: CanvasRenderingContext2D, c: CloudShape, baseSize: number) {
-  const size = baseSize * c.scale;
-
-  const imgA = getSprite(c.spriteA);
-  if (imgA.complete && imgA.naturalWidth > 0) {
-    const h = size * (imgA.naturalHeight / imgA.naturalWidth);
-    ctx.save();
-    ctx.globalAlpha = c.opacity;
-    ctx.drawImage(imgA, c.x - size / 2, c.y - h / 2, size, h);
-    ctx.restore();
-  }
-  const imgB = getSprite(c.spriteB);
-  if (imgB.complete && imgB.naturalWidth > 0) {
-    const sizeB = size * c.offB.scale;
-    const hB = sizeB * (imgB.naturalHeight / imgB.naturalWidth);
-    ctx.save();
-    ctx.globalAlpha = c.opacity * 0.9;
-    ctx.drawImage(imgB, c.x + c.offB.dx * size - sizeB / 2, c.y + c.offB.dy * size - hB / 2, sizeB, hB);
-    ctx.restore();
-  }
-}
-
-// ── Corner frost: a single hand-painted frost-vignette sprite stretched
-// over the whole viewport (already dense/opaque near the edges and clear
-// in the middle — reads as "frost creeping in from the corners" without
-// needing separate per-corner geometry). Variant + opacity both scale with
-// how far below 0°C it is; a slow opacity breathe keeps it from looking
-// static. ─────────────────────────────────────────────────────────────
-function frostVariantForTemp(temperatureC: number | null): SpriteKey {
-  if (temperatureC === null) return FROST_SPRITES[2];
-  const coldness = clamp(-temperatureC, 0, 25);
-  const index = Math.min(FROST_SPRITES.length - 1, Math.floor((coldness / 25) * FROST_SPRITES.length));
-  return FROST_SPRITES[index];
-}
-function frostAlphaForTemp(temperatureC: number | null): number {
-  if (temperatureC === null) return 0.6;
-  const coldness = clamp(-temperatureC, 0, 25);
-  return 0.35 + (coldness / 25) * 0.55;
-}
-function drawFrostOverlay(ctx: CanvasRenderingContext2D, sprite: SpriteKey, w: number, h: number, alpha: number) {
-  const img = getSprite(sprite);
-  if (!img.complete || img.naturalWidth === 0) return;
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  ctx.drawImage(img, 0, 0, w, h);
-  ctx.restore();
-}
-
 interface ParticleState {
   type:     WeatherEffectType;
   rain:     RainDrop[];
   splashes: Splash[];
   snow:     SnowFlake[];
-  clouds:   CloudShape[];
 }
 
 export default function WeatherEffect() {
-  const { enabled, effectType, devOverride, frostActive, devFrostOverride, temperatureC } = useWeatherEffect();
+  const { enabled, effectType, devOverride } = useWeatherEffect();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number | null>(null);
-  const particlesRef = useRef<ParticleState>({ type: 'none', rain: [], splashes: [], snow: [], clouds: [] });
+  const particlesRef = useRef<ParticleState>({ type: 'none', rain: [], splashes: [], snow: [] });
   // Tinted (recolored) sprite cache for snow — lives per mount of the effect
   // since it's cheap to rebuild and depends on the image having loaded.
   const tintedRef = useRef<Partial<Record<SpriteKey, HTMLCanvasElement>>>({});
@@ -192,7 +123,7 @@ export default function WeatherEffect() {
   // A dev-panel override bypasses the user-facing enable toggle entirely —
   // that's the point of a debug control, to preview an effect without first
   // wiring up a real location + flipping the setting on.
-  const devControlled = devOverride !== null || devFrostOverride !== null;
+  const devControlled = devOverride !== null;
 
   const [withinSession, setWithinSession] = useState(true);
   // Fade in on start, fade out before the session ends, rather than a hard
@@ -217,12 +148,11 @@ export default function WeatherEffect() {
       clearTimeout(fadeOutTimer);
       clearTimeout(endTimer);
     };
-  }, [devOverride, devFrostOverride]);
+  }, [devOverride]);
 
   const prefersReducedMotion = typeof window !== 'undefined'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const active = (enabled || devControlled) && withinSession && !prefersReducedMotion
-    && (effectType !== 'none' || frostActive);
+  const active = (enabled || devControlled) && withinSession && !prefersReducedMotion && effectType !== 'none';
 
   useEffect(() => {
     if (!active) return;
@@ -239,10 +169,9 @@ export default function WeatherEffect() {
       const density = Math.min(1, (w * h) / (1280 * 800));
       particlesRef.current = {
         type: effectType,
-        rain:     effectType === 'rain'   ? makeRain(w, h, Math.round(MAX_RAIN * density))    : [],
+        rain:     effectType === 'rain' ? makeRain(w, h, Math.round(MAX_RAIN * density)) : [],
         splashes: [],
-        snow:     effectType === 'snow'   ? makeSnow(w, h, Math.round(MAX_SNOW * density))     : [],
-        clouds:   effectType === 'clouds' ? makeClouds(w, h, Math.round(MAX_CLOUDS * density)) : [],
+        snow:     effectType === 'snow' ? makeSnow(w, h, Math.round(MAX_SNOW * density)) : [],
       };
     }
 
@@ -288,19 +217,6 @@ export default function WeatherEffect() {
           if (f.y > h) { f.y = -f.r; f.x = rand(0, w); }
           if (f.x > w) f.x = 0; else if (f.x < 0) f.x = w;
         }
-      } else if (p.type === 'clouds') {
-        for (const c of p.clouds) {
-          drawCloud(ctx!, c, 110);
-          c.bobPhase += 0.01 * dt;
-          c.x += c.speed * 0.05 * dt;
-          c.y += Math.sin(c.bobPhase) * 0.05 * dt;
-          if (c.x - 160 * c.scale > w) c.x = -160 * c.scale;
-        }
-      }
-
-      if (frostActive) {
-        const breathe = 0.85 + Math.sin(now / 2200) * 0.15;
-        drawFrostOverlay(ctx!, frostVariantForTemp(temperatureC), w, h, frostAlphaForTemp(temperatureC) * breathe);
       }
 
       rafRef.current = requestAnimationFrame(frame);
@@ -316,12 +232,9 @@ export default function WeatherEffect() {
       }
     }
 
-    const neededSprites: SpriteKey[] = [
-      ...(effectType === 'rain'   ? [...RAIN_SPRITES, 'rainSplash' as SpriteKey] : []),
-      ...(effectType === 'snow'   ? ['snowflake' as SpriteKey] : []),
-      ...(effectType === 'clouds' ? [...CLOUD_SPRITES] : []),
-      ...(frostActive ? [frostVariantForTemp(temperatureC)] : []),
-    ];
+    const neededSprites: SpriteKey[] =
+      effectType === 'rain' ? [...RAIN_SPRITES, 'rainSplash'] :
+      effectType === 'snow' ? ['snowflake'] : [];
 
     preloadSprites(neededSprites).then(() => {
       if (cancelled) return;
@@ -341,7 +254,7 @@ export default function WeatherEffect() {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     };
-  }, [active, effectType, frostActive, temperatureC]);
+  }, [active, effectType]);
 
   if (!active) return null;
   return (

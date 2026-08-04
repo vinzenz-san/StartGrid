@@ -2,6 +2,13 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.7.0] — Background weather effect (rain/snow)
+
+- New optional **background weather effect**: animated rain or snow rendered behind the widget grid, driven by live weather at its own independently-set location (Settings → Settings, right after Disable Background Blur — not tied to any Weather widget instance, so it works with zero or several on the dashboard). Off by default
+- Rendered via small sprite textures blitted onto a canvas rather than procedural shapes — cheap and crisp regardless of particle count. Other conditions (clear, clouds, fog, thunderstorm) currently render nothing; only rain and snow are implemented
+- Auto-plays for ~10s after a new tab opens, fading in and back out, rather than running as a persistent always-on animation — pauses entirely while the tab is hidden and is skipped outright under `prefers-reduced-motion`
+- Developer Options gains a "Force Weather Effect" override to preview rain/snow instantly without waiting on real weather or wiring up a location
+
 ## [1.6.14] — Weather overhaul, slider reset buttons, calendar/search polish
 
 - Weather widget: condition/feels-like/location text now uses the primary `--text` color instead of `--text-muted`, matching the temperature number and making the light/dark theme switch actually visible (previously two similar grays made it look unchanged); new **Alignment** setting (left/center/right/top/bottom, top/bottom correctly centering on the cross-axis rather than pinning to a corner); new **Display Settings** panel (Font Size/Scale/Rotation/Padding), with icon/condition/feels-like/location sizes scaling proportionally off the Font Size slider; location display now shows only the city name (full "City, State, Country" is kept for the settings-panel search results); gains the same opt-in **"Allow overflow"** toggle as Clock/Greeting (see 1.6.13), and feels-like/location no longer ellipsis-truncate while overflowing

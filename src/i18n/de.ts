@@ -80,16 +80,12 @@ export const de: Record<TranslationKey, string> = {
   'dev.confirm.confirm': 'Aktivieren',
   'dev.weatherEffect.override': 'Wettereffekt erzwingen',
   'dev.weatherEffect.auto':     'Automatisch (Live-Wetter)',
-  'dev.weatherEffect.frostOverride': 'Eckenfrost erzwingen',
-  'dev.weatherEffect.frostOn':       'An',
-  'dev.weatherEffect.frostOff':      'Aus',
 
   'weatherEffect.enable':       'Wettereffekt im Hintergrund anzeigen',
   'weatherEffect.noLocation':   'Standort festlegen, um den Effekt zu aktivieren.',
   'weatherEffect.type.none':    'Kein Effekt',
   'weatherEffect.type.rain':    'Regen',
   'weatherEffect.type.snow':    'Schnee',
-  'weatherEffect.type.clouds':  'Wolken',
 
   'dashboard.settings':     'Einstellungen',
   'dashboard.lockLayout':   'Layout sperren (Strg+E)',
