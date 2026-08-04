@@ -130,6 +130,43 @@ header { margin-bottom: 48px; }
   .store-btn { flex: 1 1 100%; }
 }
 
+/* Hero + gallery screenshots (index.html) */
+.hero-shot {
+  display: block;
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  margin-bottom: 48px;
+}
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  margin-bottom: 40px;
+}
+.feature-icon {
+  width: 28px;
+  height: 28px;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.feature h3 { margin: 0 0 6px; font-size: 1rem; }
+.feature p { margin: 0; color: var(--text-muted); }
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.gallery img {
+  display: block;
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+@media (max-width: 560px) {
+  .gallery { grid-template-columns: 1fr; }
+}
+
 .logo-row {
   display: flex;
   align-items: center;
