@@ -61,12 +61,17 @@ export const SETTINGS_DEFAULTS = {
 interface SettingsCtx extends AppSettings {
   updateSettings: (patch: Partial<AppSettings>) => void;
   t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
+  /** True once the initial `storage.get` for settings has resolved. Before
+   *  that, every field above is still sitting at SETTINGS_DEFAULTS, so
+   *  anything gating on a persisted flag (e.g. widgetTourSeen) must wait
+   *  for this instead of assuming the default value is the real one. */
+  loaded: boolean;
 }
 
 const Ctx = createContext<SettingsCtx | null>(null);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useStorage<AppSettings>(STORAGE_KEY, SETTINGS_DEFAULTS);
+  const [settings, setSettings, loaded] = useStorage<AppSettings>(STORAGE_KEY, SETTINGS_DEFAULTS);
 
   // Defensive: guard against undefined/null/partial from storage on first load or reset
   const s: AppSettings = {
@@ -112,7 +117,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     interpolate(DICTIONARIES[s.language][key], vars);
 
   return (
-    <Ctx.Provider value={{ ...s, updateSettings, t }}>
+    <Ctx.Provider value={{ ...s, updateSettings, t, loaded }}>
       {children}
     </Ctx.Provider>
   );

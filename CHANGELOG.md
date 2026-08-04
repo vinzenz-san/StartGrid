@@ -2,6 +2,10 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.7.1] — Fix onboarding tour re-triggering after being seen
+
+- Fixed the first-run widget onboarding tour sometimes reappearing on a new tab even though it had already been finished or skipped, without any browser restart. `SettingsContext` discarded the `loaded` flag `useStorage` returns, so `widgetTourSeen` sat at its `SETTINGS_DEFAULTS` value (`false`) until its own `storage.get()` resolved. Grid.tsx's auto-trigger effect only waited on the widgets store's `loaded`, which is a separate, unordered storage read — on any tab where widgets happened to hydrate before settings, the effect fired while `widgetTourSeen` was still stuck at the default and reopened the tour. The effect now also waits on `SettingsContext`'s own `loaded`
+
 ## [1.7.0] — Background weather effect (rain/snow)
 
 - New optional **background weather effect**: animated rain or snow rendered behind the widget grid, driven by live weather at its own independently-set location (Settings → Settings, right after Disable Background Blur — not tied to any Weather widget instance, so it works with zero or several on the dashboard). Off by default

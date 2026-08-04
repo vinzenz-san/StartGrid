@@ -27,6 +27,7 @@ export default function Grid() {
   const {
     developerOptionsEnabled, settingsButtonPosition, settingsPinned, elementInspectorEnabled,
     disableGridGlow, widgetTourSeen, widgetTourSeenVersion, t,
+    loaded: settingsLoaded,
   } = useSettings();
   const gridRef = useRef<HTMLDivElement>(null);
   const [dropTarget,        setDropTarget]        = useState<DropTarget | null>(null);
@@ -43,14 +44,20 @@ export default function Grid() {
   //    sync-preview.js and the `isExtension` runtime check in storage.ts):
   //    gated on `widgetTourSeenVersion` instead, so a returning visitor sees
   //    it again after each release, demoing what's new to repeat visitors.
+  //
+  // Must also wait on settingsLoaded, not just widgets' own `loaded` — the
+  // two live in separate storage.get() calls with no ordering guarantee.
+  // Reading widgetTourSeen before its own hydration finishes sees it stuck
+  // at SETTINGS_DEFAULTS (false), which re-opened the tour on tabs where
+  // widgets happened to hydrate first, even though it had already been seen.
   useEffect(() => {
-    if (!loaded) return;
+    if (!loaded || !settingsLoaded) return;
     const shouldShow = isExtension
       ? !widgetTourSeen
       : widgetTourSeenVersion !== APP_VERSION;
     if (shouldShow) openTour();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loaded]);
+  }, [loaded, settingsLoaded]);
 
   // Tour entry/exit should always find (and leave) the dashboard in its
   // plain resting state — settings closed, layout locked — regardless of
