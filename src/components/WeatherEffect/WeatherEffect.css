@@ -1,0 +1,19 @@
+/* Sits above the background layers (-2/-1, see Background.css) but below the
+   grid content (.sg-grid establishes its own stacking context at z-index: 0)
+   — tied at z-index: -1 with .sg-bg-layer, resolved by DOM order since this
+   mounts after <Background /> in App.tsx. */
+.sg-weather-effect {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition-property: opacity;
+  transition-timing-function: ease;
+  /* transition-duration is set inline per fade-in/fade-out phase — see WeatherEffect.tsx */
+}
+
+.sg-weather-effect-canvas {
+  position: absolute;
+  inset: 0;
+}

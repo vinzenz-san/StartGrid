@@ -4,22 +4,27 @@ import { GridConfigProvider } from './contexts/GridConfigContext';
 import { BackgroundProvider } from './contexts/BackgroundContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { WeatherEffectProvider } from './contexts/WeatherEffectContext';
 import Grid from './components/Layout/Grid';
 import Background from './components/Background/Background';
+import WeatherEffect from './components/WeatherEffect/WeatherEffect';
 
 export default function App() {
   return (
     <SettingsProvider>
       <ThemeProvider>
         <BackgroundProvider>
-          <EditModeProvider>
-            <WidgetProvider>
-              <GridConfigProvider>
-                <Background />
-                <Grid />
-              </GridConfigProvider>
-            </WidgetProvider>
-          </EditModeProvider>
+          <WeatherEffectProvider>
+            <EditModeProvider>
+              <WidgetProvider>
+                <GridConfigProvider>
+                  <Background />
+                  <WeatherEffect />
+                  <Grid />
+                </GridConfigProvider>
+              </WidgetProvider>
+            </EditModeProvider>
+          </WeatherEffectProvider>
         </BackgroundProvider>
       </ThemeProvider>
     </SettingsProvider>

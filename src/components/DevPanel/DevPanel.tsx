@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from 're
 import { useEditMode } from '../../contexts/EditModeContext';
 import { useWidgets } from '../../contexts/WidgetContext';
 import { useSettings } from '../../contexts/SettingsContext';
-import { SettingsSwitch } from '../shared/Form';
+import { useWeatherEffect } from '../../contexts/WeatherEffectContext';
+import { SettingsSwitch, Dropdown } from '../shared/Form';
+import type { WeatherEffectType } from '../../lib/weatherEffectMap';
 import { APP_VERSION } from '../../lib/appVersion';
 import './DevPanel.css';
 
@@ -143,7 +145,11 @@ interface Props {
 function DevPanelInner({ position, onPositionChange }: Props) {
   const { isEditMode }   = useEditMode();
   const { widgets, loaded } = useWidgets();
-  const { settingsButtonPosition, elementInspectorEnabled, updateSettings } = useSettings();
+  const { settingsButtonPosition, elementInspectorEnabled, updateSettings, t } = useSettings();
+  const {
+    liveEffectType, devOverride, setDevOverride,
+    liveFrostActive, devFrostOverride, setDevFrostOverride,
+  } = useWeatherEffect();
   const panelRef = useRef<HTMLDivElement>(null);
   const dragRef  = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
   const posRef   = useRef(position);
@@ -261,6 +267,46 @@ function DevPanelInner({ position, onPositionChange }: Props) {
           onChange={v => updateSettings({ elementInspectorEnabled: v })}
         />
       </div>
+      <div className="dev-row">
+        <span className="dev-label">{t('dev.weatherEffect.override')}</span>
+        <Dropdown
+          options={[
+            { value: 'auto',   label: t('dev.weatherEffect.auto') },
+            { value: 'none',   label: t('weatherEffect.type.none') },
+            { value: 'rain',   label: t('weatherEffect.type.rain') },
+            { value: 'snow',   label: t('weatherEffect.type.snow') },
+            { value: 'clouds', label: t('weatherEffect.type.clouds') },
+          ]}
+          value={devOverride ?? 'auto'}
+          onChange={v => setDevOverride(v === 'auto' ? null : v as WeatherEffectType)}
+          menuWidth="auto"
+        />
+      </div>
+      {devOverride && (
+        <div className="dev-row">
+          <span className="dev-label">Live weather effect</span>
+          <span className="dev-badge ok">{liveEffectType}</span>
+        </div>
+      )}
+      <div className="dev-row">
+        <span className="dev-label">{t('dev.weatherEffect.frostOverride')}</span>
+        <Dropdown
+          options={[
+            { value: 'auto', label: t('dev.weatherEffect.auto') },
+            { value: 'on',   label: t('dev.weatherEffect.frostOn') },
+            { value: 'off',  label: t('dev.weatherEffect.frostOff') },
+          ]}
+          value={devFrostOverride === null ? 'auto' : devFrostOverride ? 'on' : 'off'}
+          onChange={v => setDevFrostOverride(v === 'auto' ? null : v === 'on')}
+          menuWidth="auto"
+        />
+      </div>
+      {devFrostOverride !== null && (
+        <div className="dev-row">
+          <span className="dev-label">Live frost state</span>
+          <span className={`dev-badge ${liveFrostActive ? 'ok' : 'off'}`}>{liveFrostActive ? 'ON' : 'OFF'}</span>
+        </div>
+      )}
 
       <div className="dev-divider" />
 

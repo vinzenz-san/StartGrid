@@ -13,6 +13,7 @@ import { SettingsPanelOpenContext } from '../../contexts/SettingsPanelOpenContex
 import { useTheme, DEFAULTS as THEME_DEFAULTS } from '../../contexts/ThemeContext';
 import { useSettings, SETTINGS_DEFAULTS } from '../../contexts/SettingsContext';
 import { useBackground } from '../../contexts/BackgroundContext';
+import WeatherEffectSettings from '../WeatherEffect/WeatherEffectSettings';
 import { useEditMode } from '../../contexts/EditModeContext';
 import { useWidgets } from '../../contexts/WidgetContext';
 import { useGridConfig } from '../../contexts/GridConfigContext';
@@ -420,6 +421,8 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition,
                 onChange={v => updateSettings({ disableBackgroundBlur: v })}
               />
             </SettingsRow>
+
+            <WeatherEffectSettings />
 
             <div className="sg-data-mgmt-row">
               <button className="sg-action-btn" onClick={onReplayTour}>

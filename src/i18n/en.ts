@@ -76,6 +76,18 @@ export const en = {
   'dev.confirm.title':   'Enable Developer Options?',
   'dev.confirm.body':    'Warning: Enabling developer options will remove safety cooldowns and reset protection nets across the application. Proceed with caution.',
   'dev.confirm.confirm': 'Enable',
+  'dev.weatherEffect.override': 'Force Weather Effect',
+  'dev.weatherEffect.auto':     'Auto (live weather)',
+  'dev.weatherEffect.frostOverride': 'Force Corner Frost',
+  'dev.weatherEffect.frostOn':       'On',
+  'dev.weatherEffect.frostOff':      'Off',
+
+  'weatherEffect.enable':       'Show background weather effect',
+  'weatherEffect.noLocation':   'Set a location to enable the effect.',
+  'weatherEffect.type.none':    'None',
+  'weatherEffect.type.rain':    'Rain',
+  'weatherEffect.type.snow':    'Snow',
+  'weatherEffect.type.clouds':  'Clouds',
 
   'dashboard.settings':     'Settings',
   'dashboard.lockLayout':   'Lock layout (Ctrl+E)',
