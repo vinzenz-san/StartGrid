@@ -37,6 +37,20 @@ export const en = {
   'widgets.layoutUnlocked':     'Layout unlocked',
   'widgets.lock':                '🔒 Lock',
   'widgets.unlock':              '🔓 Unlock',
+  'commandPalette.placeholder':  'Search widgets…',
+  'commandPalette.noResults':    'No matching widgets',
+
+  'widgets.presets.sectionLabel': 'Layout preset',
+  'widgets.presets.apply':        'Apply preset',
+  'widgets.presets.export':       'Export layout',
+  'widgets.presets.import':       'Import layout',
+  'widgets.presets.minimal':      'Minimal',
+  'widgets.presets.productivity': 'Productivity',
+  'widgets.presets.full':         'Full Dashboard',
+  'widgets.presets.confirmTitle': 'Replace all widgets?',
+  'widgets.presets.confirmBody':  'This replaces every widget currently on your grid with the new layout. This can’t be undone automatically.',
+  'widgets.presets.confirmButton': 'Replace widgets',
+  'widgets.presets.cancelButton': 'Cancel',
   'widgets.addWidget':           '＋ Add Widget',
   'widgets.matchBackground':     '⬡ Match Background',
   'widgets.globalStyleNote':     'Note: Global settings apply only to widgets without an active Local Style.',
@@ -199,6 +213,7 @@ export const en = {
   'widgets.type.weather':        'Weather',
   'widgets.type.rssFeed':        'RSS Feed',
   'widgets.type.todoList':       'To-Do',
+  'widgets.type.currencyTicker': 'Currency',
 
   // ── RSS Feed widget ───────────────────────────────────────────────────────
   'widget.rssFeed.noFeed':           'No feed configured — add a feed URL in Settings.',
@@ -224,6 +239,19 @@ export const en = {
   'widget.todoList.delete':          'Delete',
   'widget.todoList.hideCompleted':   'Hide completed',
   'widget.todoList.clearCompleted':  'Clear completed ({{count}})',
+
+  // ── Currency widget ───────────────────────────────────────────────────────
+  'widget.currencyTicker.noTargets':       'No target currencies selected.',
+  'widget.currencyTicker.loading':         'Loading rates…',
+  'widget.currencyTicker.error':           'Couldn’t load exchange rates.',
+  'widget.currencyTicker.retry':           'Retry',
+  'widget.currencyTicker.stale':           'Refresh failed — showing cached rates',
+  'widget.currencyTicker.baseCurrency':    'Base currency',
+  'widget.currencyTicker.targetCurrencies': 'Show currencies',
+  'widget.currencyTicker.refreshInterval': 'Refresh interval',
+  'widget.currencyTicker.refreshMinutes':  'Every {{count}} min',
+  'widget.currencyTicker.refreshHours':    'Every {{count}} h',
+  'widget.currencyTicker.refreshDaily':    'Daily',
 
   // ── Greeting widget ──────────────────────────────────────────────────────
   'widget.greeting.morning':        'Good morning',
@@ -336,6 +364,7 @@ export const en = {
   'widget.obsidianDaily.noLimit':           'All',
   'widget.obsidianDaily.fontSize':          'Font size',
   'widget.obsidianDaily.refresh':           'Refresh',
+  'widget.obsidianDaily.stale':             'Refresh failed — showing cached note',
   'widget.obsidianDaily.empty':             'Nothing to show',
   'widget.obsidianDaily.createNote':        'Create today’s note',
   'widget.obsidianDaily.conflict':          'This note changed in Obsidian, so the change wasn’t applied. Reloaded to the latest version.',
@@ -353,6 +382,7 @@ export const en = {
   'widget.obsidianNote.openInObsidian':  'Open in Obsidian',
   'widget.obsidianNote.empty':           'This note is empty',
   'widget.obsidianNote.untitled':        'Pinned note',
+  'widget.obsidianNote.stale':           'Refresh failed — showing cached note',
   'widget.obsidianNote.readOnlyNote':    'Read-only — edit the note in Obsidian.',
 
   // ── Obsidian Vault Search widget ─────────────────────────────────────────
@@ -523,6 +553,7 @@ export const en = {
   'widget.calendar.grantNote':        'Grants read-only access to your Google Calendar.',
   'widget.calendar.connectPrompt':    'Connect your Google Account to see your calendar.',
   'widget.calendar.loadError':        'Could not load calendar',
+  'widget.calendar.stale':            'Refresh failed — showing cached events',
   'widget.calendar.noUpcomingEvents': 'No upcoming events',
   'widget.calendar.today':            'Today',
   'widget.calendar.tomorrow':         'Tomorrow',
@@ -575,6 +606,7 @@ export const en = {
   'widget.outlookMail.grantNote':     'Grants read-only access to your Outlook Mail.',
   'widget.outlookMail.connectPrompt': 'Connect your Microsoft Account to see your inbox.',
   'widget.outlookMail.loadError':     'Could not load mail',
+  'widget.outlookMail.stale':         'Refresh failed — showing cached messages',
   'widget.outlookMail.noMessages':    'No messages',
   'widget.outlookMail.previewBadge':  'Preview data (browser preview)',
   'widget.outlookMail.inbox':         'Inbox',

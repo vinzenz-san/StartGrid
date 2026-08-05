@@ -159,7 +159,7 @@ interface Props {
 export default function OutlookMail({ data }: Props) {
   const { t, language } = useSettings();
   const locale = LOCALES[language];
-  const { status, messages, refresh, isMock } = useOutlookMail();
+  const { status, messages, isStale, refresh, isMock } = useOutlookMail();
   const { isConnected, connect, isConnecting } = useMsAuth();
   const maxResults     = data.maxResults ?? 8;
   const showUnreadOnly = data.showUnreadOnly ?? false;
@@ -185,6 +185,9 @@ export default function OutlookMail({ data }: Props) {
       <div className="sg-cal-body">
         {isMock && (
           <div className="sg-cal-preview-badge">{t('widget.outlookMail.previewBadge')}</div>
+        )}
+        {isStale && !isLoading && (
+          <div className="sg-cal-stale-banner">{t('widget.outlookMail.stale')}</div>
         )}
         {isUnauthed ? (
           <div className="sg-cal-empty">

@@ -157,7 +157,7 @@ interface Props {
 export default function Calendar({ data, onUpdateData: _onUpdateData }: Props) {
   const { t, language } = useSettings();
   const locale = LOCALES[language];
-  const { status, events, refresh, isMock } = useCalendar();
+  const { status, events, isStale, refresh, isMock } = useCalendar();
   const { isConnected, connect, isConnecting } = useGoogleAuth();
   const maxDays    = data.maxDays    ?? 3;
   const showAllDay = data.showAllDay ?? true;
@@ -187,6 +187,9 @@ export default function Calendar({ data, onUpdateData: _onUpdateData }: Props) {
       <div className="sg-cal-body">
         {isMock && (
           <div className="sg-cal-preview-badge">{t('widget.calendar.previewBadge')}</div>
+        )}
+        {isStale && !isLoading && (
+          <div className="sg-cal-stale-banner">{t('widget.calendar.stale')}</div>
         )}
         {isUnauthed ? (
           <div className="sg-cal-empty">

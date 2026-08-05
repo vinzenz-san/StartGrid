@@ -1,6 +1,16 @@
 import { useState, useCallback, useRef } from 'react';
 import type { OutlookMailState, MailMessage } from './outlookMail.types';
 import { getValidMsToken } from '../../../lib/msAuth';
+import { storageLocal } from '../../../lib/storageLocal';
+
+interface MessagesCache {
+  messages: MailMessage[];
+  fetchedAt: number;
+}
+
+function cacheKey(unreadOnly: boolean): string {
+  return `sg:mail:cache:outlook:${unreadOnly}`;
+}
 
 // ── Real Microsoft Graph fetch ────────────────────────────────────────────────
 // Calls:
@@ -92,6 +102,7 @@ export function useOutlookMail() {
     messages: [],
     error: null,
     lastRefreshed: null,
+    isStale: false,
   });
 
   const fetchingRef = useRef(false);
@@ -128,13 +139,21 @@ export function useOutlookMail() {
         messages,
         error: null,
         lastRefreshed: new Date(),
+        isStale: false,
       });
+      const cache: MessagesCache = { messages, fetchedAt: Date.now() };
+      storageLocal.set(cacheKey(unreadOnly), cache);
     } catch (err) {
-      setState(s => ({
-        ...s,
-        status: 'error',
-        error: err instanceof Error ? err.message : 'Failed to load mail',
-      }));
+      const message = err instanceof Error ? err.message : 'Failed to load mail';
+      // Fall back to the last cached messages rather than a bare error when
+      // one exists — same reasoning as useWeather.ts/useRssFeed.ts.
+      const cached = await storageLocal.get(cacheKey(unreadOnly));
+      const c = cached as MessagesCache | undefined;
+      if (c) {
+        setState({ status: 'success', messages: c.messages, error: message, lastRefreshed: new Date(c.fetchedAt), isStale: true });
+      } else {
+        setState(s => ({ ...s, status: 'error', error: message, isStale: false }));
+      }
     } finally {
       fetchingRef.current = false;
     }

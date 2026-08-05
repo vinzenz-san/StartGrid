@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { getFile, putFile, ObsidianError, type ObsidianErrorCode } from '../../../lib/obsidianApi';
 import { parseMarkdown, toggleTaskLine, type MdBlock } from '../../../lib/obsidianMarkdown';
 import { isExtensionEnv } from '../../../lib/permissions';
+import { storageLocal } from '../../../lib/storageLocal';
 
 export type DailyStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -15,6 +16,7 @@ interface DailyState {
   lastRefreshed: Date | null;
   /** Set when a write was refused because the note changed underneath us. */
   staleConflict: boolean;
+  isStale:       boolean;
 }
 
 const EMPTY: DailyState = {
@@ -24,7 +26,17 @@ const EMPTY: DailyState = {
   errorCode: null,
   lastRefreshed: null,
   staleConflict: false,
+  isStale: false,
 };
+
+interface NoteCache {
+  source: string;
+  fetchedAt: number;
+}
+
+function cacheKey(path: string): string {
+  return `sg:obsidian:daily:cache:${path}`;
+}
 
 // ── Mock data — the browser preview has no extension APIs and no vault ────────
 
@@ -75,15 +87,37 @@ export function useObsidianDaily() {
         errorCode: null,
         lastRefreshed: new Date(),
         staleConflict: false,
+        isStale: false,
       });
+      storageLocal.set(cacheKey(path), { source, fetchedAt: Date.now() } satisfies NoteCache);
     } catch (err) {
-      setState(s => ({
-        ...s,
-        status: 'error',
-        source: '',
-        blocks: [],
-        errorCode: err instanceof ObsidianError ? err.code : 'HTTP_ERROR',
-      }));
+      // Fall back to the last cached content for this exact path rather than
+      // a bare error when one exists — same reasoning as useWeather.ts, but
+      // no TTL: unlike weather/rates, a note's content doesn't drift on its
+      // own, so any previously-fetched copy of the same path is still valid
+      // to show while a fresh refresh keeps failing.
+      const cached = await storageLocal.get(cacheKey(path));
+      const c = cached as NoteCache | undefined;
+      if (c) {
+        setState({
+          status: 'success',
+          source: c.source,
+          blocks: parseMarkdown(c.source),
+          errorCode: null,
+          lastRefreshed: new Date(c.fetchedAt),
+          staleConflict: false,
+          isStale: true,
+        });
+      } else {
+        setState(s => ({
+          ...s,
+          status: 'error',
+          source: '',
+          blocks: [],
+          errorCode: err instanceof ObsidianError ? err.code : 'HTTP_ERROR',
+          isStale: false,
+        }));
+      }
     } finally {
       fetchingRef.current = false;
     }

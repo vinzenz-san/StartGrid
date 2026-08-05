@@ -93,7 +93,7 @@ interface Props {
 export default function ObsidianNote({ data }: Props) {
   const { t } = useSettings();
   const { isReady, checking } = useObsidian();
-  const { status, blocks, errorCode, refresh, isMock } = useObsidianNote();
+  const { status, blocks, errorCode, isStale, refresh, isMock } = useObsidianNote();
 
   const path = normalizeVaultPath(data.path ?? '');
 
@@ -154,6 +154,7 @@ export default function ObsidianNote({ data }: Props) {
 
       <div className="sg-cal-body sg-obsn" style={{ fontSize: data.fontSize ?? 13 }}>
         {isMock && <div className="sg-cal-preview-badge">{t('widget.obsidian.previewBadge')}</div>}
+        {isStale && !isLoading && <div className="sg-cal-stale-banner">{t('widget.obsidianNote.stale')}</div>}
 
         {notConfigured ? (
           <ObsidianStatus code="NOT_CONFIGURED"/>

@@ -2,6 +2,24 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.11.1] — Offline cache for Obsidian Daily Note and Pinned Note
+
+- Extended the `isStale` cache-fallback pattern to **Obsidian Daily Note** and **Pinned Note**: a failed refresh now shows the last successfully loaded content for that exact note path instead of a bare error, with a small "showing cached note" banner. No TTL here (unlike Weather/rates) — a note's content doesn't drift on its own, so any previously-fetched copy stays valid to show while a refresh keeps failing
+- Deliberately **not** applied to Obsidian Random Note or Obsidian Search: both are "give me something different" widgets (a fresh shuffle, a fresh query) — falling back to stale cached content after a failed request there would look like a successful new result while actually showing old, unrelated content. Left with their existing plain error state instead
+
+## [1.11.0] — Shareable layouts, offline cache for Calendar/Outlook Mail
+
+- New **Export/Import layout** (Settings → Widgets, next to the presets added in 1.10.0): saves just your widget layout as a `.json` file you can share or restore from — deliberately its own focused format, not the full `BackupRestore` dump. Widget data never contains OAuth tokens (those live in their own separate storage keys) or the Obsidian connection (also stored separately), so exporting just the widget layout needed no sensitive-data filtering
+- Extended the `isStale` cache-fallback pattern (added in 1.9.0 for Weather/RSS/background images) to **Calendar, Outlook Calendar, and Outlook Mail**: a failed refresh now falls back to the last successfully loaded events/messages instead of a bare error screen, with a small "showing cached data" banner. This was explicitly deferred when 1.9.0 shipped since these three had no cache at all yet — now added
+- Deliberately left out of the layout-share feature: bundling background/theme settings into the same shareable file. The background config's storage key is already flagged (in project notes, not yet fixed) as including the user's Unsplash API key — reusing it for a new file explicitly meant for sharing would make that worse, not better, so this stays layout-only for now
+
+## [1.10.0] — Grid layout presets, Command Palette, Currency widget
+
+- New **Layout presets** (Settings → Widgets): pick "Minimal", "Productivity", or "Full Dashboard" and apply it in one click — replaces every widget currently on the grid with a non-overlapping preset layout, behind a confirmation dialog since it's destructive. Built on `WidgetContext.replaceAllWidgets`, an existing bulk-write primitive already used by the grid-rescale flow
+- New **Command Palette** (`Ctrl+K`, works from anywhere): fuzzy-ish substring search over all 18 widget types, Enter or click adds the top/selected match. Same "raw keydown listener, no shared shortcut registry" pattern the Bookmark Search widget's own `Ctrl+Shift+F` already uses — the codebase has no shared hotkey system, and one more standalone listener wasn't worth inventing one for
+- New optional **Currency widget**: shows live exchange rates for a base currency against any number of selected target currencies, refreshed on an interval. Backed by [Frankfurter](https://frankfurter.dev) (ECB rates, free, no API key, genuinely CORS-open — verified directly via `curl` before building on it, not assumed). No real free/keyless/CORS-open stock-price API exists to verify the same way, so this widget is currencies only, not a general "ticker." Built with the `isStale` cache-fallback pattern from the start (see 1.9.0), not retrofitted later
+- Refactored the "add a widget of type X at the first free grid position" logic (previously only in the Add-Widget menu) into a shared `buildNewWidget` helper in `lib/gridUtils.ts`, now used by both the Add-Widget menu and the new Command Palette instead of duplicating it a second time
+
 ## [1.9.0] — To-Do widget, offline cache fallback
 
 - New optional **To-Do widget**: add/check off/delete/reorder tasks (pointer-based drag reorder, ported from Quicklinks' own implementation), "Hide completed" toggle and a "Clear completed" action in Settings. Items are stored directly in the widget's synced data (like Quicklinks' link array) — no separate local/synced storage mode like Notes has, since short task text is nowhere near the sync-storage size limits that motivated that split there

@@ -229,6 +229,12 @@ export interface TodoData {
   hideCompleted?: boolean; // default false
 }
 
+export interface CurrencyTickerData {
+  baseCurrency?: string;       // ISO 4217 code, default 'EUR'
+  targetCurrencies?: string[]; // ISO 4217 codes, default ['USD', 'GBP']
+  refreshIntervalMin?: number; // default 60
+}
+
 export interface RssFeedData {
   feedUrl?: string;
   /** Cached from the feed's own <title>/<feed><title> on the last successful
@@ -259,6 +265,7 @@ export interface WidgetDataMap {
   weather:         WeatherData;
   rssFeed:         RssFeedData;
   todoList:        TodoData;
+  currencyTicker:  CurrencyTickerData;
   placeholder:     PlaceholderData;
 }
 
@@ -306,4 +313,5 @@ export type Widget =
   | (WidgetBase & { type: 'weather';        data: WeatherData })
   | (WidgetBase & { type: 'rssFeed';        data: RssFeedData })
   | (WidgetBase & { type: 'todoList';       data: TodoData })
+  | (WidgetBase & { type: 'currencyTicker'; data: CurrencyTickerData })
   | (WidgetBase & { type: 'placeholder';    data: PlaceholderData });

@@ -5,6 +5,7 @@
 // useOutlookCalendar.ts for those.
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { storageLocal } from '../../../lib/storageLocal';
 import type { CalendarEvent, CalendarViewStatus } from './calendarEvent.types';
 
 export interface ProviderCalendarState {
@@ -12,9 +13,13 @@ export interface ProviderCalendarState {
   events: CalendarEvent[];
   error: string | null;
   lastRefreshed: Date | null;
+  isStale: boolean;
 }
 
 export interface CalendarProviderConfig<TListEntry> {
+  // 'google' / 'outlook' — namespaces the offline-fallback cache key so the
+  // two providers (sharing this same hook) never collide.
+  cacheKeyPrefix: string;
   defaultCalendarId: string; // 'primary' (Google) / 'default' (Outlook)
   getValidToken: () => Promise<string | null>;
   fetchCalendarEvents: (
@@ -28,6 +33,15 @@ export interface CalendarProviderConfig<TListEntry> {
   mockEvents: () => Promise<CalendarEvent[]>;
 }
 
+interface EventsCache {
+  events: CalendarEvent[];
+  fetchedAt: number;
+}
+
+function cacheKey(prefix: string, calendarIds: string[]): string {
+  return `sg:calendar:cache:${prefix}:${[...calendarIds].sort().join(',')}`;
+}
+
 export const isExtension = typeof chrome !== 'undefined' && !!chrome.storage;
 
 export function useProviderCalendar<TListEntry>(config: CalendarProviderConfig<TListEntry>) {
@@ -36,6 +50,7 @@ export function useProviderCalendar<TListEntry>(config: CalendarProviderConfig<T
     events: [],
     error: null,
     lastRefreshed: null,
+    isStale: false,
   });
 
   const fetchingRef = useRef(false);
@@ -79,13 +94,21 @@ export function useProviderCalendar<TListEntry>(config: CalendarProviderConfig<T
         events,
         error: null,
         lastRefreshed: new Date(),
+        isStale: false,
       });
+      const cache: EventsCache = { events, fetchedAt: Date.now() };
+      storageLocal.set(cacheKey(config.cacheKeyPrefix, calendarIds), cache);
     } catch (err) {
-      setState(s => ({
-        ...s,
-        status: 'error',
-        error: err instanceof Error ? err.message : 'Failed to load calendar',
-      }));
+      const message = err instanceof Error ? err.message : 'Failed to load calendar';
+      // Fall back to the last cached events rather than a bare error when
+      // one exists — same reasoning as useWeather.ts/useRssFeed.ts.
+      const cached = await storageLocal.get(cacheKey(config.cacheKeyPrefix, calendarIds));
+      const c = cached as EventsCache | undefined;
+      if (c) {
+        setState({ status: 'success', events: c.events, error: message, lastRefreshed: new Date(c.fetchedAt), isStale: true });
+      } else {
+        setState(s => ({ ...s, status: 'error', error: message, isStale: false }));
+      }
     } finally {
       fetchingRef.current = false;
     }

@@ -39,6 +39,20 @@ export const de: Record<TranslationKey, string> = {
   'widgets.layoutUnlocked':     'Layout entsperrt',
   'widgets.lock':                '🔒 Sperren',
   'widgets.unlock':              '🔓 Entsperren',
+  'commandPalette.placeholder':  'Widgets durchsuchen…',
+  'commandPalette.noResults':    'Keine passenden Widgets',
+
+  'widgets.presets.sectionLabel': 'Layout-Vorlage',
+  'widgets.presets.apply':        'Vorlage anwenden',
+  'widgets.presets.export':       'Layout exportieren',
+  'widgets.presets.import':       'Layout importieren',
+  'widgets.presets.minimal':      'Minimal',
+  'widgets.presets.productivity': 'Produktivität',
+  'widgets.presets.full':         'Volles Dashboard',
+  'widgets.presets.confirmTitle': 'Alle Widgets ersetzen?',
+  'widgets.presets.confirmBody':  'Dadurch werden alle aktuellen Widgets auf deinem Grid durch das neue Layout ersetzt. Das lässt sich nicht automatisch rückgängig machen.',
+  'widgets.presets.confirmButton': 'Widgets ersetzen',
+  'widgets.presets.cancelButton': 'Abbrechen',
   'widgets.addWidget':           '＋ Widget hinzufügen',
   'widgets.matchBackground':     '⬡ An Hintergrund anpassen',
   'widgets.globalStyleNote':     'Hinweis: Globale Einstellungen gelten nur für Widgets ohne aktiven lokalen Stil.',
@@ -201,6 +215,7 @@ export const de: Record<TranslationKey, string> = {
   'widgets.type.weather':        'Wetter',
   'widgets.type.rssFeed':        'RSS-Feed',
   'widgets.type.todoList':       'To-Do',
+  'widgets.type.currencyTicker': 'Währung',
 
   // ── RSS Feed widget ───────────────────────────────────────────────────────
   'widget.rssFeed.noFeed':           'Kein Feed eingerichtet — Feed-URL in den Einstellungen hinzufügen.',
@@ -226,6 +241,19 @@ export const de: Record<TranslationKey, string> = {
   'widget.todoList.delete':          'Löschen',
   'widget.todoList.hideCompleted':   'Erledigte ausblenden',
   'widget.todoList.clearCompleted':  'Erledigte löschen ({{count}})',
+
+  // ── Currency widget ───────────────────────────────────────────────────────
+  'widget.currencyTicker.noTargets':       'Keine Zielwährungen ausgewählt.',
+  'widget.currencyTicker.loading':         'Kurse werden geladen…',
+  'widget.currencyTicker.error':           'Wechselkurse konnten nicht geladen werden.',
+  'widget.currencyTicker.retry':           'Erneut versuchen',
+  'widget.currencyTicker.stale':           'Aktualisierung fehlgeschlagen — zeige zwischengespeicherte Kurse',
+  'widget.currencyTicker.baseCurrency':    'Basiswährung',
+  'widget.currencyTicker.targetCurrencies': 'Angezeigte Währungen',
+  'widget.currencyTicker.refreshInterval': 'Aktualisierungsintervall',
+  'widget.currencyTicker.refreshMinutes':  'Alle {{count}} Min.',
+  'widget.currencyTicker.refreshHours':    'Alle {{count}} Std.',
+  'widget.currencyTicker.refreshDaily':    'Täglich',
 
   // ── Greeting widget ──────────────────────────────────────────────────────
   'widget.greeting.morning':        'Guten Morgen',
@@ -338,6 +366,7 @@ export const de: Record<TranslationKey, string> = {
   'widget.obsidianDaily.noLimit':           'Alle',
   'widget.obsidianDaily.fontSize':          'Schriftgröße',
   'widget.obsidianDaily.refresh':           'Aktualisieren',
+  'widget.obsidianDaily.stale':             'Aktualisierung fehlgeschlagen — zeige zwischengespeicherte Notiz',
   'widget.obsidianDaily.empty':             'Nichts anzuzeigen',
   'widget.obsidianDaily.createNote':        'Heutige Notiz anlegen',
   'widget.obsidianDaily.conflict':          'Diese Notiz wurde in Obsidian geändert, die Änderung wurde nicht übernommen. Neu geladen.',
@@ -355,6 +384,7 @@ export const de: Record<TranslationKey, string> = {
   'widget.obsidianNote.openInObsidian':  'In Obsidian öffnen',
   'widget.obsidianNote.empty':           'Diese Notiz ist leer',
   'widget.obsidianNote.untitled':        'Angeheftete Notiz',
+  'widget.obsidianNote.stale':           'Aktualisierung fehlgeschlagen — zeige zwischengespeicherte Notiz',
   'widget.obsidianNote.readOnlyNote':    'Nur lesend — Bearbeiten in Obsidian.',
 
   // ── Obsidian Vault-Suche-Widget ──────────────────────────────────────────
@@ -525,6 +555,7 @@ export const de: Record<TranslationKey, string> = {
   'widget.calendar.grantNote':        'Gewährt Lesezugriff auf deinen Google Kalender.',
   'widget.calendar.connectPrompt':    'Verbinde dein Google-Konto, um deinen Kalender zu sehen.',
   'widget.calendar.loadError':        'Kalender konnte nicht geladen werden',
+  'widget.calendar.stale':            'Aktualisierung fehlgeschlagen — zeige zwischengespeicherte Termine',
   'widget.calendar.noUpcomingEvents': 'Keine anstehenden Termine',
   'widget.calendar.today':            'Heute',
   'widget.calendar.tomorrow':         'Morgen',
@@ -577,6 +608,7 @@ export const de: Record<TranslationKey, string> = {
   'widget.outlookMail.grantNote':     'Gewährt Lesezugriff auf deine Outlook-Mail.',
   'widget.outlookMail.connectPrompt': 'Verbinde dein Microsoft-Konto, um dein Postfach zu sehen.',
   'widget.outlookMail.loadError':     'E-Mails konnten nicht geladen werden',
+  'widget.outlookMail.stale':         'Aktualisierung fehlgeschlagen — zeige zwischengespeicherte Nachrichten',
   'widget.outlookMail.noMessages':    'Keine Nachrichten',
   'widget.outlookMail.previewBadge':  'Testdaten (Browservorschau)',
   'widget.outlookMail.inbox':         'Posteingang',

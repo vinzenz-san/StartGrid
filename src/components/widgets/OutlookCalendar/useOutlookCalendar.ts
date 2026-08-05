@@ -142,6 +142,7 @@ async function fetchMockEvents(): Promise<OutlookEvent[]> {
 }
 
 const CONFIG: CalendarProviderConfig<OutlookCalendarListEntry> = {
+  cacheKeyPrefix: 'outlook',
   defaultCalendarId: 'default',
   getValidToken: getValidMsToken,
   fetchCalendarEvents,

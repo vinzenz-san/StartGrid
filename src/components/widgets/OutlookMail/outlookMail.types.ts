@@ -31,4 +31,5 @@ export interface OutlookMailState {
   messages: MailMessage[];
   error: string | null;
   lastRefreshed: Date | null;
+  isStale: boolean;
 }

@@ -21,6 +21,7 @@ import { useApplyGridConfig } from '../../hooks/useApplyGridConfig';
 import { compactWidgets } from '../../lib/gridUtils';
 import { DEFAULT_BG } from '../../types/background';
 import AddWidgetMenu from '../shared/AddWidgetMenu';
+import LayoutPresets from '../shared/LayoutPresets';
 import type { Language, SettingsButtonPosition } from '../../contexts/SettingsContext';
 import type { TranslationKey } from '../../i18n';
 import { runThemeTransition } from '../../lib/themeTransition';
@@ -259,6 +260,9 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition,
                 {isEditMode ? t('widgets.lock') : t('widgets.unlock')}
               </ActionButton>
             </SettingsRow>
+
+            {/* Layout presets */}
+            <LayoutPresets />
 
             {/* Add Widget */}
             <AddWidgetMenu />

@@ -108,7 +108,7 @@ export default function ObsidianDaily({ data }: Props) {
   const { t } = useSettings();
   const { isReady, checking } = useObsidian();
   const {
-    status, blocks, errorCode, writing, staleConflict,
+    status, blocks, errorCode, writing, staleConflict, isStale,
     refresh, toggleTask, createNote, isMock,
   } = useObsidianDaily();
 
@@ -151,6 +151,7 @@ export default function ObsidianDaily({ data }: Props) {
 
       <div className="sg-cal-body sg-obsd" style={{ fontSize: data.fontSize ?? 13 }}>
         {isMock && <div className="sg-cal-preview-badge">{t('widget.obsidian.previewBadge')}</div>}
+        {isStale && !isLoading && <div className="sg-cal-stale-banner">{t('widget.obsidianDaily.stale')}</div>}
 
         {notConfigured ? (
           <ObsidianStatus code="NOT_CONFIGURED"/>

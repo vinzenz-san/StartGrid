@@ -120,6 +120,7 @@ async function fetchMockEvents(): Promise<CalendarEvent[]> {
 }
 
 const CONFIG: CalendarProviderConfig<GoogleCalendarListEntry> = {
+  cacheKeyPrefix: 'google',
   defaultCalendarId: 'primary',
   getValidToken,
   fetchCalendarEvents,

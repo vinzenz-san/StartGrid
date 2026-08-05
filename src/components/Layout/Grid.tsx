@@ -11,6 +11,7 @@ import ThemeToggle from '../shared/ThemeToggle';
 import GearIcon from '../shared/icons/GearIcon';
 import SettingsPanel from './SettingsPanel';
 import WidgetTour from '../shared/WidgetTour';
+import CommandPalette from '../shared/CommandPalette';
 import DevPanel, { type DevPanelPos } from '../DevPanel/DevPanel';
 import InspectorHistoryPanel from '../DevPanel/InspectorHistoryPanel';
 import { ElementInspectorProvider } from '../../contexts/ElementInspectorContext';
@@ -199,6 +200,8 @@ export default function Grid() {
         onClose={closeTour}
         onOpenSettings={() => setSettingsPanelOpen(true)}
       />
+
+      <CommandPalette />
 
       <main
         className={`sg-grid-wrapper${settingsPinned ? ` sg-grid-wrapper--pinned-${settingsButtonPosition.endsWith('left') ? 'left' : 'right'}` : ''}`}

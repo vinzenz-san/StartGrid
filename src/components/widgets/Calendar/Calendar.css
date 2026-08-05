@@ -633,3 +633,13 @@
   padding: 4px 8px;
   flex-shrink: 0;
 }
+
+.sg-cal-stale-banner {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin: 0 0 6px;
+  flex-shrink: 0;
+}

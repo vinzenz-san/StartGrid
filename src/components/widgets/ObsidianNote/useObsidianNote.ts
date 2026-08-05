@@ -2,12 +2,23 @@ import { useState, useCallback, useRef } from 'react';
 import { getFile, ObsidianError, type ObsidianErrorCode } from '../../../lib/obsidianApi';
 import { parseMarkdown, type MdBlock } from '../../../lib/obsidianMarkdown';
 import { isExtensionEnv } from '../../../lib/permissions';
+import { storageLocal } from '../../../lib/storageLocal';
 
 export interface NoteState {
   status:        'idle' | 'loading' | 'success' | 'error';
   blocks:        MdBlock[];
   errorCode:     ObsidianErrorCode | null;
   lastRefreshed: Date | null;
+  isStale:       boolean;
+}
+
+interface NoteCache {
+  source: string;
+  fetchedAt: number;
+}
+
+function cacheKey(path: string): string {
+  return `sg:obsidian:note:cache:${path}`;
 }
 
 const MOCK_SOURCE = [
@@ -28,13 +39,14 @@ export function useObsidianNote() {
     blocks: [],
     errorCode: null,
     lastRefreshed: null,
+    isStale: false,
   });
   const fetchingRef = useRef(false);
 
   const refresh = useCallback(async (path: string) => {
     if (fetchingRef.current) return;
     if (!path) {
-      setState({ status: 'error', blocks: [], errorCode: 'NOT_CONFIGURED', lastRefreshed: null });
+      setState({ status: 'error', blocks: [], errorCode: 'NOT_CONFIGURED', lastRefreshed: null, isStale: false });
       return;
     }
     fetchingRef.current = true;
@@ -53,14 +65,31 @@ export function useObsidianNote() {
         blocks: parseMarkdown(source),
         errorCode: null,
         lastRefreshed: new Date(),
+        isStale: false,
       });
+      storageLocal.set(cacheKey(path), { source, fetchedAt: Date.now() } satisfies NoteCache);
     } catch (err) {
-      setState({
-        status: 'error',
-        blocks: [],
-        errorCode: err instanceof ObsidianError ? err.code : 'HTTP_ERROR',
-        lastRefreshed: null,
-      });
+      // Fall back to the last cached content for this exact path rather than
+      // a bare error when one exists — same reasoning as useObsidianDaily.ts.
+      const cached = await storageLocal.get(cacheKey(path));
+      const c = cached as NoteCache | undefined;
+      if (c) {
+        setState({
+          status: 'success',
+          blocks: parseMarkdown(c.source),
+          errorCode: null,
+          lastRefreshed: new Date(c.fetchedAt),
+          isStale: true,
+        });
+      } else {
+        setState({
+          status: 'error',
+          blocks: [],
+          errorCode: err instanceof ObsidianError ? err.code : 'HTTP_ERROR',
+          lastRefreshed: null,
+          isStale: false,
+        });
+      }
     } finally {
       fetchingRef.current = false;
     }
