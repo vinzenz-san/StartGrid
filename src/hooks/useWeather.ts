@@ -25,6 +25,7 @@ export function useWeather({ latitude, longitude, units }: Params) {
   const [weather, setWeather]       = useState<CurrentWeather | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError]           = useState<string | null>(null);
+  const [isStale, setIsStale]       = useState(false);
 
   const fetchRef = useRef<() => Promise<void>>(async () => {});
 
@@ -43,11 +44,20 @@ export function useWeather({ latitude, longitude, units }: Params) {
       const result = await fetchCurrentWeather(latitude!, longitude!, units);
       if (requestIdRef.current !== requestId) return;
       setWeather(result);
+      setIsStale(false);
       const cache: WeatherCache = { weather: result, fetchedAt: Date.now() };
       storageLocal.set(cacheKey(latitude!, longitude!, units), cache);
     } catch (err) {
       if (requestIdRef.current !== requestId) return;
       setError(err instanceof Error ? err.message : 'Fetch failed');
+      // Fall back to the last cached value (regardless of its TTL) rather
+      // than a bare error screen when one exists — a failed refresh is
+      // usually a network blip, not a reason to hide data the widget
+      // already had.
+      const cached = await storageLocal.get(cacheKey(latitude!, longitude!, units));
+      if (requestIdRef.current !== requestId) return;
+      const c = cached as WeatherCache | undefined;
+      if (c) { setWeather(c.weather); setIsStale(true); }
     } finally {
       if (requestIdRef.current === requestId) setIsFetching(false);
     }
@@ -57,18 +67,19 @@ export function useWeather({ latitude, longitude, units }: Params) {
 
   useEffect(() => {
     const requestId = ++requestIdRef.current;
-    if (!hasLocation) { setWeather(null); return; }
+    if (!hasLocation) { setWeather(null); setIsStale(false); return; }
     const key = cacheKey(latitude!, longitude!, units);
     storageLocal.get(key).then(cached => {
       if (requestIdRef.current !== requestId) return;
       const c = cached as WeatherCache | undefined;
       if (c && Date.now() - c.fetchedAt < CACHE_TTL_MS) {
         setWeather(c.weather);
+        setIsStale(false);
       } else {
         fetchRef.current();
       }
     });
   }, [hasLocation, latitude, longitude, units]);
 
-  return { weather, isFetching, error, refetch: fetchWeather };
+  return { weather, isFetching, error, isStale, refetch: fetchWeather };
 }

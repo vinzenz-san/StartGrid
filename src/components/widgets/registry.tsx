@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, CalendarData, OutlookCalendarData, OutlookMailData, NotesData, ObsidianCaptureData, ObsidianDailyData, ObsidianNoteData, ObsidianSearchData, ObsidianRandomData, GreetingData, WeatherData, RssFeedData, PlaceholderData } from '../../types/widget';
+import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, CalendarData, OutlookCalendarData, OutlookMailData, NotesData, ObsidianCaptureData, ObsidianDailyData, ObsidianNoteData, ObsidianSearchData, ObsidianRandomData, GreetingData, WeatherData, RssFeedData, TodoData, PlaceholderData } from '../../types/widget';
 import type { TranslationKey } from '../../i18n';
 import Clock, { ClockSettings } from './Clock/Clock';
 import Quicklinks, { QuicklinksSettings } from './Quicklinks/Quicklinks';
@@ -17,6 +17,7 @@ import ObsidianRandom, { ObsidianRandomSettings } from './ObsidianRandom/Obsidia
 import Greeting, { GreetingSettings } from './Greeting/Greeting';
 import Weather, { WeatherSettings } from './Weather/Weather';
 import RssFeed, { RssFeedSettings } from './RssFeed/RssFeed';
+import TodoList, { TodoListSettings } from './TodoList/TodoList';
 import WidgetPlaceholder from '../shared/WidgetPlaceholder';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -232,6 +233,18 @@ const _registry = {
     renderSettings:  (data, onUpdateData) => <RssFeedSettings data={data} onUpdateData={onUpdateData} />,
   } satisfies TypedEntry<RssFeedData>,
 
+  todoList: {
+    label:                 'To-Do',
+    icon:                  '✅',
+    defaultSize:           { w: 2, h: 2 },
+    defaultData:           { items: [], hideCompleted: false } satisfies TodoData,
+    titleBehavior:         'optional',
+    defaultTitle:          'To-Do',
+    defaultShowCustomTitle: false,
+    renderComponent: (data, onUpdateData) => <TodoList data={data} onUpdateData={onUpdateData} />,
+    renderSettings:  (data, onUpdateData) => <TodoListSettings data={data} onUpdateData={onUpdateData} />,
+  } satisfies TypedEntry<TodoData>,
+
   placeholder: {
     label:         'Placeholder',
     icon:          '⬜',
@@ -271,10 +284,11 @@ export const WIDGET_TYPE_LABEL_KEYS: Record<WidgetType, TranslationKey> = {
   greeting:       'widgets.type.greeting',
   weather:        'widgets.type.weather',
   rssFeed:        'widgets.type.rssFeed',
+  todoList:       'widgets.type.todoList',
   placeholder:    'widgets.type.placeholder',
 };
 
 // Ordered list for the "Add Widget" menu (excludes placeholder handled separately if desired).
 export const WIDGET_MENU_TYPES: WidgetType[] = [
-  'clock', 'quicklinks', 'bookmarks', 'bookmarkSearch', 'calendar', 'outlookCalendar', 'outlookMail', 'notes', 'obsidianCapture', 'obsidianDaily', 'obsidianNote', 'obsidianSearch', 'obsidianRandom', 'greeting', 'weather', 'rssFeed', 'placeholder',
+  'clock', 'quicklinks', 'bookmarks', 'bookmarkSearch', 'calendar', 'outlookCalendar', 'outlookMail', 'notes', 'obsidianCapture', 'obsidianDaily', 'obsidianNote', 'obsidianSearch', 'obsidianRandom', 'greeting', 'weather', 'rssFeed', 'todoList', 'placeholder',
 ];

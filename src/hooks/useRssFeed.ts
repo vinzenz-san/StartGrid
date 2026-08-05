@@ -29,6 +29,7 @@ export function useRssFeed({ feedUrl, refreshIntervalMin }: Params) {
   const [items, setItems]       = useState<FeedItem[]>([]);
   const [feedTitle, setFeedTitle] = useState<string | undefined>(undefined);
   const [error, setError]       = useState<string | null>(null);
+  const [isStale, setIsStale]   = useState(false);
 
   const fetchRef = useRef<() => Promise<void>>(async () => {});
 
@@ -49,12 +50,25 @@ export function useRssFeed({ feedUrl, refreshIntervalMin }: Params) {
       setItems(result.items);
       setFeedTitle(result.feedTitle);
       setStatus('success');
+      setIsStale(false);
       const cache: FeedCache = { feedTitle: result.feedTitle, items: result.items, fetchedAt: Date.now() };
       storageLocal.set(cacheKey(feedUrl), cache);
     } catch (err) {
       if (requestIdRef.current !== requestId) return;
       setError(err instanceof Error ? err.message : 'Fetch failed');
-      setStatus('error');
+      // Fall back to the last cached items (regardless of TTL) rather than a
+      // bare error state when a cache exists — same reasoning as useWeather.ts.
+      const cached = await storageLocal.get(cacheKey(feedUrl));
+      if (requestIdRef.current !== requestId) return;
+      const c = cached as FeedCache | undefined;
+      if (c) {
+        setItems(c.items);
+        setFeedTitle(c.feedTitle);
+        setStatus('success');
+        setIsStale(true);
+      } else {
+        setStatus('error');
+      }
     }
   }, [feedUrl]);
 
@@ -62,7 +76,7 @@ export function useRssFeed({ feedUrl, refreshIntervalMin }: Params) {
 
   useEffect(() => {
     const requestId = ++requestIdRef.current;
-    if (!hasFeed || !feedUrl) { setItems([]); setFeedTitle(undefined); setStatus('idle'); return; }
+    if (!hasFeed || !feedUrl) { setItems([]); setFeedTitle(undefined); setStatus('idle'); setIsStale(false); return; }
     const key = cacheKey(feedUrl);
     storageLocal.get(key).then(cached => {
       if (requestIdRef.current !== requestId) return;
@@ -71,11 +85,12 @@ export function useRssFeed({ feedUrl, refreshIntervalMin }: Params) {
         setItems(c.items);
         setFeedTitle(c.feedTitle);
         setStatus('success');
+        setIsStale(false);
       } else {
         fetchRef.current();
       }
     });
   }, [hasFeed, feedUrl, ttlMs]);
 
-  return { status, items, feedTitle, error, refetch: fetchFeedNow };
+  return { status, items, feedTitle, error, isStale, refetch: fetchFeedNow };
 }

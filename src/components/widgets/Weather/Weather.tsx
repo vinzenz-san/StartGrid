@@ -203,7 +203,7 @@ export default function Weather({ data }: Props) {
   const showLocationName = data.showLocationName ?? true;
   const alignment        = data.alignment ?? 'left';
 
-  const { weather, isFetching, error, refetch } = useWeather({
+  const { weather, isFetching, error, isStale, refetch } = useWeather({
     latitude: data.latitude,
     longitude: data.longitude,
     units,
@@ -253,7 +253,10 @@ export default function Weather({ data }: Props) {
     <div className={`sg-weather sg-weather--align-${alignment}${data.allowOverflow ? ' sg-weather--overflow' : ''}`} style={wrapper}>
       <div className="sg-weather-icon" style={{ fontSize: iconSize }}>{info.icon}</div>
       <div className="sg-weather-main">
-        <div className="sg-weather-temp" style={{ fontSize: tempSize }}>{temp}{unitSuffix}</div>
+        <div className="sg-weather-temp" style={{ fontSize: tempSize }}>
+          {temp}{unitSuffix}
+          {isStale && <span className="sg-weather-stale-dot" title={t('widget.weather.stale')} />}
+        </div>
         <div className="sg-weather-condition" style={{ fontSize: conditionSize }}>{t(info.labelKey)}</div>
         {showFeelsLike && (
           <div className="sg-weather-feelslike" style={{ fontSize: secondarySize }}>{t('widget.weather.feelsLike', { value: `${feelsLike}${unitSuffix}` })}</div>

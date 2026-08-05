@@ -218,6 +218,17 @@ export interface WeatherData {
   allowOverflow?: boolean;
 }
 
+export interface TodoItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
+export interface TodoData {
+  items: TodoItem[];
+  hideCompleted?: boolean; // default false
+}
+
 export interface RssFeedData {
   feedUrl?: string;
   /** Cached from the feed's own <title>/<feed><title> on the last successful
@@ -247,6 +258,7 @@ export interface WidgetDataMap {
   greeting:        GreetingData;
   weather:         WeatherData;
   rssFeed:         RssFeedData;
+  todoList:        TodoData;
   placeholder:     PlaceholderData;
 }
 
@@ -293,4 +305,5 @@ export type Widget =
   | (WidgetBase & { type: 'greeting';       data: GreetingData })
   | (WidgetBase & { type: 'weather';        data: WeatherData })
   | (WidgetBase & { type: 'rssFeed';        data: RssFeedData })
+  | (WidgetBase & { type: 'todoList';       data: TodoData })
   | (WidgetBase & { type: 'placeholder';    data: PlaceholderData });

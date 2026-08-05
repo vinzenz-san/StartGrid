@@ -11,6 +11,16 @@
 
 .sg-rss-item { width: 100%; }
 
+.sg-rss-stale-banner {
+  list-style: none;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+}
+
 .sg-rss-item-link {
   display: flex;
   flex-direction: column;

@@ -35,6 +35,7 @@ export function useBing(
   const [title, setTitle]           = useState<string | undefined>(undefined);
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError]           = useState<string | null>(null);
+  const [isStale, setIsStale]       = useState(false);
 
   // Always-current ref, same pattern as useAstronomy's fetchRef
   const fetchRef = useRef<() => Promise<void>>(async () => {});
@@ -50,10 +51,20 @@ export function useBing(
       const { url, title: t } = await fetchBingImage(isCustom ? requestedDate : undefined);
       setTitle(t);
       setImageUrl(url);
+      setIsStale(false);
       const cache: BingCache = { url, title: t, fetchedDate: requestedDate };
       storageLocal.set(CACHE_KEY, cache);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Fetch failed');
+      // Re-apply the last cached wallpaper (any date) rather than leaving
+      // nothing on screen — same reasoning as useWeather.ts's fallback.
+      const cached = await storageLocal.get(CACHE_KEY);
+      const c = cached as BingCache | undefined;
+      if (c) {
+        setTitle(c.title);
+        setImageUrl(c.url);
+        setIsStale(true);
+      }
     } finally {
       setIsFetching(false);
     }
@@ -64,12 +75,13 @@ export function useBing(
   // Load cache when mode becomes active, or when the chosen date changes —
   // reuse the cached image for that date if present, else refetch.
   useEffect(() => {
-    if (!isActive) { setImageUrl(null); return; }
+    if (!isActive) { setImageUrl(null); setIsStale(false); return; }
     storageLocal.get(CACHE_KEY).then(cached => {
       const c = cached as BingCache | undefined;
       if (c && c.fetchedDate === dateKey) {
         setTitle(c.title);
         setImageUrl(c.url);
+        setIsStale(false);
       } else {
         fetchRef.current();
       }
@@ -81,6 +93,7 @@ export function useBing(
     title,
     isFetching,
     error,
+    isStale,
     fetchNow: fetchImage,
   };
 }

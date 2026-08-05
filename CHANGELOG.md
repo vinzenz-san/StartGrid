@@ -2,6 +2,12 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.9.0] — To-Do widget, offline cache fallback
+
+- New optional **To-Do widget**: add/check off/delete/reorder tasks (pointer-based drag reorder, ported from Quicklinks' own implementation), "Hide completed" toggle and a "Clear completed" action in Settings. Items are stored directly in the widget's synced data (like Quicklinks' link array) — no separate local/synced storage mode like Notes has, since short task text is nowhere near the sync-storage size limits that motivated that split there
+- Fixed a real gap found while auditing offline behavior: `useWeather`, `useRssFeed`, `useUnsplash`, and `useBing` all cache their last successful fetch in `storageLocal`, but none of them re-read that cache when a refresh *fails* — a network blip showed a bare error screen (or, for the two background-image hooks, silently dropped back to nothing on a first-load failure) instead of the perfectly good data already sitting in cache. All four now fall back to the cached value on fetch failure and expose it via a new `isStale` flag; Weather and the RSS Feed widget surface a small visual indicator when showing stale data
+- Audited but explicitly left out of scope: `useCalendar`/`useOutlookCalendar`/`useOutlookMail`/the Obsidian widgets have no persisted cache at all today — adding one is a bigger, separate feature, not a fix to an existing mechanism
+
 ## [1.8.0] — RSS Feed widget
 
 - New optional **RSS Feed widget**: shows an RSS/Atom feed as a clickable item list (title, optional description snippet, relative published time). One feed URL per widget instance — add multiple instances for multiple feeds

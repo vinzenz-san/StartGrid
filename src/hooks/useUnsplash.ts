@@ -45,6 +45,7 @@ export function useUnsplash(
   const [attribution, setAttribution] = useState<UnsplashAttribution | null>(null);
   const [isFetching, setIsFetching]   = useState(false);
   const [error, setError]             = useState<string | null>(null);
+  const [isStale, setIsStale]         = useState(false);
 
   // Always-current ref so rotation timer doesn't depend on fetchImage identity
   const fetchRef = useRef<() => Promise<void>>(async () => {});
@@ -132,6 +133,7 @@ export function useUnsplash(
       };
       setAttribution(next);
       setImageUrl(next.imageUrl);
+      setIsStale(false);
       storageLocal.set(CACHE_KEY, next);
 
       // Unsplash requires a download_location ping whenever a photo is
@@ -143,6 +145,16 @@ export function useUnsplash(
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Fetch failed');
+      // Re-apply the last cached photo rather than leaving whatever was on
+      // screen (or nothing, on a first-load failure) — same reasoning as
+      // useWeather.ts's fallback.
+      const cached = await storageLocal.get(CACHE_KEY);
+      const c = cached as UnsplashAttribution | undefined;
+      if (c) {
+        setAttribution(c);
+        setImageUrl(c.imageUrl);
+        setIsStale(true);
+      }
     } finally {
       setIsFetching(false);
     }
@@ -153,12 +165,13 @@ export function useUnsplash(
 
   // Load cache when mode becomes active
   useEffect(() => {
-    if (!isActive) { setImageUrl(null); return; }
+    if (!isActive) { setImageUrl(null); setIsStale(false); return; }
     storageLocal.get(CACHE_KEY).then(cached => {
       if (cached) {
         const c = cached as UnsplashAttribution;
         setAttribution(c);
         setImageUrl(c.imageUrl);
+        setIsStale(false);
       }
       // 'every new tab' mode always fetches a fresh photo on load rather than
       // trusting the cache, even if a cached attribution already exists.
@@ -199,6 +212,7 @@ export function useUnsplash(
     attribution,
     isFetching,
     error,
+    isStale,
     fetchNow: fetchImage,
   };
 }

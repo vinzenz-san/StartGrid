@@ -107,7 +107,7 @@ export default function RssFeed({ data, onUpdateData }: Props) {
   const maxItems = data.maxItems ?? 8;
   const showDescription = data.showDescription ?? false;
 
-  const { status, items, feedTitle, error, refetch } = useRssFeed({
+  const { status, items, feedTitle, error, isStale, refetch } = useRssFeed({
     feedUrl: data.feedUrl,
     refreshIntervalMin: data.refreshIntervalMin,
   });
@@ -146,6 +146,11 @@ export default function RssFeed({ data, onUpdateData }: Props) {
 
   return (
     <ul className="sg-rss-list sg-scroll-thin">
+      {isStale && (
+        <li className="sg-rss-stale-banner">
+          {t('widget.rssFeed.stale')}
+        </li>
+      )}
       {items.slice(0, maxItems).map((item, i) => (
         <li key={item.link || `${item.title}-${i}`} className="sg-rss-item">
           <button className="sg-rss-item-link" onClick={() => item.link && openUrl(item.link)}>

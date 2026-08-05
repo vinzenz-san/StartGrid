@@ -43,6 +43,17 @@
   line-height: 1.1;
 }
 
+.sg-weather-stale-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 4px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text-muted) 70%, orange);
+  vertical-align: top;
+}
+
 .sg-weather-condition {
   color: var(--text);
 }

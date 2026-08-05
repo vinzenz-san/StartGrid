@@ -198,6 +198,7 @@ export const en = {
   'widgets.type.greeting':       'Greeting',
   'widgets.type.weather':        'Weather',
   'widgets.type.rssFeed':        'RSS Feed',
+  'widgets.type.todoList':       'To-Do',
 
   // ── RSS Feed widget ───────────────────────────────────────────────────────
   'widget.rssFeed.noFeed':           'No feed configured — add a feed URL in Settings.',
@@ -215,6 +216,14 @@ export const en = {
   'widget.rssFeed.minutesAgo':       '{{count}} min ago',
   'widget.rssFeed.hoursAgo':         '{{count}} h ago',
   'widget.rssFeed.daysAgo':          '{{count}} d ago',
+  'widget.rssFeed.stale':            'Refresh failed — showing cached items',
+
+  // ── To-Do widget ──────────────────────────────────────────────────────────
+  'widget.todoList.addPlaceholder':  'Add a task and press Enter…',
+  'widget.todoList.empty':           'No tasks yet.',
+  'widget.todoList.delete':          'Delete',
+  'widget.todoList.hideCompleted':   'Hide completed',
+  'widget.todoList.clearCompleted':  'Clear completed ({{count}})',
 
   // ── Greeting widget ──────────────────────────────────────────────────────
   'widget.greeting.morning':        'Good morning',
@@ -250,6 +259,7 @@ export const en = {
   'widget.weather.feelsLike':         'Feels like {{value}}',
   'widget.weather.showFeelsLike':     'Show feels-like',
   'widget.weather.showLocationName':  'Show location name',
+  'widget.weather.stale':             'Refresh failed — showing cached weather',
   'widget.weather.condition.clear':        'Clear sky',
   'widget.weather.condition.mainlyClear':  'Mainly clear',
   'widget.weather.condition.partlyCloudy': 'Partly cloudy',

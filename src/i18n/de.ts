@@ -200,6 +200,7 @@ export const de: Record<TranslationKey, string> = {
   'widgets.type.greeting':       'Begrüßung',
   'widgets.type.weather':        'Wetter',
   'widgets.type.rssFeed':        'RSS-Feed',
+  'widgets.type.todoList':       'To-Do',
 
   // ── RSS Feed widget ───────────────────────────────────────────────────────
   'widget.rssFeed.noFeed':           'Kein Feed eingerichtet — Feed-URL in den Einstellungen hinzufügen.',
@@ -217,6 +218,14 @@ export const de: Record<TranslationKey, string> = {
   'widget.rssFeed.minutesAgo':       'vor {{count}} Min.',
   'widget.rssFeed.hoursAgo':         'vor {{count}} Std.',
   'widget.rssFeed.daysAgo':          'vor {{count}} T.',
+  'widget.rssFeed.stale':            'Aktualisierung fehlgeschlagen — zeige zwischengespeicherte Einträge',
+
+  // ── To-Do widget ──────────────────────────────────────────────────────────
+  'widget.todoList.addPlaceholder':  'Aufgabe hinzufügen und Enter drücken…',
+  'widget.todoList.empty':           'Noch keine Aufgaben.',
+  'widget.todoList.delete':          'Löschen',
+  'widget.todoList.hideCompleted':   'Erledigte ausblenden',
+  'widget.todoList.clearCompleted':  'Erledigte löschen ({{count}})',
 
   // ── Greeting widget ──────────────────────────────────────────────────────
   'widget.greeting.morning':        'Guten Morgen',
@@ -252,6 +261,7 @@ export const de: Record<TranslationKey, string> = {
   'widget.weather.feelsLike':         'Gefühlt {{value}}',
   'widget.weather.showFeelsLike':     'Gefühlte Temperatur anzeigen',
   'widget.weather.showLocationName':  'Standortname anzeigen',
+  'widget.weather.stale':             'Aktualisierung fehlgeschlagen — zeige zwischengespeichertes Wetter',
   'widget.weather.condition.clear':        'Klarer Himmel',
   'widget.weather.condition.mainlyClear':  'Überwiegend klar',
   'widget.weather.condition.partlyCloudy': 'Teilweise bewölkt',
