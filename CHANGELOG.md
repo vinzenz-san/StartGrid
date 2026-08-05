@@ -2,6 +2,13 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.8.0] — RSS Feed widget
+
+- New optional **RSS Feed widget**: shows an RSS/Atom feed as a clickable item list (title, optional description snippet, relative published time). One feed URL per widget instance — add multiple instances for multiple feeds
+- Most feeds send no CORS headers, so the extension can't fetch them directly from the browser without declaring broad host permissions. Routed through a new `/rss?url=` route on the existing Cloudflare Worker instead (same model as the Unsplash/NASA/OAuth-token routes already there), so no new extension permission was needed. The Worker only relays raw bytes; parsing happens client-side via a small hand-rolled RSS 2.0/Atom parser (`lib/rssApi.ts`, `DOMParser`-based, no new dependency — same philosophy as `lib/obsidianMarkdown.ts`'s own hand-rolled subset parser)
+- `useRssFeed.ts` ports the request-id stale-response guard added to `useWeather` in 1.7.6, built in from the start rather than retrofitted later
+- Privacy policy updated to describe the new proxy route: the feed host sees the Worker's network location, not the user's, and feed content is parsed in-browser, never on the Worker
+
 ## [1.7.6] — Weather widget stale-state fix
 
 - Fixed a race in `useWeather` where switching location or units while a fetch was still in flight could apply a resolved, now-stale result and show weather for the wrong place. A request-id ref bumped on every param change and by `fetchWeather`'s own start now gates both the cache-lookup effect and `fetchWeather` before either calls `setState`
