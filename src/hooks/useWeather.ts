@@ -28,28 +28,39 @@ export function useWeather({ latitude, longitude, units }: Params) {
 
   const fetchRef = useRef<() => Promise<void>>(async () => {});
 
+  // Bumped by every param change below, and by fetchWeather itself when it
+  // starts — a resolved async call only applies its result if it's still the
+  // most recent one requested, so switching location/units mid-flight can't
+  // clobber the newer request's state with a stale one.
+  const requestIdRef = useRef(0);
+
   const fetchWeather = useCallback(async () => {
     if (!hasLocation) return;
+    const requestId = ++requestIdRef.current;
     setIsFetching(true);
     setError(null);
     try {
       const result = await fetchCurrentWeather(latitude!, longitude!, units);
+      if (requestIdRef.current !== requestId) return;
       setWeather(result);
       const cache: WeatherCache = { weather: result, fetchedAt: Date.now() };
       storageLocal.set(cacheKey(latitude!, longitude!, units), cache);
     } catch (err) {
+      if (requestIdRef.current !== requestId) return;
       setError(err instanceof Error ? err.message : 'Fetch failed');
     } finally {
-      setIsFetching(false);
+      if (requestIdRef.current === requestId) setIsFetching(false);
     }
   }, [hasLocation, latitude, longitude, units]);
 
   useEffect(() => { fetchRef.current = fetchWeather; }, [fetchWeather]);
 
   useEffect(() => {
+    const requestId = ++requestIdRef.current;
     if (!hasLocation) { setWeather(null); return; }
     const key = cacheKey(latitude!, longitude!, units);
     storageLocal.get(key).then(cached => {
+      if (requestIdRef.current !== requestId) return;
       const c = cached as WeatherCache | undefined;
       if (c && Date.now() - c.fetchedAt < CACHE_TTL_MS) {
         setWeather(c.weather);
