@@ -1,7 +1,10 @@
-# Service name kept as-is (already deployed) even though this Worker now
-# proxies both Unsplash and NASA — renaming would mint a new .workers.dev
-# URL and orphan the deployed one.
-name = "startgrid-unsplash-proxy"
+# Renamed from startgrid-unsplash-proxy to startgrid-api-proxy in the
+# Cloudflare dashboard to reflect that this Worker now proxies Unsplash,
+# NASA, and the Google/MS OAuth token exchange, not just Unsplash. Renaming
+# minted a new *.workers.dev URL — every reference to the old URL elsewhere
+# in the repo (APP_MEDIA_PROXY_URL in .env/.env.example, docs/privacy.html)
+# was updated alongside this rename.
+name = "startgrid-api-proxy"
 main = "api-proxy.ts"
 compatibility_date = "2024-01-01"
 
