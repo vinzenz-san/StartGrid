@@ -40,6 +40,15 @@ export interface Env {
 // resolving both against the Web Store: only cihlhlnnd... returns the StartGrid
 // listing. An earlier revision of this file allowed the unpacked ID alone,
 // which 403'd every store install until this was caught.
+//
+// RELEASE CHECKLIST: before every deploy, verify cihlhlnnd... below still
+// resolves to the live StartGrid Web Store listing
+// (https://chromewebstore.google.com/detail/cihlhlnndcacidpnhmncifiggfcacdhk).
+// The Web Store can reassign or change a listing's ID on things like a
+// republish under new ownership or a policy-triggered relist — if that ever
+// happens, real users get silently 403'd (as already occurred once, see
+// above) until this constant is updated and the Worker is redeployed. No
+// automated check for this exists; it must be done manually.
 const CHROME_EXTENSION_ORIGINS = [
   'chrome-extension://cihlhlnndcacidpnhmncifiggfcacdhk', // Chrome Web Store listing
   'chrome-extension://jkikhgehaeponbomfggejlnpbegpdafl', // local unpacked (pinned key)
