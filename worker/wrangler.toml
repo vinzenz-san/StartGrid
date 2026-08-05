@@ -5,6 +5,13 @@ name = "startgrid-unsplash-proxy"
 main = "api-proxy.ts"
 compatibility_date = "2024-01-01"
 
+# Per-IP rate limiting for the proxy routes (see checkRateLimit in
+# api-proxy.ts). Create with `wrangler kv:namespace create RATE_LIMIT` and
+# paste the returned id below before first deploy.
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "b50c84c3250a404d91b8d7e7c164fd8d"
+
 # Set secrets via:
 #   wrangler secret put UNSPLASH_ACCESS_KEY
 #   wrangler secret put NASA_API_KEY

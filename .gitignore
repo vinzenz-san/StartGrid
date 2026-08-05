@@ -28,3 +28,6 @@ startgrid-chrome-key.pub.b64.txt
 
 # Local Windows helper scripts
 *.bat
+
+# Wrangler local dev cache
+worker/.wrangler/

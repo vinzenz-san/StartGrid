@@ -19,6 +19,7 @@ export interface Env {
   // end in '*' to match a prefix ('chrome-extension://*'). Firefox origins and
   // the web origins below are always allowed regardless of this value.
   ALLOWED_ORIGIN?: string;
+  RATE_LIMIT: KVNamespace;
 }
 
 // ── CORS origin allowlist ─────────────────────────────────────────────────────
@@ -57,13 +58,14 @@ function originMatches(origin: string, entry: string): boolean {
 
 /**
  * Returns the value to echo back in Access-Control-Allow-Origin, or null if
- * the caller isn't allowed.
+ * the caller isn't allowed (including when no Origin header was sent at
+ * all — see the rejection in fetch() below).
  *
- * A request with no Origin header at all resolves to null and is served
- * without CORS headers rather than refused: an origin check only ever
- * constrains browsers, since any non-browser client can omit or forge the
- * header. The point of this allowlist is to stop a web page from spending the
- * API keys this Worker holds, not to authenticate callers.
+ * This can never fully authenticate a caller: a non-browser client can forge
+ * any Origin header it likes, so the allowlist only stops browsers acting on
+ * behalf of an unrecognised page. It's paired with per-IP rate limiting
+ * below, which is what actually bounds how much of the API keys this Worker
+ * holds a single caller — forged origin or not — can spend.
  */
 export function resolveAllowedOrigin(origin: string | null, env: Env): string | null {
   if (!origin) return null;
@@ -75,6 +77,19 @@ export function resolveAllowedOrigin(origin: string | null, env: Env): string | 
     ...WEB_ORIGINS,
   ];
   return allowed.some(entry => originMatches(origin, entry)) ? origin : null;
+}
+
+// Fixed-window rate limit: requests allowed per IP per RATE_LIMIT_WINDOW_SECONDS.
+// Set to 5 only while manually verifying the 429 path, then restored to 60.
+const RATE_LIMIT_MAX = 60;
+const RATE_LIMIT_WINDOW_SECONDS = 60;
+
+async function checkRateLimit(ip: string, env: Env): Promise<boolean> {
+  const key = `rl:${ip}`;
+  const current = Number((await env.RATE_LIMIT.get(key)) ?? '0');
+  if (current >= RATE_LIMIT_MAX) return false;
+  await env.RATE_LIMIT.put(key, String(current + 1), { expirationTtl: RATE_LIMIT_WINDOW_SECONDS });
+  return true;
 }
 
 const UNSPLASH_UPSTREAM = 'https://api.unsplash.com';
@@ -101,11 +116,11 @@ export default {
     const origin = request.headers.get('Origin');
     const allowedOrigin = resolveAllowedOrigin(origin, env);
 
-    // A browser identified itself and we don't recognise it — refuse outright
-    // instead of relying on the browser to throw the response away, so the
-    // keys behind this Worker can't be spent from an unknown page.
-    if (origin !== null && allowedOrigin === null) {
-      return new Response(`Origin not allowed: ${origin}`, { status: 403 });
+    // Refuse outright rather than relying on the browser to throw the
+    // response away, so the keys behind this Worker can't be spent from an
+    // unknown page — or, now, from a request that skips Origin entirely.
+    if (allowedOrigin === null) {
+      return new Response(`Origin not allowed: ${origin ?? '(none)'}`, { status: 403 });
     }
 
     // Vary matters here: without it a cache could serve one extension install's
@@ -121,6 +136,11 @@ export default {
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
+    }
+
+    const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
+    if (!(await checkRateLimit(ip, env))) {
+      return new Response('Rate limit exceeded', { status: 429, headers: corsHeaders });
     }
 
     const url = new URL(request.url);
