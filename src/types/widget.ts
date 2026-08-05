@@ -225,8 +225,10 @@ export interface TodoItem {
 }
 
 export interface TodoData {
-  items: TodoItem[];
-  hideCompleted?: boolean; // default false
+  source?: 'local' | 'google';  // default 'local'
+  items: TodoItem[];            // only used when source is 'local'
+  googleTaskListId?: string;    // only used when source is 'google'
+  hideCompleted?: boolean;      // default false
 }
 
 export interface CurrencyTickerData {

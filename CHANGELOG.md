@@ -2,6 +2,13 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.12.0] — Google Tasks source for the To-Do widget
+
+- The To-Do widget gains a **Source** setting: "Local" (unchanged — add/check/delete/reorder tasks stored on the widget itself) or **"Google Tasks"** — a read-only view of a Google Task list, using the same shared Google OAuth client as the Calendar widget (`tasks.readonly` scope, verified against Google's REST reference before building against it, not assumed). No write access requested or possible — checking or adding a task in the Google Tasks source isn't offered, since `tasks.readonly` genuinely can't do it
+- Built with the `isStale` cache-fallback pattern from the start (like every network-backed widget added this session): a failed refresh shows the last-loaded tasks with a small banner instead of a bare error
+- **Gated behind Developer Options until `tasks.readonly` is verified.** Unlike Outlook Mail/Calendar's scope addition, this one is *not* live for regular users yet: because Calendar and To-Do share one Google OAuth client/request, unconditionally adding an unapproved scope would make every plain Calendar connect — not just Tasks — show Google's "unverified app" warning and burn one of this project's 100 lifetime unapproved-scope user slots (a hard cap that can never be reset). `connectGoogle()` only requests `tasks.readonly` when Developer Options is on; the Source dropdown's "Google Tasks" option is hidden otherwise. Same gating Calendar itself went through before its own verification landed
+- Privacy policy updated ahead of this (see the previous commit) to disclose the new scope before submitting Google's sensitive-scope verification for it, not after
+
 ## [1.11.1] — Offline cache for Obsidian Daily Note and Pinned Note
 
 - Extended the `isStale` cache-fallback pattern to **Obsidian Daily Note** and **Pinned Note**: a failed refresh now shows the last successfully loaded content for that exact note path instead of a bare error, with a small "showing cached note" banner. No TTL here (unlike Weather/rates) — a note's content doesn't drift on its own, so any previously-fetched copy stays valid to show while a refresh keeps failing

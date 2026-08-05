@@ -26,6 +26,7 @@ import {
   clearStoredAuthGeneric,
   runAuthCodeFlow,
 } from './oauthPkce';
+import { storage } from './storage';
 
 export const GOOGLE_CLIENT_ID = '49189092238-uf3oopq0q7ohvuntjd3j4dvtbljjsmtn.apps.googleusercontent.com';
 
@@ -39,14 +40,35 @@ const MEDIA_PROXY_URL = (import.meta.env.APP_MEDIA_PROXY_URL || '').replace(/\/$
 
 export type StoredAuth = StoredAuthBase;
 
+// Approved scopes only — calendar.readonly is verified, openid/email are
+// non-sensitive. This is what every regular (non-dev) user's Connect request
+// sends, unchanged, so existing Calendar users are never affected by the
+// pending Tasks verification below.
+const APPROVED_SCOPES = ['https://www.googleapis.com/auth/calendar.readonly', 'openid', 'email'];
+
+// tasks.readonly is submitted for Google's sensitive-scope verification but
+// not yet approved. Bundling it into the shared scope list unconditionally
+// would make EVERY Connect click — including plain Calendar connects, since
+// both widgets share this one OAuth client/request — show Google's
+// "unverified app" warning and burn one of this project's 100 lifetime
+// unapproved-scope user slots (a hard cap that can never be reset). Gated
+// behind Developer Options so only opted-in testers (already added as test
+// users in the Cloud Console) can trigger it, exactly how the Calendar scope
+// itself was gated before its own verification went through. Remove this
+// gate once tasks.readonly shows as verified in the Cloud Console.
+const TASKS_SCOPE = 'https://www.googleapis.com/auth/tasks.readonly';
+
+async function developerOptionsEnabled(): Promise<boolean> {
+  const settings = await storage.get('sg:settings') as { developerOptionsEnabled?: boolean } | undefined;
+  return settings?.developerOptionsEnabled === true;
+}
+
 const CONFIG: ProviderConfig = {
   storageKey: 'sg_google_auth',
   authEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
   tokenEndpoint: `${MEDIA_PROXY_URL}/google-token`,
   clientId: GOOGLE_CLIENT_ID,
-  // Read-only — the extension cannot modify any user data. `openid`+`email`
-  // give us id_token so we can show the user's email.
-  scopes: ['https://www.googleapis.com/auth/calendar.readonly', 'openid', 'email'],
+  scopes: APPROVED_SCOPES,
   // access_type=offline + prompt=consent are required for Google to issue a
   // refresh_token — without prompt=consent, a returning user who already
   // granted access won't get one on subsequent logins.
@@ -84,7 +106,9 @@ export async function getConnectedEmail(): Promise<string | undefined> {
  * Throws if the user cancels or if any step fails.
  */
 export async function connectGoogle(): Promise<string> {
-  return runAuthCodeFlow<StoredAuth>(CONFIG, 'Google');
+  const devEnabled = await developerOptionsEnabled();
+  const scopes = devEnabled ? [...APPROVED_SCOPES, TASKS_SCOPE] : APPROVED_SCOPES;
+  return runAuthCodeFlow<StoredAuth>({ ...CONFIG, scopes }, 'Google');
 }
 
 /**

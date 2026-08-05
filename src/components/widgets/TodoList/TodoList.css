@@ -36,6 +36,38 @@
 .sg-todo-row--drop-before { border-top-color: var(--accent, #7c8cff); }
 .sg-todo-row--drop-after  { border-bottom-color: var(--accent, #7c8cff); }
 
+/* Google Tasks view — no drag/checkbox-click affordance, tasks.readonly has
+   no write access at all. Rows are still clickable to open Google Tasks
+   itself (see .sg-todo-row--link below). */
+.sg-todo-row--readonly { touch-action: auto; }
+
+.sg-todo-row--link {
+  width: 100%;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sg-todo-row--link:hover {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.sg-todo-google-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sg-todo-stale-banner {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
 .sg-todo-check {
   flex-shrink: 0;
   width: 16px;

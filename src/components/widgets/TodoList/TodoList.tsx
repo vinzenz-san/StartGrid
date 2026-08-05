@@ -1,11 +1,30 @@
 import { useRef, useState } from 'react';
 import type { TodoData, TodoItem } from '../../../types/widget';
-import { SettingsRow, SettingsSwitch, ActionButton, IconButton } from '../../shared/Form';
+import { SettingsRow, SettingsSwitch, ActionButton, IconButton, Dropdown } from '../../shared/Form';
 import { useSettings } from '../../../contexts/SettingsContext';
+import { useGoogleAuth } from '../../../hooks/useGoogleAuth';
+import { useGoogleTasks } from '../../../hooks/useGoogleTasks';
+import { getValidToken } from '../../../lib/googleAuth';
+import { fetchTaskLists, type GoogleTaskList } from '../../../lib/googleTasksApi';
+import { isExtensionEnv } from '../../../lib/permissions';
 import './TodoList.css';
 
 function generateId() {
   return `td-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+// Google Tasks' web app has no documented deep-link to a specific list or
+// task (confirmed via search — no URL scheme exists for it), so this always
+// opens the app's own landing page; the user picks the list there themselves.
+const GOOGLE_TASKS_URL = 'https://tasks.google.com/tasks/';
+
+async function openGoogleTasks(): Promise<void> {
+  if (isExtensionEnv) {
+    const { default: browser } = await import('webextension-polyfill');
+    await browser.tabs.create({ url: GOOGLE_TASKS_URL });
+  } else {
+    window.open(GOOGLE_TASKS_URL, '_blank', 'noopener');
+  }
 }
 
 // ── Settings ───────────────────────────────────────────────────────────────
@@ -16,35 +35,147 @@ interface SettingsProps {
 }
 
 export function TodoListSettings({ data, onUpdateData }: SettingsProps) {
-  const { t } = useSettings();
+  const { t, developerOptionsEnabled } = useSettings();
+  const source = data.source ?? 'local';
   const items = data.items ?? [];
   const hideCompleted = data.hideCompleted ?? false;
   const completedCount = items.filter(i => i.done).length;
 
+  const { isConnected, isConnecting, email, connect, disconnect } = useGoogleAuth();
+  const [taskLists, setTaskLists] = useState<GoogleTaskList[] | null>(null);
+
+  function loadTaskLists() {
+    getValidToken().then(token => {
+      if (!token) return;
+      fetchTaskLists(token).then(setTaskLists).catch(() => {});
+    });
+  }
+
+  // Google Tasks (tasks.readonly) is pending Google's sensitive-scope
+  // verification — see googleAuth.ts's TASKS_SCOPE comment. Hidden from
+  // regular users so nobody outside Developer Options can trigger a Connect
+  // request for it before it's approved.
+  const googleSourceAvailable = developerOptionsEnabled;
+
   return (
     <>
+      <SettingsRow label={t('widget.todoList.source')}>
+        <Dropdown
+          options={[
+            { value: 'local', label: t('widget.todoList.sourceLocal') },
+            ...(googleSourceAvailable ? [{ value: 'google', label: t('widget.todoList.sourceGoogle') }] : []),
+          ]}
+          value={source}
+          onChange={v => onUpdateData({ source: v as 'local' | 'google' })}
+        />
+      </SettingsRow>
+
+      {source === 'google' && googleSourceAvailable && (
+        !isConnected ? (
+          <ActionButton variant="ghost" onClick={connect} disabled={isConnecting}>
+            {isConnecting ? t('widget.todoList.connecting') : t('widget.todoList.connectGoogle')}
+          </ActionButton>
+        ) : (
+          <>
+            <SettingsRow label={t('widget.todoList.connectedAs', { email: email ?? '' })}>
+              <ActionButton variant="ghost" onClick={disconnect}>{t('widget.todoList.disconnect')}</ActionButton>
+            </SettingsRow>
+            <SettingsRow label={t('widget.todoList.selectTaskList')}>
+              {taskLists === null ? (
+                <ActionButton variant="ghost" onClick={loadTaskLists}>{t('widget.todoList.loadTaskLists')}</ActionButton>
+              ) : (
+                <Dropdown
+                  options={taskLists.map(l => ({ value: l.id, label: l.title }))}
+                  value={data.googleTaskListId ?? taskLists[0]?.id ?? ''}
+                  onChange={v => onUpdateData({ googleTaskListId: v })}
+                  menuWidth="auto"
+                />
+              )}
+            </SettingsRow>
+          </>
+        )
+      )}
+
       <SettingsRow label={t('widget.todoList.hideCompleted')}>
         <SettingsSwitch checked={hideCompleted} onChange={v => onUpdateData({ hideCompleted: v })} />
       </SettingsRow>
-      <ActionButton
-        variant="danger"
-        disabled={completedCount === 0}
-        onClick={() => onUpdateData({ items: items.filter(i => !i.done) })}
-      >
-        {t('widget.todoList.clearCompleted', { count: completedCount })}
-      </ActionButton>
+
+      {source === 'local' && (
+        <ActionButton
+          variant="danger"
+          disabled={completedCount === 0}
+          onClick={() => onUpdateData({ items: items.filter(i => !i.done) })}
+        >
+          {t('widget.todoList.clearCompleted', { count: completedCount })}
+        </ActionButton>
+      )}
     </>
   );
 }
 
-// ── Widget ────────────────────────────────────────────────────────────────
+// ── Google Tasks (read-only) view ───────────────────────────────────────────
 
-interface Props {
-  data: TodoData;
-  onUpdateData: (patch: Partial<TodoData>) => void;
+function GoogleTodoList({ data }: { data: TodoData }) {
+  const { t } = useSettings();
+  const { isConnected } = useGoogleAuth();
+  const hideCompleted = data.hideCompleted ?? false;
+  const { status, tasks, isStale, refetch } = useGoogleTasks({ taskListId: data.googleTaskListId });
+
+  if (!isConnected) {
+    return (
+      <div className="sg-todo-empty">{t('widget.todoList.connectPrompt')}</div>
+    );
+  }
+  if (!data.googleTaskListId) {
+    return <div className="sg-todo-empty">{t('widget.todoList.noTaskList')}</div>;
+  }
+  if (status === 'loading' && tasks.length === 0) {
+    return <div className="sg-todo-empty">{t('widget.todoList.loading')}</div>;
+  }
+  if (status === 'error') {
+    return <div className="sg-todo-empty">{t('widget.todoList.error')}</div>;
+  }
+
+  const visible = hideCompleted ? tasks.filter(t2 => t2.status !== 'completed') : tasks;
+
+  return (
+    <div className="sg-todo">
+      <div className="sg-todo-google-toolbar">
+        <IconButton
+          variant="ghost"
+          title={t('widget.todoList.refresh')}
+          onClick={() => void refetch()}
+          active={false}
+          icon={<span aria-hidden="true">↻</span>}
+        />
+      </div>
+      {isStale && <div className="sg-todo-stale-banner">{t('widget.todoList.stale')}</div>}
+      {visible.length === 0 ? (
+        <div className="sg-todo-empty">{t('widget.todoList.empty')}</div>
+      ) : (
+        <div className="sg-todo-list sg-scroll-thin">
+          {visible.map(task => (
+            <button
+              key={task.id}
+              className="sg-todo-row sg-todo-row--readonly sg-todo-row--link"
+              onClick={() => void openGoogleTasks()}
+              title={t('widget.todoList.openInGoogleTasks')}
+            >
+              <span className={`sg-todo-check${task.status === 'completed' ? ' sg-todo-check--done' : ''}`}>
+                {task.status === 'completed' && '✓'}
+              </span>
+              <span className={`sg-todo-text${task.status === 'completed' ? ' sg-todo-text--done' : ''}`}>{task.title}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
-export default function TodoList({ data, onUpdateData }: Props) {
+// ── Local To-Do (editable) view ─────────────────────────────────────────────
+
+function LocalTodoList({ data, onUpdateData }: Props) {
   const { t } = useSettings();
   const items = data.items ?? [];
   const hideCompleted = data.hideCompleted ?? false;
@@ -197,4 +328,21 @@ export default function TodoList({ data, onUpdateData }: Props) {
       )}
     </div>
   );
+}
+
+// ── Widget ────────────────────────────────────────────────────────────────
+
+interface Props {
+  data: TodoData;
+  onUpdateData: (patch: Partial<TodoData>) => void;
+}
+
+export default function TodoList(props: Props) {
+  const { developerOptionsEnabled } = useSettings();
+  // Falls back to the local view if Google Tasks was selected while
+  // Developer Options was on and later got turned off — see googleAuth.ts's
+  // TASKS_SCOPE comment for why this source stays dev-gated.
+  return props.data.source === 'google' && developerOptionsEnabled
+    ? <GoogleTodoList data={props.data} />
+    : <LocalTodoList {...props} />;
 }
