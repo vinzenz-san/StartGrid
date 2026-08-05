@@ -39,7 +39,7 @@ export const MS_CLIENT_ID = 'b6521395-1259-4a0a-9168-e0ab8698b62a';
 // secret, but the exchange is routed through the same Cloudflare Worker as
 // Google's for consistency — one place to rotate/revoke credentials without
 // touching extension code. See worker/api-proxy.ts's /ms-token route.
-const MEDIA_PROXY_URL = ((import.meta as any).env.APP_MEDIA_PROXY_URL || '').replace(/\/$/, '');
+const MEDIA_PROXY_URL = (import.meta.env.APP_MEDIA_PROXY_URL || '').replace(/\/$/, '');
 
 export type StoredMsAuth = StoredAuthBase;
 

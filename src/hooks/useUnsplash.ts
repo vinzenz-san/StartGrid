@@ -31,7 +31,7 @@ export function extractCollectionId(raw: string): string {
 // VITE_). All Unsplash requests go through this Cloudflare Worker (shared
 // with astronomy.ts's NASA calls — see worker/api-proxy.ts), which attaches
 // the real Access Key server-side — the key never ships in the extension bundle.
-const PROXY_URL = ((import.meta as any).env.APP_MEDIA_PROXY_URL || '').replace(/\/$/, '');
+const PROXY_URL = (import.meta.env.APP_MEDIA_PROXY_URL || '').replace(/\/$/, '');
 const UNSPLASH_API_ORIGIN = 'https://api.unsplash.com';
 
 export function useUnsplash(

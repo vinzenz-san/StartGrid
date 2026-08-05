@@ -35,7 +35,7 @@ const REVOKE_ENDPOINT = 'https://oauth2.googleapis.com/revoke';
 // exchange even when using PKCE — a secret can't live in extension code, so
 // the exchange is proxied through the same Cloudflare Worker that already
 // guards the Unsplash/NASA keys. See worker/api-proxy.ts's /google-token route.
-const MEDIA_PROXY_URL = ((import.meta as any).env.APP_MEDIA_PROXY_URL || '').replace(/\/$/, '');
+const MEDIA_PROXY_URL = (import.meta.env.APP_MEDIA_PROXY_URL || '').replace(/\/$/, '');
 
 export type StoredAuth = StoredAuthBase;
 

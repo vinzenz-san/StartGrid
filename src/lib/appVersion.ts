@@ -2,4 +2,4 @@
 // version) — identical in every build target, including the docs/preview demo
 // (sync-preview.js just copies dist/chrome as-is). Shared here since more than
 // one component now reads it (Settings footer, widget tour re-trigger).
-export const APP_VERSION = (import.meta as any).env.APP_VERSION || '';
+export const APP_VERSION = import.meta.env.APP_VERSION || '';
