@@ -13,9 +13,9 @@
 <body>
   <div class="wrap">
     <h1>Privacy Policy</h1>
-    <p class="updated">Last updated: 2026-08-04 (documented the background weather effect's independent location use, and corrected the Calendar scope description to cover multi-calendar selection, not just the primary calendar)</p>
+    <p class="updated">Last updated: 2026-08-05 (added the Google Tasks scope used by the optional To-Do widget's Google Tasks view)</p>
 
-    <p>StartGrid is a browser extension (Firefox &amp; Chrome) that replaces your new tab page with a customizable widget grid. This policy explains what data StartGrid accesses, why, and how it's stored — in particular for the optional Google Calendar and Outlook Calendar/Mail widgets, which require signing in with your Google or Microsoft account, and the optional Obsidian widgets, which read notes from a vault on your own device. All of these are off by default and do nothing until you add the widget and connect it.</p>
+    <p>StartGrid is a browser extension (Firefox &amp; Chrome) that replaces your new tab page with a customizable widget grid. This policy explains what data StartGrid accesses, why, and how it's stored — in particular for the optional Google Calendar, Google Tasks, and Outlook Calendar/Mail widgets, which require signing in with your Google or Microsoft account, and the optional Obsidian widgets, which read notes from a vault on your own device. All of these are off by default and do nothing until you add the widget and connect it.</p>
 
     <h2>Summary</h2>
     <div class="card">
@@ -29,13 +29,17 @@
     </div>
 
     <h2>Data accessed via Google Sign-In</h2>
-    <p>When you click "Connect" in the Calendar widget, StartGrid opens Google's standard OAuth consent screen. If you approve, StartGrid receives an access token scoped to only the permissions listed below — nothing else in your Google Account is touched.</p>
+    <p>When you click "Connect" in the Calendar or To-Do widget, StartGrid opens Google's standard OAuth consent screen. If you approve, StartGrid receives an access token scoped to only the permissions listed below — nothing else in your Google Account is touched.</p>
 
     <table>
       <tr><th>Scope</th><th>What it's used for</th></tr>
       <tr>
         <td><code>calendar.readonly</code></td>
         <td>Fetches upcoming events from your primary calendar, plus any additional Google calendars you select in the widget's "My Calendars" list — title, start/end time, location, color, and a link back to the event — via a field-restricted Calendar API request. Used to render the Calendar widget. No event is ever created, edited, or deleted.</td>
+      </tr>
+      <tr>
+        <td><code>tasks.readonly</code></td>
+        <td>Fetches your upcoming Google Tasks — title and due date only — via a field-restricted Tasks API request. Used to render the optional To-Do widget's Google Tasks view. No task is ever created, edited, completed, or deleted; the extension cannot write to your Tasks account at all with this scope.</td>
       </tr>
       <tr>
         <td><code>openid</code>, <code>email</code></td>
@@ -64,7 +68,7 @@
     <p>StartGrid limits the security surface for your Google data by design:</p>
     <ul>
       <li>All Google API and OAuth traffic (<code>accounts.google.com</code>, <code>oauth2.googleapis.com</code>, <code>www.googleapis.com</code>) is transmitted exclusively over HTTPS/TLS-encrypted connections — StartGrid never makes an unencrypted request for Google data.</li>
-      <li>Your access token and refresh token are kept only in <code>browser.storage.local</code>, which is sandboxed to the StartGrid extension by the browser itself; no other extension, website, or the extension's developer can read this storage. Your calendar events are never written to storage at all — they exist only in the open tab's memory.</li>
+      <li>Your access token and refresh token are kept only in <code>browser.storage.local</code>, which is sandboxed to the StartGrid extension by the browser itself; no other extension, website, or the extension's developer can read this storage. Your calendar events and Google Tasks are never written to storage at all — they exist only in the open tab's memory.</li>
       <li>The sign-in and authorization step uses PKCE directly between your browser and Google. The token exchange is the exception: because Google's OAuth client type requires a <code>client_secret</code> that cannot safely live inside extension source code, that request is relayed through a Cloudflare Worker operated by StartGrid's developer (<code>startgrid-api-proxy.startgrid.workers.dev</code>), which attaches the secret server-side before forwarding to Google over HTTPS. This applies both to the initial exchange and to each later refresh of an expired access token, so your refresh token passes through the relay each time it is used. The Worker is stateless — it has no database or storage attached and does not log, store, or retain the code, token, or response it passes through.</li>
       <li>Token revocation (when you disconnect) is sent directly from your browser to Google, not through the Worker.</li>
       <li>StartGrid's settings backup/export feature deliberately excludes your account tokens: an exported backup file contains your layout and widget settings only, so a backup can never carry a working Google or Microsoft credential out of the browser's protected storage. Restoring a backup likewise ignores any token data a file might contain.</li>
@@ -72,10 +76,10 @@
     </ul>
 
     <h2>Data retention and deletion</h2>
-    <p>StartGrid stores your Google access token and refresh token in your browser's local extension storage for as long as you keep the Calendar widget connected. Calendar events themselves are never written to storage at all: they are fetched fresh into the page's memory on each load and discarded the moment you close the tab, so no copy of your event data survives a browser restart. Nothing is accumulated or archived, and there is no server-side copy anywhere.</p>
+    <p>StartGrid stores your Google access token and refresh token in your browser's local extension storage for as long as you keep the Calendar or To-Do (Google Tasks) widget connected — both widgets share the same Google sign-in, so one token covers both. Calendar events and Google Tasks themselves are never written to storage at all: they are fetched fresh into the page's memory on each load and discarded the moment you close the tab, so no copy of your event or task data survives a browser restart. Nothing is accumulated or archived, and there is no server-side copy anywhere.</p>
     <p>You can delete this data at any time, in any of the following ways:</p>
     <ul>
-      <li>Click "Disconnect account" in the Calendar widget's settings panel — this sends a revocation request for the OAuth token to Google and deletes the locally stored tokens for that widget. The local deletion always happens, even if the network revocation request fails; in that case the token is gone from your device and expires on Google's side shortly after.</li>
+      <li>Click "Disconnect account" in the Calendar or To-Do widget's settings panel — this sends a revocation request for the OAuth token to Google and deletes the locally stored token. Since both widgets share one Google sign-in, disconnecting from either one disconnects both. The local deletion always happens, even if the network revocation request fails; in that case the token is gone from your device and expires on Google's side shortly after.</li>
       <li>Revoke StartGrid's access from your <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">Google Account permissions page</a> — this invalidates the token on Google's side immediately. StartGrid's stored copy stops working at once and is cleared automatically the next time it tries to refresh it (at most one hour later, or sooner if you reload the page).</li>
       <li>Use "Factory Reset" in the settings panel — this erases all of StartGrid's stored data, including any Google or Microsoft tokens.</li>
       <li>Uninstall the extension — your browser automatically deletes all of StartGrid's local storage, including any Google tokens and cached data, immediately and permanently.</li>
