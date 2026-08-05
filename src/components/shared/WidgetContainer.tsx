@@ -166,8 +166,17 @@ export default function WidgetContainer({ widget }: Props) {
 
   // ── Data update helper ────────────────────────────────────────────────────
 
-  const handleUpdateData = (patch: any) => {
-    updateWidget(widget.id, { data: { ...widget.data, ...patch } });
+  const handleUpdateData = (patch: unknown) => {
+    // Every caller reaches this through a TypedEntry<T>'s onUpdateData, which
+    // is `Partial<T>` for whichever T is being rendered — always an object,
+    // and always a patch for widget.data's own (erased) type. This is the
+    // one narrowing point at the type-erased registry boundary.
+    const merged = { ...widget.data, ...(patch as Record<string, unknown>) } as Widget['data'];
+    // updateWidget takes Partial<Widget>, a type discriminated on `type` —
+    // omitting `type` here (we're only ever patching `data` for the widget
+    // already known by id) means TS can't match this against one specific
+    // union member. Same erasure boundary as above.
+    updateWidget(widget.id, { data: merged } as Partial<Widget>);
   };
 
   const overrideEnabled      = widget.localOverrideEnabled ?? false;

@@ -47,8 +47,8 @@ export interface WidgetEntry {
   defaultTitle?:        string;
   defaultShowCustomTitle?: boolean;
   resolveDynamicTitle?: (data: unknown) => string | undefined;
-  renderComponent: (data: any, onUpdateData: (patch: any) => void, isSettingsOpen?: boolean, widgetId?: string) => ReactNode;
-  renderSettings:  ((data: any, onUpdateData: (patch: any) => void, widgetId?: string) => ReactNode) | null;
+  renderComponent: (data: unknown, onUpdateData: (patch: unknown) => void, isSettingsOpen?: boolean, widgetId?: string) => ReactNode;
+  renderSettings:  ((data: unknown, onUpdateData: (patch: unknown) => void, widgetId?: string) => ReactNode) | null;
 }
 
 // ── Registry ───────────────────────────────────────────────────────────────────
