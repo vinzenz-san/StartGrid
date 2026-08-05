@@ -218,6 +218,17 @@ export interface WeatherData {
   allowOverflow?: boolean;
 }
 
+export interface RssFeedData {
+  feedUrl?: string;
+  /** Cached from the feed's own <title>/<feed><title> on the last successful
+   *  fetch — used for the widget's dynamic title (resolveDynamicTitle in
+   *  registry.tsx), not re-derived from feedUrl. */
+  feedTitle?: string;
+  maxItems?: number;           // default 8
+  showDescription?: boolean;   // default false
+  refreshIntervalMin?: number; // default 30
+}
+
 // Maps each widget type string to its strongly-typed data interface.
 export interface WidgetDataMap {
   clock:           ClockData;
@@ -235,6 +246,7 @@ export interface WidgetDataMap {
   obsidianRandom:  ObsidianRandomData;
   greeting:        GreetingData;
   weather:         WeatherData;
+  rssFeed:         RssFeedData;
   placeholder:     PlaceholderData;
 }
 
@@ -280,4 +292,5 @@ export type Widget =
   | (WidgetBase & { type: 'obsidianRandom';  data: ObsidianRandomData })
   | (WidgetBase & { type: 'greeting';       data: GreetingData })
   | (WidgetBase & { type: 'weather';        data: WeatherData })
+  | (WidgetBase & { type: 'rssFeed';        data: RssFeedData })
   | (WidgetBase & { type: 'placeholder';    data: PlaceholderData });

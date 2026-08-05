@@ -4,9 +4,12 @@
 // injected server-side — Google's "Web application" client type requires
 // client_secret at token exchange even when the extension uses PKCE),
 // /ms-token forwards to Microsoft's identity platform token endpoint (same
-// reasoning — see src/lib/msAuth.ts), everything else forwards to
-// api.unsplash.com (Client-ID auth header) — keeps a single Worker/deploy
-// for all of these rather than one per provider.
+// reasoning — see src/lib/msAuth.ts), /rss forwards to whatever feed URL the
+// caller passes via ?url= (most RSS/Atom feeds send no CORS headers, so the
+// extension can't fetch them directly without host_permissions — see
+// src/lib/rssApi.ts), everything else forwards to api.unsplash.com
+// (Client-ID auth header) — keeps a single Worker/deploy for all of these
+// rather than one per provider.
 export interface Env {
   UNSPLASH_ACCESS_KEY: string;
   NASA_API_KEY: string;
@@ -108,6 +111,7 @@ const GOOGLE_TOKEN_UPSTREAM = 'https://oauth2.googleapis.com/token';
 const GOOGLE_TOKEN_PATH = '/google-token';
 const MS_TOKEN_UPSTREAM = 'https://login.microsoftonline.com/common/oauth2/v2.0/token';
 const MS_TOKEN_PATH = '/ms-token';
+const RSS_PATH = '/rss';
 
 async function relay(upstreamRes: Response, corsHeaders: Record<string, string>): Promise<Response> {
   const body = await upstreamRes.arrayBuffer();
@@ -196,6 +200,18 @@ export default {
 
     if (request.method !== 'GET') {
       return new Response('Method not allowed', { status: 405, headers: corsHeaders });
+    }
+
+    if (url.pathname === RSS_PATH) {
+      const feedUrl = url.searchParams.get('url');
+      // http(s)-only: without this, the ?url= param would make this Worker a
+      // generic open proxy for arbitrary schemes/hosts (file:, internal IPs
+      // Cloudflare's network can reach, etc.), not just RSS/Atom feeds.
+      if (!feedUrl || !/^https?:\/\//i.test(feedUrl)) {
+        return new Response('Missing or invalid url parameter', { status: 400, headers: corsHeaders });
+      }
+      const upstreamRes = await fetch(feedUrl);
+      return relay(upstreamRes, corsHeaders);
     }
 
     if (url.pathname.startsWith(NASA_PREFIX)) {

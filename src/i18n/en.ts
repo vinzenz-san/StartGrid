@@ -197,6 +197,24 @@ export const en = {
   'widgets.type.placeholder':    'Placeholder',
   'widgets.type.greeting':       'Greeting',
   'widgets.type.weather':        'Weather',
+  'widgets.type.rssFeed':        'RSS Feed',
+
+  // ── RSS Feed widget ───────────────────────────────────────────────────────
+  'widget.rssFeed.noFeed':           'No feed configured — add a feed URL in Settings.',
+  'widget.rssFeed.loading':          'Loading feed…',
+  'widget.rssFeed.error':            'Couldn’t load feed.',
+  'widget.rssFeed.refreshNow':       'Refresh now',
+  'widget.rssFeed.feedUrl':          'Feed URL',
+  'widget.rssFeed.feedUrlPlaceholder': 'https://example.com/feed.xml',
+  'widget.rssFeed.maxItems':         'Max items',
+  'widget.rssFeed.showDescription':  'Show description',
+  'widget.rssFeed.refreshInterval':  'Refresh interval',
+  'widget.rssFeed.refreshMinutes':   'Every {{count}} min',
+  'widget.rssFeed.refreshHours':     'Every {{count}} h',
+  'widget.rssFeed.justNow':          'Just now',
+  'widget.rssFeed.minutesAgo':       '{{count}} min ago',
+  'widget.rssFeed.hoursAgo':         '{{count}} h ago',
+  'widget.rssFeed.daysAgo':          '{{count}} d ago',
 
   // ── Greeting widget ──────────────────────────────────────────────────────
   'widget.greeting.morning':        'Good morning',

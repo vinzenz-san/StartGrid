@@ -199,6 +199,24 @@ export const de: Record<TranslationKey, string> = {
   'widgets.type.placeholder':    'Platzhalter',
   'widgets.type.greeting':       'Begrüßung',
   'widgets.type.weather':        'Wetter',
+  'widgets.type.rssFeed':        'RSS-Feed',
+
+  // ── RSS Feed widget ───────────────────────────────────────────────────────
+  'widget.rssFeed.noFeed':           'Kein Feed eingerichtet — Feed-URL in den Einstellungen hinzufügen.',
+  'widget.rssFeed.loading':          'Feed wird geladen…',
+  'widget.rssFeed.error':            'Feed konnte nicht geladen werden.',
+  'widget.rssFeed.refreshNow':       'Jetzt aktualisieren',
+  'widget.rssFeed.feedUrl':          'Feed-URL',
+  'widget.rssFeed.feedUrlPlaceholder': 'https://example.com/feed.xml',
+  'widget.rssFeed.maxItems':         'Max. Einträge',
+  'widget.rssFeed.showDescription':  'Beschreibung anzeigen',
+  'widget.rssFeed.refreshInterval':  'Aktualisierungsintervall',
+  'widget.rssFeed.refreshMinutes':   'Alle {{count}} Min.',
+  'widget.rssFeed.refreshHours':     'Alle {{count}} Std.',
+  'widget.rssFeed.justNow':          'Gerade eben',
+  'widget.rssFeed.minutesAgo':       'vor {{count}} Min.',
+  'widget.rssFeed.hoursAgo':         'vor {{count}} Std.',
+  'widget.rssFeed.daysAgo':          'vor {{count}} T.',
 
   // ── Greeting widget ──────────────────────────────────────────────────────
   'widget.greeting.morning':        'Guten Morgen',

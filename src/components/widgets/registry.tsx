@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, CalendarData, OutlookCalendarData, OutlookMailData, NotesData, ObsidianCaptureData, ObsidianDailyData, ObsidianNoteData, ObsidianSearchData, ObsidianRandomData, GreetingData, WeatherData, PlaceholderData } from '../../types/widget';
+import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, CalendarData, OutlookCalendarData, OutlookMailData, NotesData, ObsidianCaptureData, ObsidianDailyData, ObsidianNoteData, ObsidianSearchData, ObsidianRandomData, GreetingData, WeatherData, RssFeedData, PlaceholderData } from '../../types/widget';
 import type { TranslationKey } from '../../i18n';
 import Clock, { ClockSettings } from './Clock/Clock';
 import Quicklinks, { QuicklinksSettings } from './Quicklinks/Quicklinks';
@@ -16,6 +16,7 @@ import ObsidianSearch, { ObsidianSearchSettings } from './ObsidianSearch/Obsidia
 import ObsidianRandom, { ObsidianRandomSettings } from './ObsidianRandom/ObsidianRandom';
 import Greeting, { GreetingSettings } from './Greeting/Greeting';
 import Weather, { WeatherSettings } from './Weather/Weather';
+import RssFeed, { RssFeedSettings } from './RssFeed/RssFeed';
 import WidgetPlaceholder from '../shared/WidgetPlaceholder';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -220,6 +221,17 @@ const _registry = {
     renderSettings:  (data, onUpdateData) => <WeatherSettings data={data} onUpdateData={onUpdateData} />,
   } satisfies TypedEntry<WeatherData>,
 
+  rssFeed: {
+    label:         'RSS Feed',
+    icon:          '📰',
+    defaultSize:   { w: 2, h: 3 },
+    defaultData:   { maxItems: 8, showDescription: false, refreshIntervalMin: 30 } satisfies RssFeedData,
+    titleBehavior: 'auto',
+    resolveDynamicTitle: (data) => data.feedTitle,
+    renderComponent: (data, onUpdateData) => <RssFeed data={data} onUpdateData={onUpdateData} />,
+    renderSettings:  (data, onUpdateData) => <RssFeedSettings data={data} onUpdateData={onUpdateData} />,
+  } satisfies TypedEntry<RssFeedData>,
+
   placeholder: {
     label:         'Placeholder',
     icon:          '⬜',
@@ -258,10 +270,11 @@ export const WIDGET_TYPE_LABEL_KEYS: Record<WidgetType, TranslationKey> = {
   obsidianRandom: 'widgets.type.obsidianRandom',
   greeting:       'widgets.type.greeting',
   weather:        'widgets.type.weather',
+  rssFeed:        'widgets.type.rssFeed',
   placeholder:    'widgets.type.placeholder',
 };
 
 // Ordered list for the "Add Widget" menu (excludes placeholder handled separately if desired).
 export const WIDGET_MENU_TYPES: WidgetType[] = [
-  'clock', 'quicklinks', 'bookmarks', 'bookmarkSearch', 'calendar', 'outlookCalendar', 'outlookMail', 'notes', 'obsidianCapture', 'obsidianDaily', 'obsidianNote', 'obsidianSearch', 'obsidianRandom', 'greeting', 'weather', 'placeholder',
+  'clock', 'quicklinks', 'bookmarks', 'bookmarkSearch', 'calendar', 'outlookCalendar', 'outlookMail', 'notes', 'obsidianCapture', 'obsidianDaily', 'obsidianNote', 'obsidianSearch', 'obsidianRandom', 'greeting', 'weather', 'rssFeed', 'placeholder',
 ];
