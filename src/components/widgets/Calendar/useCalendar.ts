@@ -1,6 +1,11 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import type { CalendarState, CalendarEvent } from './calendar.types';
+import type { CalendarEvent } from './calendar.types';
 import { getValidToken } from '../../../lib/googleAuth';
+import { daysFromNow, allDayDate } from '../shared/mockCalendarEvents';
+import {
+  useProviderCalendar,
+  useProviderCalendarList,
+  type CalendarProviderConfig,
+} from '../shared/useProviderCalendar';
 
 // ── Real Google Calendar API fetch ────────────────────────────────────────────
 // Calls:
@@ -80,19 +85,6 @@ function colorForCalendarId(id: string, list: GoogleCalendarListEntry[]): string
 
 // ── Mock data — used in dev mode when extension APIs are unavailable ───────────
 
-function daysFromNow(days: number, hours = 0, minutes = 0): string {
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  d.setHours(hours, minutes, 0, 0);
-  return d.toISOString();
-}
-
-function allDayDate(offsetDays: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return d.toISOString().slice(0, 10);
-}
-
 const BASE_LINK = 'https://calendar.google.com/calendar/r/eventedit';
 
 const MOCK_EVENTS: CalendarEvent[] = [
@@ -127,99 +119,23 @@ async function fetchMockEvents(): Promise<CalendarEvent[]> {
   return MOCK_EVENTS;
 }
 
-const isExtension = typeof chrome !== 'undefined' && !!chrome.storage;
+const CONFIG: CalendarProviderConfig<GoogleCalendarListEntry> = {
+  defaultCalendarId: 'primary',
+  getValidToken,
+  fetchCalendarEvents,
+  fetchCalendarList,
+  colorForCalendarId,
+  mockEvents: fetchMockEvents,
+};
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
 export function useCalendar() {
-  const [state, setState] = useState<CalendarState>({
-    status: 'idle',
-    events: [],
-    error: null,
-    lastRefreshed: null,
-  });
-
-  const fetchingRef = useRef(false);
-
-  const refresh = useCallback(async (maxResults = 50, calendarIds: string[] = ['primary']) => {
-    if (fetchingRef.current) return;
-    fetchingRef.current = true;
-    setState(s => ({ ...s, status: 'loading', error: null }));
-
-    try {
-      let events: CalendarEvent[];
-
-      if (!isExtension) {
-        events = await fetchMockEvents();
-      } else {
-        const token = await getValidToken();
-        if (!token) {
-          setState(s => ({ ...s, status: 'unauthenticated', error: null }));
-          return;
-        }
-        try {
-          const list = await fetchCalendarList(token);
-          const perCalendar = await Promise.all(
-            calendarIds.map(id => fetchCalendarEvents(token, maxResults, id, colorForCalendarId(id, list))),
-          );
-          events = perCalendar.flat().sort((a, b) =>
-            (a.start.date ?? a.start.dateTime ?? '').localeCompare(b.start.date ?? b.start.dateTime ?? ''));
-        } catch (err) {
-          if (err instanceof Error && err.message === 'UNAUTHORIZED') {
-            setState(s => ({ ...s, status: 'unauthenticated', error: null }));
-            return;
-          }
-          throw err;
-        }
-      }
-
-      setState({
-        status: 'success',
-        events,
-        error: null,
-        lastRefreshed: new Date(),
-      });
-    } catch (err) {
-      setState(s => ({
-        ...s,
-        status: 'error',
-        error: err instanceof Error ? err.message : 'Failed to load calendar',
-      }));
-    } finally {
-      fetchingRef.current = false;
-    }
-  }, []);
-
-  return { ...state, refresh, isMock: !isExtension };
+  return useProviderCalendar(CONFIG);
 }
 
 // ── Calendar list hook (Settings picker) ────────────────────────────────────────
 
-interface CalendarListState {
-  calendars: GoogleCalendarListEntry[];
-  loading: boolean;
-  error: string | null;
-}
-
 export function useGoogleCalendarList(enabled: boolean) {
-  const [state, setState] = useState<CalendarListState>({ calendars: [], loading: false, error: null });
-
-  const load = useCallback(async () => {
-    if (!isExtension) return;
-    setState(s => ({ ...s, loading: true, error: null }));
-    try {
-      const token = await getValidToken();
-      if (!token) { setState({ calendars: [], loading: false, error: null }); return; }
-      const calendars = await fetchCalendarList(token);
-      setState({ calendars, loading: false, error: null });
-    } catch (err) {
-      setState({ calendars: [], loading: false, error: err instanceof Error ? err.message : 'Failed to load calendars' });
-    }
-  }, []);
-
-  useEffect(() => {
-    if (enabled) load();
-  }, [enabled, load]);
-
-  return state;
+  return useProviderCalendarList(CONFIG, enabled);
 }
