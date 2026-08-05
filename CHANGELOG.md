@@ -2,6 +2,31 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.7.6] — Weather widget stale-state fix
+
+- Fixed a race in `useWeather` where switching location or units while a fetch was still in flight could apply a resolved, now-stale result and show weather for the wrong place. A request-id ref bumped on every param change and by `fetchWeather`'s own start now gates both the cache-lookup effect and `fetchWeather` before either calls `setState`
+
+## [1.7.5] — Typed `import.meta.env`, Chrome Web Store ID release note
+
+- Replaced six `(import.meta as any).env.X` casts (`appVersion.ts`, `googleAuth.ts`, `msAuth.ts`, `useUnsplash.ts`, `astronomy.ts`) with a single ambient `ImportMetaEnv`/`ImportMeta` declaration (`src/env.d.ts`) typing the three keys `rspack.config.ts`'s `DefinePlugin` injects at build time. `astronomy.ts` keeps its own local `.replace()` derivation of the proxy URL rather than importing a precomputed constant — that indirection is what stops the minifier from folding it to a constant and dead-code-eliminating the NASA API key fallback branch
+- Documented Chrome Web Store listing ID verification as an explicit manual release step (comment in `worker/api-proxy.ts`) — a future ID change (rename, republish, policy relist) would silently 403 real users again, as already happened once, and no automated check for it exists
+
+## [1.7.4] — Shared Calendar/OutlookCalendar data-fetch hooks, `any` → `unknown` at the widget registry boundary
+
+- `useCalendar` and `useOutlookCalendar` duplicated their entire fetch/refresh state machine (mock data, `fetchingRef` re-entrancy guard, multi-calendar `Promise.all` + sort, `UNAUTHORIZED` handling) despite already sharing the same `CalendarEvent`/`CalendarViewStatus` shape via `CalendarCore.tsx`. Extracted the provider-agnostic state machine into `shared/useProviderCalendar.ts`, driven by a per-provider config — only the actual Google/Graph HTTP calls, response mapping, and mock event content stay provider-local
+- `WidgetEntry.renderComponent`/`renderSettings` and `WidgetContainer`'s `handleUpdateData` switched from `any` to `unknown` for widget data/patch — the one place per-widget typing gets erased for dynamic dispatch by `widget.type`. This surfaced a real latent gap the `any` had been silently papering over: `updateWidget`'s `Partial<Widget>` patch was never actually checked against the discriminated union here, now made explicit with two documented casts instead of an implicit `any`
+
+## [1.7.3] — Shared OAuth/PKCE core, proxy Worker rename
+
+- `googleAuth.ts` and `msAuth.ts` duplicated ~90% of their PKCE, storage, and token-refresh logic; extracted the provider-agnostic parts into `oauthPkce.ts`, driven by a per-provider config — including the previously silent Google/MS drift on whether `scope` is sent during token refresh. Public API and storage keys are unchanged
+- Updated every reference to the Cloudflare Worker's URL after it was renamed `startgrid-unsplash-proxy` → `startgrid-api-proxy` in the dashboard (`.env`, `.env.example`, `wrangler.toml`, `docs/privacy.html`)
+- Fixed two lint warnings: `StoredAuth`/`StoredMsAuth` were empty interfaces extending `StoredAuthBase` with no added members (now type aliases); `useUnsplash`'s `fetchImage` and `ElementInspector`'s hover-listener effect were missing exhaustive-deps entries (`uc`/`setImageUrl`, `addCopiedElement`)
+
+## [1.7.2] — Close CORS no-origin bypass, rate-limit the proxy Worker
+
+- Requests without an `Origin` header previously skipped the Cloudflare Worker's CORS allowlist entirely, letting non-browser clients spend the Unsplash/NASA API keys and OAuth token-exchange routes unbounded. Now rejected with `403` like any other unrecognized origin
+- All proxy routes are additionally rate-limited per IP (60 req/min, fixed window via Workers KV) as defense in depth against a caller that fakes a valid `Origin` header
+
 ## [1.7.1] — Fix onboarding tour re-triggering after being seen
 
 - Fixed the first-run widget onboarding tour sometimes reappearing on a new tab even though it had already been finished or skipped, without any browser restart. `SettingsContext` discarded the `loaded` flag `useStorage` returns, so `widgetTourSeen` sat at its `SETTINGS_DEFAULTS` value (`false`) until its own `storage.get()` resolved. Grid.tsx's auto-trigger effect only waited on the widgets store's `loaded`, which is a separate, unordered storage read — on any tab where widgets happened to hydrate before settings, the effect fired while `widgetTourSeen` was still stuck at the default and reopened the tour. The effect now also waits on `SettingsContext`'s own `loaded`
