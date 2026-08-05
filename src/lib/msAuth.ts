@@ -41,7 +41,7 @@ export const MS_CLIENT_ID = 'b6521395-1259-4a0a-9168-e0ab8698b62a';
 // touching extension code. See worker/api-proxy.ts's /ms-token route.
 const MEDIA_PROXY_URL = ((import.meta as any).env.APP_MEDIA_PROXY_URL || '').replace(/\/$/, '');
 
-export interface StoredMsAuth extends StoredAuthBase {}
+export type StoredMsAuth = StoredAuthBase;
 
 const CONFIG: ProviderConfig = {
   storageKey: 'sg_ms_auth',

@@ -95,7 +95,7 @@ export function ElementInspector({ active }: Props) {
       setCopied(false);
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
     };
-  }, [active]);
+  }, [active, addCopiedElement]);
 
   if (!active || !label) return null;
 

@@ -37,7 +37,7 @@ const REVOKE_ENDPOINT = 'https://oauth2.googleapis.com/revoke';
 // guards the Unsplash/NASA keys. See worker/api-proxy.ts's /google-token route.
 const MEDIA_PROXY_URL = ((import.meta as any).env.APP_MEDIA_PROXY_URL || '').replace(/\/$/, '');
 
-export interface StoredAuth extends StoredAuthBase {}
+export type StoredAuth = StoredAuthBase;
 
 const CONFIG: ProviderConfig = {
   storageKey: 'sg_google_auth',

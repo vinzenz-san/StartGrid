@@ -146,7 +146,7 @@ export function useUnsplash(
     } finally {
       setIsFetching(false);
     }
-  }, [proxyReady, uc?.source, uc?.query, uc?.topics, uc?.collectionId]);
+  }, [proxyReady, uc, setImageUrl]);
 
   // Keep ref current
   useEffect(() => { fetchRef.current = fetchImage; }, [fetchImage]);
