@@ -2,6 +2,11 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.14.3] — Fix RSS feed encoding, privacy policy corrections
+
+- Fixed the RSS Feed widget mangling non-ASCII characters (German umlauts especially — `ü`/`ö`/`ä` turning into `�`) on feeds served as ISO-8859-1/windows-1252 without an explicit charset in the HTTP `Content-Type` header. `res.text()` always decodes as UTF-8 in that case — it never looks at the XML prolog's own `encoding=` attribute — so the fetch now reads raw bytes and picks a decoder from the HTTP header's charset, then the prolog's, defaulting to UTF-8 only if neither says otherwise
+- Corrected two inaccuracies in the privacy policy's Obsidian section: it claimed note contents are "never written to storage" (Daily Note and Pinned Note have cached last-loaded note content in `browser.storage.local` for offline fallback since 1.11.1 — this was already wrong, not something this release introduced) and it didn't yet disclose 1.14.2's new full-note edit capability as a write path
+
 ## [1.14.2] — Inline edit for Obsidian Daily Note and Pinned Note
 
 - **Obsidian Daily Note and Pinned Note can now be edited in place**, not just read: a new pencil button opens a raw-Markdown editor (Save/Cancel) that writes the whole note back through the REST plugin's `PUT /vault/...` endpoint. Limited to these two widgets since they're the only ones that display a full note body — Random Note only shows a short excerpt, Vault Search shows cross-note snippets, and Quick Capture is already write-oriented but for appending new entries, not editing existing content

@@ -74,12 +74,36 @@ export function parseFeed(xmlText: string): ParsedFeed {
   throw new Error('Unrecognized feed format (not RSS 2.0 or Atom)');
 }
 
+// res.text() decodes as UTF-8 unless the HTTP Content-Type header itself
+// declares a charset — it never looks at the XML prolog's own encoding
+// attribute. Plenty of real feeds (older CMSes especially) ship ISO-8859-1/
+// windows-1252 bytes with only the prolog naming it, so decoding blind as
+// UTF-8 turns every accented character into U+FFFD. Read the raw bytes
+// instead and pick a decoder from whichever source actually says something.
+function decodeXml(buf: ArrayBuffer, contentType: string | null): string {
+  // The prolog is always plain ASCII where it matters, so a cheap latin1
+  // peek at the first bytes is enough to read it regardless of the real
+  // encoding — no need to guess right before we can find out what to guess.
+  const head = new TextDecoder('windows-1252').decode(buf.slice(0, 200));
+  const declared = /<\?xml[^>]*\sencoding=["']([\w-]+)["']/i.exec(head)?.[1];
+  const headerCharset = /charset=([\w-]+)/i.exec(contentType ?? '')?.[1];
+  const charset = (headerCharset || declared || 'utf-8').toLowerCase();
+
+  try {
+    return new TextDecoder(charset).decode(buf);
+  } catch {
+    // Unknown/unsupported label (e.g. a typo'd charset) — UTF-8 is still the
+    // best fallback guess for a modern feed.
+    return new TextDecoder('utf-8').decode(buf);
+  }
+}
+
 export async function fetchFeed(feedUrl: string): Promise<ParsedFeed> {
   if (!MEDIA_PROXY_URL) {
     throw new Error('Feed proxy not configured (APP_MEDIA_PROXY_URL unset)');
   }
   const res = await fetch(`${MEDIA_PROXY_URL}/rss?url=${encodeURIComponent(feedUrl)}`);
   if (!res.ok) throw new Error(`Feed fetch failed: ${res.status}`);
-  const xmlText = await res.text();
+  const xmlText = decodeXml(await res.arrayBuffer(), res.headers.get('Content-Type'));
   return parseFeed(xmlText);
 }
