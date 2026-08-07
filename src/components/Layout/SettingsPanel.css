@@ -2,13 +2,30 @@
 .sg-settings-panel {
   position: fixed;
   top: 0;
+  /* Not height:100vh — that let the panel's own content render underneath
+     the full-width bottom bar (Grid.css .sg-bottom-bar, above this panel's
+     z-index so it stayed visible, but covering the panel's own last bit of
+     content). Default (idle state, no .sg-bottom-bar--reserve) is flush
+     with the viewport edge — there's no full-width bar to clear then, just
+     the small corner icons, which already float above this panel via their
+     own higher z-index regardless of how far down the panel extends. Only
+     reserve space once the edit-mode bar actually exists (see the
+     --with-bar modifier below), so idle state doesn't show an empty gap of
+     page background under the panel for no reason. */
+  bottom: 0;
   width: 340px;
-  height: 100vh;
   background: var(--surface);
   z-index: 10000;
   display: flex;
   flex-direction: column;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Edit mode: reserve exactly .sg-bottom-bar's height (Grid.css — 8px top
+   padding + 30px button height + 8px bottom padding) so the panel ends
+   flush with the bar's top edge instead of running underneath it. */
+.sg-settings-panel--with-bar {
+  bottom: 46px;
 }
 
 /* Right side (default) */
@@ -102,6 +119,23 @@
   gap: 20px;
   padding-top: 10px;
   padding-bottom: 24px;
+}
+
+/* Idle state (no edit-mode bar): the panel's own box now always extends
+   flush to the bottom edge (.sg-settings-panel's bottom:0), so there's never
+   a gap of page background showing beneath it. .sg-settings-footer-spacer
+   (rendered as a sibling after .sg-settings-content, SettingsPanel.tsx) is
+   what actually keeps content from reaching that space — a real non-
+   scrolling flex item, same idea as .sg-settings-header above it, so
+   content scrolls up and disappears behind it rather than trailing off into
+   empty space at the end of the scroll (which is what a plain bottom
+   padding/spacer *inside* the scroll container would give you instead —
+   tried that first, wrong effect). Skipped entirely once
+   .sg-settings-panel--with-bar applies (JSX doesn't render it in edit
+   mode), since there the container itself already stops 46px short. */
+.sg-settings-footer-spacer {
+  flex-shrink: 0;
+  height: 46px;
 }
 
 .sg-support-link {

@@ -22,8 +22,7 @@ import { compactWidgets } from '../../lib/gridUtils';
 import { DEFAULT_BG } from '../../types/background';
 import AddWidgetMenu from '../shared/AddWidgetMenu';
 import LayoutPresets from '../shared/LayoutPresets';
-import type { Language, SettingsButtonPosition } from '../../contexts/SettingsContext';
-import type { TranslationKey } from '../../i18n';
+import type { Language } from '../../contexts/SettingsContext';
 import { runThemeTransition } from '../../lib/themeTransition';
 import { DEFAULT_GRID_CONFIG, type GridConfig } from '../../types/grid';
 import { APP_VERSION } from '../../lib/appVersion';
@@ -36,23 +35,13 @@ const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
   { value: 'de', label: 'Deutsch' },
 ];
 
-const SETTINGS_BTN_OPTIONS: { value: SettingsButtonPosition; arrow: string; labelKey: TranslationKey }[] = [
-  { value: 'top-left',     arrow: '↖', labelKey: 'settings.buttonPosition.topLeft' },
-  { value: 'top',          arrow: '↑', labelKey: 'settings.buttonPosition.top' },
-  { value: 'top-right',    arrow: '↗', labelKey: 'settings.buttonPosition.topRight' },
-  { value: 'bottom-left',  arrow: '↙', labelKey: 'settings.buttonPosition.bottomLeft' },
-  { value: 'bottom',       arrow: '↓', labelKey: 'settings.buttonPosition.bottom' },
-  { value: 'bottom-right', arrow: '↘', labelKey: 'settings.buttonPosition.bottomRight' },
-];
-
 interface Props {
   onClose: () => void;
   isOpen:  boolean;
-  settingsButtonPosition: SettingsButtonPosition;
   onReplayTour: () => void;
 }
 
-export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition, onReplayTour }: Props) {
+export default function SettingsPanel({ onClose, isOpen, onReplayTour }: Props) {
   const {
     globalColor, globalColorScheme, globalOpacity, globalDim, globalGradientIntensity, widgetShadowOpacity, globalGlassIntensity, globalPresetId,
     setGlobalColor, setGlobalOpacity, setGlobalDim, setGlobalGradientIntensity,
@@ -152,7 +141,10 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition,
 
   const transparencyPct = 100 - Math.round(globalOpacity * 100);
   const isDark          = colorScheme !== 'light';
-  const panelSide       = settingsButtonPosition.endsWith('left') ? 'left' : 'right';
+  // Was configurable via the (now-removed) Button Position setting; the
+  // bottom control bar redesign hardcoded that setting away, so the sidebar
+  // always slides in from the right now, its previous default.
+  const panelSide       = 'right';
 
   function doResetAppearance() {
     setConfig(DEFAULT_BG);
@@ -199,7 +191,7 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition,
   }
 
   return (
-    <div ref={panelRef} className={`sg-settings-panel sg-settings-panel--${panelSide}${isOpen ? ' sg-settings-panel--open' : ''}`} onClick={e => e.stopPropagation()}>
+    <div ref={panelRef} className={`sg-settings-panel sg-settings-panel--${panelSide}${isOpen ? ' sg-settings-panel--open' : ''}${isEditMode ? ' sg-settings-panel--with-bar' : ''}`} onClick={e => e.stopPropagation()}>
       <ElementInspector active={elementInspectorEnabled && developerOptionsEnabled} />
 
       {/* ── 1. HEADER ── */}
@@ -399,14 +391,6 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition,
                 title="Pick accent color"
               />
             </SettingsRow>
-            <SettingsRow label={t('settings.buttonPosition')}>
-              <Dropdown
-                options={SETTINGS_BTN_OPTIONS.map(o => ({ value: o.value, label: `${o.arrow} ${t(o.labelKey)}` }))}
-                value={settingsButtonPosition}
-                onChange={v => updateSettings({ settingsButtonPosition: v })}
-              />
-            </SettingsRow>
-
             <SettingsRow label={t('settings.disableGridGlow')}>
               <SettingsSwitch
                 checked={disableGridGlow}
@@ -486,6 +470,13 @@ export default function SettingsPanel({ onClose, isOpen, settingsButtonPosition,
         </PanelSectionList>
         </SettingsPanelOpenContext.Provider>
       </div>
+
+      {/* Idle state only (no edit-mode bar to already clear the panel's
+          bottom) — a true non-scrolling sibling, same idea as the header
+          above, not scroll-area padding. Content scrolls up and disappears
+          behind this, rather than trailing off into empty reserved space at
+          the end of the scroll — matches how the header already behaves. */}
+      {!isEditMode && <div className="sg-settings-footer-spacer" />}
 
       {/* Portal-rendered accent color picker */}
       <CustomColorPicker

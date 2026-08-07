@@ -48,51 +48,53 @@
 
 .sg-widget-add-icon { font-size: 15px; }
 
-/* ── Floating variant (Grid.tsx, top-centered edit-mode button) ───────────
-   The floating instance sits directly on the dashboard with no panel card
-   behind it, so — unlike the sidebar instance, which inherits its card from
-   .sg-panel-section — it needs its own background/border/shadow on the
-   dropdown, matching the existing .sg-widget-float-panel convention
-   (WidgetContainer.css) for visual consistency with other floating panels. */
-.sg-add-widget-floating {
-  position: fixed;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9000;
-  width: auto;
-  align-items: center;
-  gap: 0;
+/* ── Bottom bar variant (Grid.tsx) ──────────────────────────────────────────
+   Sits inline in .sg-bottom-bar (Grid.css) alongside the Settings/theme/
+   Finish Editing buttons — matches their compact height/padding/border
+   instead of the sidebar instance's own pill styling. The dropdown list
+   still needs its own card, same as the sidebar instance gets from
+   .sg-panel-section, since nothing else provides one here. Always opens
+   upward — the bar is always bottom-docked now. */
+.sg-controls-add-widget {
+  position: relative;
   margin-bottom: 0;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
+  gap: 0;
 }
 
-.sg-root--edit .sg-add-widget-floating,
-.sg-root--settings-open .sg-add-widget-floating {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.sg-add-widget-floating .sg-widget-add-toggle {
+.sg-controls-add-widget .sg-widget-add-toggle {
   width: auto;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 9px 20px;
-  border-radius: 999px;
-  background: rgba(15, 17, 23, 0.85);
-  border: 1px solid var(--accent);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(8px);
+  height: 30px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(220, 220, 230, 0.85);
 }
-.sg-add-widget-floating .sg-widget-add-toggle:hover,
-.sg-add-widget-floating .sg-widget-add-toggle.active {
-  background: rgba(99, 102, 241, 0.28);
+.sg-controls-add-widget .sg-widget-add-toggle:hover,
+.sg-controls-add-widget .sg-widget-add-toggle.active {
+  background: rgba(99, 102, 241, 0.25);
+  border-color: var(--accent);
+  color: var(--accent);
 }
+/* Same bug as .sg-bottom-bar-btn in Grid.css: the bar's own background
+   flips light/dark but this button's resting background didn't, leaving
+   near-invisible white-on-white until hover. */
+[data-scheme="light"] .sg-controls-add-widget .sg-widget-add-toggle {
+  color: rgba(30, 30, 50, 0.75);
+  border-color: rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.04);
+}
+[data-scheme="light"] .sg-controls-add-widget .sg-widget-add-toggle:hover { background: rgba(0, 0, 0, 0.08); color: var(--accent); }
+[data-scheme="light"] .sg-controls-add-widget .sg-widget-add-toggle.active { color: var(--accent); }
 
-.sg-add-widget-floating .sg-widget-add-list {
-  margin-top: 8px;
+.sg-controls-add-widget .sg-widget-add-list {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
   min-width: 200px;
   background: var(--surface);
   border: 1px solid var(--border);

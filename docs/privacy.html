@@ -13,7 +13,7 @@
 <body>
   <div class="wrap">
     <h1>Privacy Policy</h1>
-    <p class="updated">Last updated: 2026-08-05 (added the Google Tasks scope used by the optional To-Do widget's Google Tasks view)</p>
+    <p class="updated">Last updated: 2026-08-07 (added the Rain Radar widget's map/radar tile requests and the Weather widget's optional click-to-open-forecast link)</p>
 
     <p>StartGrid is a browser extension (Firefox &amp; Chrome) that replaces your new tab page with a customizable widget grid. This policy explains what data StartGrid accesses, why, and how it's stored — in particular for the optional Google Calendar, Google Tasks, and Outlook Calendar/Mail widgets, which require signing in with your Google or Microsoft account, and the optional Obsidian widgets, which read notes from a vault on your own device. All of these are off by default and do nothing until you add the widget and connect it.</p>
 
@@ -111,6 +111,15 @@
     <h2>Location (Weather widget and background weather effect)</h2>
     <p>The optional Weather widget, if you enable it and grant permission, uses your browser's geolocation API to get your device's coordinates. These coordinates are sent directly from your browser to the third-party weather provider <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> to fetch local weather data — StartGrid's developer never receives or stores this location data. You can alternatively search for a location by name instead of sharing your device's position, and you can deny or revoke the location permission at any time via your browser's site permissions for this extension. The coordinates you choose are saved with that widget's settings in the browser's sync storage described above, so the same location appears on your other signed-in devices; removing the Weather widget removes them.</p>
     <p>Separately, the optional background weather effect (Settings → Settings, off by default) — which renders animated rain or snow behind the widget grid — has its own independently-set location, used only to decide whether to show rain, snow, or nothing. It is not tied to the Weather widget and works whether or not that widget is on your grid. Enabling it requests location the same way (device geolocation or search-by-name) and sends coordinates directly to Open-Meteo the same way; the resulting location is saved with your global settings in sync storage. Denying, revoking, or never enabling the effect means no location is requested for it.</p>
+    <p>If you turn on the Weather widget's optional "Open detailed forecast on click" setting (off by default), clicking the widget opens a new browser tab to a forecast page at the provider you chose in its settings — Google Search, Windy, or WetterOnline. This is an ordinary outbound link, the same as clicking any other link on a web page: StartGrid does not send anything to that site itself, but your browser's normal navigation request (which includes your IP address and, depending on the provider, the city name or coordinates in the URL so the right forecast loads) goes directly to whichever site you picked, subject to that site's own privacy policy.</p>
+
+    <h2>Rain Radar widget (map and radar tiles)</h2>
+    <p>The optional Rain Radar widget, if you add it, shows a map with a live precipitation overlay for a location you choose. It is off by default and does nothing until added. Rendering it requires two third-party tile services, contacted directly by your browser:</p>
+    <ul>
+      <li><strong><a href="https://carto.com" target="_blank" rel="noopener">CARTO</a></strong> (<code>basemaps.cartocdn.com</code>) — supplies the base map image tiles (streets, borders, place names). Requests are for map tiles by coordinate grid reference, not a raw latitude/longitude query parameter, though the tiles requested do reveal the general area being viewed, the same as loading any online map.</li>
+      <li><strong><a href="https://www.rainviewer.com/api.html" target="_blank" rel="noopener">RainViewer</a></strong> (<code>api.rainviewer.com</code>, <code>tile.rainviewer.com</code>) — supplies the radar precipitation overlay, the same way.</li>
+    </ul>
+    <p>Both are free public tile services that require no API key or account; StartGrid's developer never receives or stores any of these requests, and neither service is passed your Google Account, email, or any other personal data — only your IP address, as with any web request, and the map area currently in view. The city name and coordinates you configure for this widget are saved with its settings in the browser's sync storage described above; removing the widget removes them.</p>
 
     <h2>Other data StartGrid accesses</h2>
     <p>Optional background-image providers fetch a public photo URL and its attribution text. Each sends your IP address to the provider, as any web request does; none involves your Google Account or any personal data:</p>

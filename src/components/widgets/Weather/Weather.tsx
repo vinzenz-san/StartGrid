@@ -6,6 +6,7 @@ import { DetailedSettings } from '../../Layout/DetailedSettings';
 import { useSettings } from '../../../contexts/SettingsContext';
 import { useWeather } from '../../../hooks/useWeather';
 import { geocodeCity, type GeocodeResult } from '../../../lib/openMeteoApi';
+import { getForecastUrl, type ForecastProvider } from '../../../lib/forecastLinks';
 import { getWeatherCodeInfo } from '../../../lib/weatherCodes';
 import { resolveDisplayStyle } from '../../../lib/displayStyle';
 import './Weather.css';
@@ -178,6 +179,27 @@ export function WeatherSettings({ data, onUpdateData }: SettingsProps) {
         <SettingsSwitch checked={data.allowOverflow ?? false} onChange={v => onUpdateData({ allowOverflow: v })} />
       </SettingsRow>
 
+      <SettingsRow label={t('widget.weather.openForecastOnClick')}>
+        <SettingsSwitch
+          checked={data.openForecastOnClick ?? false}
+          onChange={v => onUpdateData({ openForecastOnClick: v })}
+        />
+      </SettingsRow>
+
+      {data.openForecastOnClick && (
+        <SettingsRow label={t('widget.weather.forecastProvider')}>
+          <Dropdown
+            options={[
+              { value: 'google',       label: t('widget.weather.forecastProvider.google') },
+              { value: 'windy',        label: t('widget.weather.forecastProvider.windy') },
+              { value: 'wetteronline', label: t('widget.weather.forecastProvider.wetteronline') },
+            ]}
+            value={data.forecastProvider ?? 'google'}
+            onChange={v => onUpdateData({ forecastProvider: v as ForecastProvider })}
+          />
+        </SettingsRow>
+      )}
+
       <DetailedSettings title={t('widget.displaySettings.title')}>
         <DisplaySettingsPanel
           value={data.displaySettings}
@@ -249,8 +271,19 @@ export default function Weather({ data }: Props) {
   const conditionSize = tempSize * CONDITION_SIZE_RATIO;
   const secondarySize = tempSize * SECONDARY_SIZE_RATIO;
 
+  const forecastUrl = data.openForecastOnClick
+    ? getForecastUrl(data.forecastProvider ?? 'google', data)
+    : null;
+  const openForecast = forecastUrl
+    ? () => window.open(forecastUrl, '_blank', 'noopener')
+    : undefined;
+
   return (
-    <div className={`sg-weather sg-weather--align-${alignment}${data.allowOverflow ? ' sg-weather--overflow' : ''}`} style={wrapper}>
+    <div
+      className={`sg-weather sg-weather--align-${alignment}${data.allowOverflow ? ' sg-weather--overflow' : ''}${openForecast ? ' sg-weather--clickable' : ''}`}
+      style={wrapper}
+      onClick={openForecast}
+    >
       <div className="sg-weather-icon" style={{ fontSize: iconSize }}>{info.icon}</div>
       <div className="sg-weather-main">
         <div className="sg-weather-temp" style={{ fontSize: tempSize }}>

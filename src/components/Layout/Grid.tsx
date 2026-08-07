@@ -26,7 +26,7 @@ export default function Grid() {
   const { widgets, updateWidget, loaded } = useWidgets();
   const { gridConfig } = useGridConfig();
   const {
-    developerOptionsEnabled, settingsButtonPosition, settingsPinned, elementInspectorEnabled,
+    developerOptionsEnabled, settingsPinned, elementInspectorEnabled,
     disableGridGlow, widgetTourSeen, widgetTourSeenVersion, t,
     loaded: settingsLoaded,
   } = useSettings();
@@ -136,62 +136,62 @@ export default function Grid() {
 
   return (
     <ElementInspectorProvider enabled={developerOptionsEnabled && elementInspectorEnabled}>
-    <div className={`sg-root${isEditMode ? ' sg-root--edit' : ''}${(settingsPanelOpen || settingsPinned) ? ' sg-root--settings-open' : ''}`}>
+    <div className={`sg-root${isEditMode ? ' sg-root--edit' : ''}`}>
 
-      {/* Top-centered shortcut to the same Add Widget menu that lives in the
-          Settings Sidebar — always rendered, opacity/pointer-events gated by
-          .sg-root--edit or .sg-root--settings-open so it fades in/out with
-          edit mode or an open Settings Sidebar rather than popping in abruptly. */}
-      <AddWidgetMenu className="sg-add-widget-floating" />
+      {/* ── Bottom control bar ──────────────────────────────────────────
+          Two shapes depending on edit mode, not a single always-identical
+          cluster:
+          - Idle: two small icon-only buttons at the bottom corners — a
+            settings gear (left) and a pencil that enters edit mode (right).
+          - Editing: those two collapse into one full-width bar spanning the
+            bottom edge, adding Add Widget and the theme toggle alongside
+            Settings and a "Finish Editing" button. */}
+      {isEditMode ? (
+        <div className="sg-bottom-bar">
+          <AddWidgetMenu className="sg-controls-add-widget" />
 
-      {/* ── Floating control cluster ── */}
-      {(() => {
-        const side = settingsButtonPosition.endsWith('left')
-          ? 'left'
-          : settingsButtonPosition.endsWith('right')
-            ? 'right'
-            : 'center';
-        const panelVisible = settingsPanelOpen || settingsPinned;
-        return (
-          <div className={`sg-controls sg-controls--${settingsButtonPosition} sg-controls--side-${side}${panelVisible && side !== 'center' ? ' sg-controls--panel-open' : ''}`}>
-            {/* Settings gear — always visible anchor */}
-            <button
-              className={`sg-btn-control sg-btn-control--settings${settingsPanelOpen ? ' active' : ''}`}
-              onPointerDown={e => { e.stopPropagation(); e.preventDefault(); if (!settingsPinned) setSettingsPanelOpen(s => !s); }}
-              title={t('dashboard.settings')}
-            >
-              <GearIcon size={15} />
-            </button>
+          <button
+            className={`sg-bottom-bar-btn${settingsPanelOpen ? ' active' : ''}`}
+            onPointerDown={e => { e.stopPropagation(); e.preventDefault(); if (!settingsPinned) setSettingsPanelOpen(s => !s); }}
+            title={t('dashboard.settings')}
+          >
+            <GearIcon size={14} />
+            <span>{t('dashboard.settings')}</span>
+          </button>
 
-            {/* Theme toggle — hidden until hover */}
-            <div className="sg-controls__reveal sg-controls__reveal--theme">
-              <ThemeToggle />
-            </div>
+          <ThemeToggle />
 
-            {/* Lock/unlock — hidden until hover. Wrapped like the theme toggle
-                (rather than putting the reveal classes on the button itself)
-                so the center-alignment variant can give both flanks an
-                identical width without resizing the button's own hit-box. */}
-            <div className="sg-controls__reveal sg-controls__reveal--lock">
-              <button
-                className={`sg-btn-control${isEditMode ? ' active' : ''}`}
-                onPointerDown={() => { setSettingsPanelOpen(false); toggleEditMode(); }}
-                title={isEditMode ? t('dashboard.lockLayout') : t('dashboard.unlockLayout')}
-              >
-                {isEditMode
-                  ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                  : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
-                }
-              </button>
-            </div>
-          </div>
-        );
-      })()}
+          <button
+            className="sg-bottom-bar-btn active"
+            onPointerDown={() => { setSettingsPanelOpen(false); toggleEditMode(); }}
+            title={t('dashboard.finishEditing')}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>{t('dashboard.finishEditing')}</span>
+          </button>
+        </div>
+      ) : (
+        <>
+          <button
+            className="sg-idle-icon sg-idle-icon--left"
+            onPointerDown={e => { e.stopPropagation(); e.preventDefault(); if (!settingsPinned) setSettingsPanelOpen(s => !s); }}
+            title={t('dashboard.settings')}
+          >
+            <GearIcon size={15} />
+          </button>
+          <button
+            className="sg-idle-icon sg-idle-icon--right"
+            onPointerDown={() => { setSettingsPanelOpen(false); toggleEditMode(); }}
+            title={t('dashboard.editLayout')}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          </button>
+        </>
+      )}
 
       <SettingsPanel
         onClose={() => setSettingsPanelOpen(false)}
         isOpen={settingsPanelOpen || settingsPinned}
-        settingsButtonPosition={settingsButtonPosition}
         onReplayTour={openTour}
       />
 
@@ -204,7 +204,7 @@ export default function Grid() {
       <CommandPalette />
 
       <main
-        className={`sg-grid-wrapper${settingsPinned ? ` sg-grid-wrapper--pinned-${settingsButtonPosition.endsWith('left') ? 'left' : 'right'}` : ''}`}
+        className={`sg-grid-wrapper${settingsPinned ? ' sg-grid-wrapper--pinned-right' : ''}`}
         onClick={() => { if (!settingsPinned) setSettingsPanelOpen(false); }}
       >
         <div

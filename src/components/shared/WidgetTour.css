@@ -25,26 +25,6 @@
   backdrop-filter: blur(1px);
 }
 
-/* Forces Grid.tsx's hover-only lock/theme cluster (.sg-controls__reveal,
-   normally gated by .sg-controls:hover — see Grid.css) visible during the
-   tour's "unlock the grid" step, since the tour dialog itself isn't a real
-   hover over that cluster. Mirrors both of Grid.css's reveal mechanisms:
-   the opacity gate (all button-position variants) and the center-alignment
-   variant's separate max-width collapse. */
-body.sg-tour-force-reveal .sg-controls::before {
-  opacity: 1;
-}
-body.sg-tour-force-reveal .sg-controls__reveal {
-  opacity: 1;
-  pointer-events: auto;
-}
-body.sg-tour-force-reveal .sg-controls--side-center .sg-controls__reveal--lock {
-  max-width: 28px;
-}
-body.sg-tour-force-reveal .sg-controls--side-center .sg-controls__reveal--theme {
-  max-width: 48px;
-}
-
 /* Spotlight ring: sized/positioned to the target's live rect (inline style).
    Its own oversized box-shadow dims the rest of the viewport in one element,
    the accent border+glow draws the eye to the cutout, and pointer-events:

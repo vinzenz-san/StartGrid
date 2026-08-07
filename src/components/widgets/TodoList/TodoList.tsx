@@ -35,7 +35,7 @@ interface SettingsProps {
 }
 
 export function TodoListSettings({ data, onUpdateData }: SettingsProps) {
-  const { t, developerOptionsEnabled } = useSettings();
+  const { t } = useSettings();
   const source = data.source ?? 'local';
   const items = data.items ?? [];
   const hideCompleted = data.hideCompleted ?? false;
@@ -51,26 +51,20 @@ export function TodoListSettings({ data, onUpdateData }: SettingsProps) {
     });
   }
 
-  // Google Tasks (tasks.readonly) is pending Google's sensitive-scope
-  // verification — see googleAuth.ts's TASKS_SCOPE comment. Hidden from
-  // regular users so nobody outside Developer Options can trigger a Connect
-  // request for it before it's approved.
-  const googleSourceAvailable = developerOptionsEnabled;
-
   return (
     <>
       <SettingsRow label={t('widget.todoList.source')}>
         <Dropdown
           options={[
             { value: 'local', label: t('widget.todoList.sourceLocal') },
-            ...(googleSourceAvailable ? [{ value: 'google', label: t('widget.todoList.sourceGoogle') }] : []),
+            { value: 'google', label: t('widget.todoList.sourceGoogle') },
           ]}
           value={source}
           onChange={v => onUpdateData({ source: v as 'local' | 'google' })}
         />
       </SettingsRow>
 
-      {source === 'google' && googleSourceAvailable && (
+      {source === 'google' && (
         !isConnected ? (
           <ActionButton variant="ghost" onClick={connect} disabled={isConnecting}>
             {isConnecting ? t('widget.todoList.connecting') : t('widget.todoList.connectGoogle')}
@@ -338,11 +332,7 @@ interface Props {
 }
 
 export default function TodoList(props: Props) {
-  const { developerOptionsEnabled } = useSettings();
-  // Falls back to the local view if Google Tasks was selected while
-  // Developer Options was on and later got turned off — see googleAuth.ts's
-  // TASKS_SCOPE comment for why this source stays dev-gated.
-  return props.data.source === 'google' && developerOptionsEnabled
+  return props.data.source === 'google'
     ? <GoogleTodoList data={props.data} />
     : <LocalTodoList {...props} />;
 }

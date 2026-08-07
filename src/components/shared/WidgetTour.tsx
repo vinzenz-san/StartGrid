@@ -22,11 +22,6 @@ interface Step {
    *  spotlighted instead of making the user hunt for it while reading. Left
    *  undefined for steps that aren't about a specific on-screen control. */
   target?: string;
-  /** The lock icon (and theme toggle) only render on `.sg-controls:hover`
-   *  (see Grid.css) — the tour dialog itself doesn't count as a hover, so
-   *  without this the "unlock the grid" step would spotlight nothing. Set
-   *  on that step to force-reveal it via a body class (see WidgetTour.css). */
-  forceReveal?: boolean;
   /** Side effect fired when the user clicks Next FROM this step (i.e. on the
    *  way to the next one) — the step's own copy promises "click Next to
    *  open/unlock X", so the action happens exactly then rather than being
@@ -36,11 +31,13 @@ interface Step {
 
 const STEPS: Step[] = [
   { titleKey: 'tour.step1.title',           bodyKey: 'tour.step1.body' },
-  { titleKey: 'tour.stepSettings.title',    bodyKey: 'tour.stepSettings.body', target: '.sg-btn-control--settings', onAdvance: 'openSettings' },
+  { titleKey: 'tour.stepSettings.title',    bodyKey: 'tour.stepSettings.body', target: '.sg-idle-icon--left', onAdvance: 'openSettings' },
   { titleKey: 'tour.settingsOpened.title',  bodyKey: 'tour.settingsOpened.body' },
-  { titleKey: 'tour.step2.title',           bodyKey: 'tour.step2.body', target: '.sg-add-widget-floating .sg-widget-add-toggle' },
-  { titleKey: 'tour.step3.title',           bodyKey: 'tour.step3.body', target: '.sg-controls', forceReveal: true, onAdvance: 'enableEditMode' },
+  // Edit mode must be entered before Add Widget exists to point at — it
+  // only renders inside the bottom bar, which only appears while editing.
+  { titleKey: 'tour.step3.title',           bodyKey: 'tour.step3.body', target: '.sg-idle-icon--right', onAdvance: 'enableEditMode' },
   { titleKey: 'tour.editModeEnabled.title', bodyKey: 'tour.editModeEnabled.body' },
+  { titleKey: 'tour.step2.title',           bodyKey: 'tour.step2.body', target: '.sg-controls-add-widget .sg-widget-add-toggle' },
   { titleKey: 'tour.step4.title',           bodyKey: 'tour.step4.body', target: '.sg-widget' },
   { titleKey: 'tour.step5.title',           bodyKey: 'tour.step5.body', target: '.sg-widget' },
   { titleKey: 'tour.step6.title',           bodyKey: 'tour.step6.body' },
@@ -85,12 +82,6 @@ export default function WidgetTour({ open, onClose, onOpenSettings }: Props) {
   const [step, setStep] = useState(0);
   const [skipNoticeOpen, setSkipNoticeOpen] = useState(false);
   const rect = useHighlightRect(open && !skipNoticeOpen ? STEPS[step]?.target : undefined);
-
-  useEffect(() => {
-    const active = open && !skipNoticeOpen && !!STEPS[step]?.forceReveal;
-    document.body.classList.toggle('sg-tour-force-reveal', active);
-    return () => document.body.classList.remove('sg-tour-force-reveal');
-  }, [open, skipNoticeOpen, step]);
 
   // The component stays mounted while closed (`open` just skips the render
   // below), so `step`/`skipNoticeOpen` would otherwise still hold whatever

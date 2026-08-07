@@ -145,7 +145,7 @@ interface Props {
 function DevPanelInner({ position, onPositionChange }: Props) {
   const { isEditMode }   = useEditMode();
   const { widgets, loaded } = useWidgets();
-  const { settingsButtonPosition, elementInspectorEnabled, updateSettings, t } = useSettings();
+  const { elementInspectorEnabled, updateSettings, t } = useSettings();
   const { liveEffectType, devOverride, setDevOverride } = useWeatherEffect();
   const panelRef = useRef<HTMLDivElement>(null);
   const dragRef  = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
@@ -154,12 +154,14 @@ function DevPanelInner({ position, onPositionChange }: Props) {
   const [dragging, setDragging] = useState(false);
   useEffect(() => { posRef.current = position; }, [position]);
 
+  // Sidebar is always right-docked now (the settings-button-position setting
+  // that used to make this configurable was dropped with the bottom-bar
+  // toolbar redesign), so the opposite corner is always the left one.
   const snapToSidebar = useCallback((height: number) => {
-    const sidebarOnLeft = settingsButtonPosition.endsWith('left');
-    const x = sidebarOnLeft ? window.innerWidth - DEV_PANEL_WIDTH - DEV_PANEL_MARGIN : DEV_PANEL_MARGIN;
+    const x = DEV_PANEL_MARGIN;
     const y = window.innerHeight - height - DEV_PANEL_MARGIN;
     onPositionChange({ x, y });
-  }, [settingsButtonPosition, onPositionChange]);
+  }, [onPositionChange]);
 
   // Force-reset on every mount: DevPanel only mounts when Dev Mode is freshly
   // turned on, so it must always dynamically snap to the bottom corner opposite

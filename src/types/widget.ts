@@ -216,6 +216,11 @@ export interface WeatherData {
   /** Let the rendered content spill past the widget's own box instead of
    *  being clipped. Default false. */
   allowOverflow?: boolean;
+  /** Open a detailed forecast page in a new tab when the widget is clicked.
+   *  Default false. */
+  openForecastOnClick?: boolean;
+  /** Which site to open for the detailed forecast. Default 'google'. */
+  forecastProvider?: 'google' | 'windy' | 'wetteronline';
 }
 
 export interface TodoItem {
@@ -235,6 +240,18 @@ export interface CurrencyTickerData {
   baseCurrency?: string;       // ISO 4217 code, default 'EUR'
   targetCurrencies?: string[]; // ISO 4217 codes, default ['USD', 'GBP']
   refreshIntervalMin?: number; // default 60
+}
+
+export interface RainRadarData {
+  locationName?: string;
+  latitude?: number;
+  longitude?: number;
+  zoom?: number;      // Leaflet zoom level, default 6
+  opacity?: number;   // radar overlay opacity 0-100, default 70
+  /** Base map style. 'auto' follows the app's light/dark theme (CARTO
+   *  Positron/Dark Matter); 'voyager' is CARTO's colorful terrain style
+   *  (green land, no light/dark variant). Default 'auto'. */
+  mapStyle?: 'auto' | 'voyager';
 }
 
 export interface RssFeedData {
@@ -268,6 +285,7 @@ export interface WidgetDataMap {
   rssFeed:         RssFeedData;
   todoList:        TodoData;
   currencyTicker:  CurrencyTickerData;
+  rainRadar:       RainRadarData;
   placeholder:     PlaceholderData;
 }
 
@@ -316,4 +334,5 @@ export type Widget =
   | (WidgetBase & { type: 'rssFeed';        data: RssFeedData })
   | (WidgetBase & { type: 'todoList';       data: TodoData })
   | (WidgetBase & { type: 'currencyTicker'; data: CurrencyTickerData })
+  | (WidgetBase & { type: 'rainRadar';      data: RainRadarData })
   | (WidgetBase & { type: 'placeholder';    data: PlaceholderData });

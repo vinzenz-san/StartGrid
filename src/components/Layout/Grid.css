@@ -40,173 +40,89 @@ html.sg-glow-all-widgets .sg-widget {
     0 0 22px 2px color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
-/* ── Floating control cluster ────────────────────── */
-.sg-controls {
+/* ── Bottom control bar ──────────────────────────────
+   Two shapes (see Grid.tsx): idle shows just two small corner icon buttons
+   (.sg-idle-icon), editing swaps in one full-width bar (.sg-bottom-bar)
+   spanning the bottom edge — no longer a repositionable floating pill, that
+   configurability was dropped in favor of matching this fixed layout. */
+.sg-bottom-bar {
   position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Above .sg-settings-panel (z-index 10000, SettingsPanel.css) — the bar
+     must stay visible/clickable even while the sidebar is open, not get
+     covered by it. SettingsPanel.css also reserves space at its own bottom
+     edge so its content doesn't render underneath this. */
+  z-index: 10001;
   display: flex;
   align-items: center;
-  gap: 2px;
-  z-index: 9000;
-  padding: 4px;
-  border-radius: 999px;
-}
-
-/* Dark pill background — appears on hover */
-.sg-controls::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: rgba(8, 10, 20, 0.76);
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(8, 10, 20, 0.88);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  opacity: 0;
-  transition: opacity 0.22s ease;
-  pointer-events: none;
-}
-.sg-controls:hover::before { opacity: 1; }
-
-/* Position variants */
-.sg-controls--top-left     { top: 14px; left: 14px; }
-.sg-controls--top          { top: 14px; left: 50%; transform: translateX(-50%); transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
-.sg-controls--top-right    { top: 14px; right: 14px; }
-.sg-controls--bottom-left  { bottom: 14px; left: 14px; }
-.sg-controls--bottom       { bottom: 14px; left: 50%; transform: translateX(-50%); transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
-.sg-controls--bottom-right { bottom: 14px; right: 14px; }
-
-/* When the Settings Sidebar opens on the same side as the control cluster
-   (gear/theme/lock), it would otherwise slide over top of it (sidebar is
-   340px wide, see SettingsPanel.css). Shift the cluster clear of the panel
-   using the same transition curve/duration as the panel itself so both
-   move in lockstep. Center position never overlaps, so it's excluded. */
-.sg-controls--side-left.sg-controls--panel-open  { transform: translateX(340px); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
-.sg-controls--side-right.sg-controls--panel-open { transform: translateX(-340px); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
-
-/* ── Visual element order per alignment ──────────────────────────────────
-   DOM order is fixed (gear, theme toggle, lock) — `order` alone drives the
-   visual arrangement per side, applying identically to top and bottom
-   clusters since it keys off --side-*, not --top-* / --bottom-*.
-   Left:   gear -> theme -> lock
-   Right:  lock -> theme -> gear
-   Center: lock -> gear  -> theme (gear stays the middle/anchor element) */
-.sg-controls--side-left .sg-btn-control--settings    { order: 1; }
-.sg-controls--side-left .sg-controls__reveal--theme  { order: 2; }
-.sg-controls--side-left .sg-controls__reveal--lock   { order: 3; }
-
-.sg-controls--side-right .sg-controls__reveal--lock  { order: 1; }
-.sg-controls--side-right .sg-controls__reveal--theme { order: 2; }
-.sg-controls--side-right .sg-btn-control--settings   { order: 3; }
-
-.sg-controls--side-center .sg-controls__reveal--lock  { order: 1; }
-.sg-controls--side-center .sg-btn-control--settings    { order: 2; }
-.sg-controls--side-center .sg-controls__reveal--theme  { order: 3; }
-
-/* Back in normal flex flow (position: absolute previously broke the shared
-   ::before pill background, which needs both flanks inside the container's
-   own box to visually wrap them). Each flank grows to its own true content
-   width — no more forcing both to a shared 48px, which left ~20px of dead
-   space around the smaller 28px lock button. */
-.sg-controls--side-center .sg-controls__reveal {
-  max-width: 0;
-  overflow: hidden;
-  transition: max-width 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
-}
-.sg-controls--side-center .sg-controls__reveal--lock  { max-width: 0; }
-.sg-controls--side-center:hover .sg-controls__reveal--lock  { max-width: 28px; }
-.sg-controls--side-center .sg-controls__reveal--theme { max-width: 0; }
-.sg-controls--side-center:hover .sg-controls__reveal--theme { max-width: 48px; }
-
-/* The two flanks now differ in width (28px lock vs 48px theme, a 20px gap),
-   so the flex row is no longer symmetric once expanded — its bounding-box
-   center (what left:50%/translateX(-50%) actually centers) drifts 10px
-   (half the 20px difference) away from the gear. This hover-only override
-   nudges the container back by that exact fixed amount so the gear itself
-   never visibly moves. Specificity (:hover adds a class) beats the base
-   .sg-controls--top/--bottom translateX(-50%) rule regardless of source
-   order, so this safely applies only while the cluster is expanded. */
-.sg-controls--side-center:hover {
-  transform: translateX(calc(-50% + 10px));
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
 }
 
-/* Icon-only control button. All three (gear, lock, theme-toggle) share the
-   same small persistent chip background (below) so they stay legible
-   regardless of what's directly behind the cluster (e.g. a light-colored
-   widget or background image), without needing per-pixel contrast sampling
-   of the actual background — that used to be canvas-based (see removed
-   useBackgroundContrast) but was dropped along with the background-image
-   host_permissions it required; a fixed chip tied to the app's light/dark
-   theme setting works unconditionally instead. */
-.sg-btn-control {
-  position: relative;
-  z-index: 1;
+.sg-bottom-bar-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(220, 220, 230, 0.85);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+.sg-bottom-bar-btn:hover  { background: rgba(255, 255, 255, 0.1); color: var(--accent); }
+.sg-bottom-bar-btn.active { background: rgba(99, 102, 241, 0.25); border-color: var(--accent); color: var(--accent); }
+
+/* .sg-bottom-bar itself never adapted to light mode (stayed the dark pill
+   above) while these buttons' text/border did — dark text on a dark bar was
+   only readable once :hover's accent color kicked in. Both need to flip
+   together. */
+[data-scheme="light"] .sg-bottom-bar { background: rgba(255, 255, 255, 0.92); border-top-color: rgba(0, 0, 0, 0.12); }
+[data-scheme="light"] .sg-bottom-bar-btn { color: rgba(30, 30, 50, 0.75); border-color: rgba(0, 0, 0, 0.12); background: rgba(0, 0, 0, 0.04); }
+[data-scheme="light"] .sg-bottom-bar-btn:hover  { background: rgba(0, 0, 0, 0.08); color: var(--accent); }
+[data-scheme="light"] .sg-bottom-bar-btn.active { color: var(--accent); }
+
+/* Idle-state corner icons — deliberately minimal (no label, no shared pill
+   background) since almost nothing needs to be reachable outside edit mode:
+   just a way back into Settings, and a way into edit mode itself. */
+.sg-idle-icon {
+  position: fixed;
+  bottom: 14px;
+  /* Same reasoning as .sg-bottom-bar above — stay above the settings panel. */
+  z-index: 10001;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  border: none;
-  background: transparent;
-  color: rgba(200, 200, 220, 0.55);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease, transform 0.18s ease;
-}
-.sg-btn-control:hover        { transform: scale(1.15); }
-.sg-controls:hover .sg-btn-control { color: var(--accent); }
-/* Accent tint for "active" state — the settings gear while its panel is
-   open, and the lock button's unlocked indicator. */
-.sg-btn-control.active { color: var(--accent); }
-
-/* Own chip background/border — a subtle translucent circle so the icon reads
-   clearly even directly over a bright widget, instead of depending solely on
-   the shared pill backdrop. Repeated explicitly for the `.active` state below
-   — the color-only `.active` rule above it does not itself set
-   background/border, but it raises this selector's specificity to a
-   two-class chain, so the chip is restated at that same specificity to
-   guarantee it survives in both the active and inactive states rather than
-   depending on rule ordering. */
-.sg-btn-control,
-.sg-btn-control.active {
-  background: rgba(20, 22, 32, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(20, 22, 32, 0.55);
+  color: rgba(200, 200, 220, 0.65);
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease, transform 0.18s ease;
 }
+.sg-idle-icon:hover { color: var(--accent); transform: scale(1.1); }
+.sg-idle-icon--left  { left: 14px; }
+.sg-idle-icon--right { right: 14px; }
 
-/* Elements hidden until hover */
-.sg-controls__reveal {
-  position: relative;
-  z-index: 1;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-  display: flex;
-  align-items: center;
-}
-.sg-controls:hover .sg-controls__reveal {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* Light-mode: icons need a dark tint to show against bright backgrounds, and
-   the chip background above flips to a near-opaque white (rather than the
-   dark-mode translucent dark chip) so it doesn't itself blend into a light
-   widget sitting directly behind the cluster — same pairing already used for
-   the per-widget settings gear's light-mode chip (WidgetContainer.css). */
-[data-scheme="light"] .sg-btn-control,
-[data-scheme="light"] .sg-btn-control.active {
+[data-scheme="light"] .sg-idle-icon {
   background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-color: rgba(0, 0, 0, 0.12);
   color: rgba(30, 30, 50, 0.65);
 }
-[data-scheme="light"] .sg-controls:hover .sg-btn-control {
-  color: var(--accent);
-}
-/* The unlocked (.active) indicator still needs to read as accent-colored in
-   light mode, same as dark — restated after the chip rule above so it wins
-   the tie (identical specificity, later in source). */
-[data-scheme="light"] .sg-btn-control.active {
-  color: var(--accent);
-}
+[data-scheme="light"] .sg-idle-icon:hover { color: var(--accent); }
 
 /* ── Grid ────────────────────────────────────────── */
 .sg-grid-wrapper {

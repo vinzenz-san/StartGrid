@@ -7,14 +7,12 @@ const STORAGE_KEY = 'sg:settings';
 
 export type Language             = 'en' | 'de';
 export type ColorScheme          = 'light' | 'dark' | 'system';
-export type SettingsButtonPosition = 'top-left' | 'top' | 'top-right' | 'bottom-left' | 'bottom' | 'bottom-right';
 
 export interface AppSettings {
   language:                Language;
   colorScheme:             ColorScheme;
   accentColor:             string;
   developerOptionsEnabled: boolean;
-  settingsButtonPosition:  SettingsButtonPosition;
   enableCustomContextMenu: boolean;
   settingsPinned:          boolean;
   elementInspectorEnabled: boolean;
@@ -46,7 +44,6 @@ export const SETTINGS_DEFAULTS = {
   colorScheme:             'system',
   accentColor:             '#6366f1',
   developerOptionsEnabled: false,
-  settingsButtonPosition:  'bottom',
   enableCustomContextMenu: false,
   settingsPinned:          false,
   elementInspectorEnabled: false,
@@ -79,16 +76,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     colorScheme:             (settings ?? SETTINGS_DEFAULTS).colorScheme             ?? SETTINGS_DEFAULTS.colorScheme,
     accentColor:             (settings ?? SETTINGS_DEFAULTS).accentColor             ?? SETTINGS_DEFAULTS.accentColor,
     developerOptionsEnabled: (settings ?? SETTINGS_DEFAULTS).developerOptionsEnabled ?? SETTINGS_DEFAULTS.developerOptionsEnabled,
-    settingsButtonPosition:  (() => {
-      const v = (settings ?? SETTINGS_DEFAULTS).settingsButtonPosition ?? SETTINGS_DEFAULTS.settingsButtonPosition;
-      // Defensive: older builds stored a bare 'left'/'right' (pre the
-      // top/bottom-qualified position scheme) — reset those to default.
-      // `v` is typed as SettingsButtonPosition, but a stale stored value
-      // from an older schema version isn't actually guaranteed to match it
-      // at runtime, hence checking against `v as string` here.
-      const raw = v as string;
-      return (raw === 'left' || raw === 'right') ? SETTINGS_DEFAULTS.settingsButtonPosition : v;
-    })(),
     enableCustomContextMenu: (settings ?? SETTINGS_DEFAULTS).enableCustomContextMenu ?? SETTINGS_DEFAULTS.enableCustomContextMenu,
     settingsPinned:          (settings ?? SETTINGS_DEFAULTS).settingsPinned          ?? SETTINGS_DEFAULTS.settingsPinned,
     elementInspectorEnabled: (settings ?? SETTINGS_DEFAULTS).elementInspectorEnabled ?? SETTINGS_DEFAULTS.elementInspectorEnabled,

@@ -75,6 +75,8 @@
   text-overflow: clip;
 }
 
+.sg-weather--clickable { cursor: pointer; }
+
 /* ── Empty / loading / error states ──────────────── */
 .sg-weather--empty {
   flex-direction: column;

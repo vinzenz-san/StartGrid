@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, CalendarData, OutlookCalendarData, OutlookMailData, NotesData, ObsidianCaptureData, ObsidianDailyData, ObsidianNoteData, ObsidianSearchData, ObsidianRandomData, GreetingData, WeatherData, RssFeedData, TodoData, CurrencyTickerData, PlaceholderData } from '../../types/widget';
+import type { WidgetDataMap, WidgetType, ClockData, QuicklinksData, BookmarksData, BookmarkSearchData, CalendarData, OutlookCalendarData, OutlookMailData, NotesData, ObsidianCaptureData, ObsidianDailyData, ObsidianNoteData, ObsidianSearchData, ObsidianRandomData, GreetingData, WeatherData, RssFeedData, TodoData, CurrencyTickerData, RainRadarData, PlaceholderData } from '../../types/widget';
 import type { TranslationKey } from '../../i18n';
 import Clock, { ClockSettings } from './Clock/Clock';
 import Quicklinks, { QuicklinksSettings } from './Quicklinks/Quicklinks';
@@ -19,6 +19,7 @@ import Weather, { WeatherSettings } from './Weather/Weather';
 import RssFeed, { RssFeedSettings } from './RssFeed/RssFeed';
 import TodoList, { TodoListSettings } from './TodoList/TodoList';
 import CurrencyTicker, { CurrencyTickerSettings } from './CurrencyTicker/CurrencyTicker';
+import RainRadar, { RainRadarSettings } from './RainRadar/RainRadar';
 import WidgetPlaceholder from '../shared/WidgetPlaceholder';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -256,6 +257,16 @@ const _registry = {
     renderSettings:  (data, onUpdateData) => <CurrencyTickerSettings data={data} onUpdateData={onUpdateData} />,
   } satisfies TypedEntry<CurrencyTickerData>,
 
+  rainRadar: {
+    label:         'Rain Radar',
+    icon:          '🌧️',
+    defaultSize:   { w: 2, h: 2 },
+    defaultData:   { zoom: 6, opacity: 70 } satisfies RainRadarData,
+    titleBehavior: 'none',
+    renderComponent: (data) => <RainRadar data={data} />,
+    renderSettings:  (data, onUpdateData) => <RainRadarSettings data={data} onUpdateData={onUpdateData} />,
+  } satisfies TypedEntry<RainRadarData>,
+
   placeholder: {
     label:         'Placeholder',
     icon:          '⬜',
@@ -297,10 +308,11 @@ export const WIDGET_TYPE_LABEL_KEYS: Record<WidgetType, TranslationKey> = {
   rssFeed:        'widgets.type.rssFeed',
   todoList:       'widgets.type.todoList',
   currencyTicker: 'widgets.type.currencyTicker',
+  rainRadar:      'widgets.type.rainRadar',
   placeholder:    'widgets.type.placeholder',
 };
 
 // Ordered list for the "Add Widget" menu (excludes placeholder handled separately if desired).
 export const WIDGET_MENU_TYPES: WidgetType[] = [
-  'clock', 'quicklinks', 'bookmarks', 'bookmarkSearch', 'calendar', 'outlookCalendar', 'outlookMail', 'notes', 'obsidianCapture', 'obsidianDaily', 'obsidianNote', 'obsidianSearch', 'obsidianRandom', 'greeting', 'weather', 'rssFeed', 'todoList', 'currencyTicker', 'placeholder',
+  'clock', 'quicklinks', 'bookmarks', 'bookmarkSearch', 'calendar', 'outlookCalendar', 'outlookMail', 'notes', 'obsidianCapture', 'obsidianDaily', 'obsidianNote', 'obsidianSearch', 'obsidianRandom', 'greeting', 'weather', 'rssFeed', 'todoList', 'currencyTicker', 'rainRadar', 'placeholder',
 ];
