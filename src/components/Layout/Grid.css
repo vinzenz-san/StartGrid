@@ -95,12 +95,19 @@ html.sg-glow-all-widgets .sg-widget {
 
 /* Idle-state corner icons — deliberately minimal (no label, no shared pill
    background) since almost nothing needs to be reachable outside edit mode:
-   just a way back into Settings, and a way into edit mode itself. */
-.sg-idle-icon {
+   just a way back into Settings, and a way into edit mode itself. Grouped
+   together at the bottom-right rather than split across both corners. */
+.sg-idle-icons {
   position: fixed;
+  right: 14px;
   bottom: 14px;
-  /* Same reasoning as .sg-bottom-bar above — stay above the settings panel. */
   z-index: 10001;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sg-idle-icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -114,8 +121,6 @@ html.sg-glow-all-widgets .sg-widget {
   transition: color 0.2s ease, background 0.2s ease, transform 0.18s ease;
 }
 .sg-idle-icon:hover { color: var(--accent); transform: scale(1.1); }
-.sg-idle-icon--left  { left: 14px; }
-.sg-idle-icon--right { right: 14px; }
 
 [data-scheme="light"] .sg-idle-icon {
   background: rgba(255, 255, 255, 0.82);

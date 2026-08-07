@@ -141,8 +141,8 @@ export default function Grid() {
       {/* ── Bottom control bar ──────────────────────────────────────────
           Two shapes depending on edit mode, not a single always-identical
           cluster:
-          - Idle: two small icon-only buttons at the bottom corners — a
-            settings gear (left) and a pencil that enters edit mode (right).
+          - Idle: two small icon-only buttons grouped at the bottom-right — a
+            settings gear and a pencil that enters edit mode.
           - Editing: those two collapse into one full-width bar spanning the
             bottom edge, adding Add Widget and the theme toggle alongside
             Settings and a "Finish Editing" button. */}
@@ -171,22 +171,22 @@ export default function Grid() {
           </button>
         </div>
       ) : (
-        <>
+        <div className="sg-idle-icons">
           <button
-            className="sg-idle-icon sg-idle-icon--left"
+            className="sg-idle-icon"
             onPointerDown={e => { e.stopPropagation(); e.preventDefault(); if (!settingsPinned) setSettingsPanelOpen(s => !s); }}
             title={t('dashboard.settings')}
           >
             <GearIcon size={15} />
           </button>
           <button
-            className="sg-idle-icon sg-idle-icon--right"
+            className="sg-idle-icon"
             onPointerDown={() => { setSettingsPanelOpen(false); toggleEditMode(); }}
             title={t('dashboard.editLayout')}
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
           </button>
-        </>
+        </div>
       )}
 
       <SettingsPanel

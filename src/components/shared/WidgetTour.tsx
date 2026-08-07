@@ -31,11 +31,11 @@ interface Step {
 
 const STEPS: Step[] = [
   { titleKey: 'tour.step1.title',           bodyKey: 'tour.step1.body' },
-  { titleKey: 'tour.stepSettings.title',    bodyKey: 'tour.stepSettings.body', target: '.sg-idle-icon--left', onAdvance: 'openSettings' },
+  { titleKey: 'tour.stepSettings.title',    bodyKey: 'tour.stepSettings.body', target: '.sg-idle-icons button:nth-child(1)', onAdvance: 'openSettings' },
   { titleKey: 'tour.settingsOpened.title',  bodyKey: 'tour.settingsOpened.body' },
   // Edit mode must be entered before Add Widget exists to point at — it
   // only renders inside the bottom bar, which only appears while editing.
-  { titleKey: 'tour.step3.title',           bodyKey: 'tour.step3.body', target: '.sg-idle-icon--right', onAdvance: 'enableEditMode' },
+  { titleKey: 'tour.step3.title',           bodyKey: 'tour.step3.body', target: '.sg-idle-icons button:nth-child(2)', onAdvance: 'enableEditMode' },
   { titleKey: 'tour.editModeEnabled.title', bodyKey: 'tour.editModeEnabled.body' },
   { titleKey: 'tour.step2.title',           bodyKey: 'tour.step2.body', target: '.sg-controls-add-widget .sg-widget-add-toggle' },
   { titleKey: 'tour.step4.title',           bodyKey: 'tour.step4.body', target: '.sg-widget' },
