@@ -32,6 +32,15 @@ export function IconOpenExternal() {
   );
 }
 
+/** Pencil — enter edit mode. */
+export function IconEdit() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ width: 13, height: 13 }}>
+      <path d="M11 2.5 13.5 5 5 13.5H2.5V11L11 2.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
 /** Dice — the Random Note reshuffle action. */
 export function IconShuffle() {
   return (

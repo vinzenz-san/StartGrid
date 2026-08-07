@@ -373,6 +373,10 @@ export const en = {
   'widget.obsidian.setupHint':        'Requires the “Local REST API with MCP” plugin in Obsidian, with its HTTP server enabled on port 27123.',
   'widget.obsidian.previewOnly':      'Obsidian widgets need the installed extension — this is a browser preview.',
   'widget.obsidian.previewBadge':     'Preview data (browser preview)',
+  'widget.obsidian.edit':             'Edit',
+  'widget.obsidian.save':             'Save',
+  'widget.obsidian.cancel':           'Cancel',
+  'widget.obsidian.editConflict':     'This note changed in Obsidian, so your edit wasn’t saved. Reloaded to the latest version.',
   'widget.obsidian.errUnreachable':   'Obsidian isn’t reachable. Open it and make sure the Local REST API plugin is running.',
   'widget.obsidian.errNoPermission':  'StartGrid needs permission to reach Obsidian on your device.',
   'widget.obsidian.errUnauthorized':  'Obsidian rejected the API key.',
@@ -412,7 +416,6 @@ export const en = {
   'widget.obsidianNote.empty':           'This note is empty',
   'widget.obsidianNote.untitled':        'Pinned note',
   'widget.obsidianNote.stale':           'Refresh failed — showing cached note',
-  'widget.obsidianNote.readOnlyNote':    'Read-only — edit the note in Obsidian.',
 
   // ── Obsidian Vault Search widget ─────────────────────────────────────────
   'widget.obsidianSearch.maxResults':    'Results to show',

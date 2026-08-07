@@ -375,6 +375,10 @@ export const de: Record<TranslationKey, string> = {
   'widget.obsidian.setupHint':        'Benötigt das Plugin „Local REST API with MCP“ in Obsidian mit aktiviertem HTTP-Server auf Port 27123.',
   'widget.obsidian.previewOnly':      'Obsidian-Widgets brauchen die installierte Erweiterung — dies ist eine Browser-Vorschau.',
   'widget.obsidian.previewBadge':     'Beispieldaten (Browser-Vorschau)',
+  'widget.obsidian.edit':             'Bearbeiten',
+  'widget.obsidian.save':             'Speichern',
+  'widget.obsidian.cancel':           'Abbrechen',
+  'widget.obsidian.editConflict':     'Diese Notiz wurde in Obsidian geändert, daher wurde deine Änderung nicht gespeichert. Neu geladen mit dem aktuellen Stand.',
   'widget.obsidian.errUnreachable':   'Obsidian ist nicht erreichbar. Öffne es und prüfe, ob das Local-REST-API-Plugin läuft.',
   'widget.obsidian.errNoPermission':  'StartGrid braucht die Berechtigung, Obsidian auf deinem Gerät zu erreichen.',
   'widget.obsidian.errUnauthorized':  'Obsidian hat den API-Schlüssel abgelehnt.',
@@ -414,7 +418,6 @@ export const de: Record<TranslationKey, string> = {
   'widget.obsidianNote.empty':           'Diese Notiz ist leer',
   'widget.obsidianNote.untitled':        'Angeheftete Notiz',
   'widget.obsidianNote.stale':           'Aktualisierung fehlgeschlagen — zeige zwischengespeicherte Notiz',
-  'widget.obsidianNote.readOnlyNote':    'Nur lesend — Bearbeiten in Obsidian.',
 
   // ── Obsidian Vault-Suche-Widget ──────────────────────────────────────────
   'widget.obsidianSearch.maxResults':    'Anzahl Treffer',

@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { getFile, putFile, ObsidianError, type ObsidianErrorCode } from '../../../lib/obsidianApi';
+import { getFile, putFile, saveNoteIfUnchanged, ObsidianError, type ObsidianErrorCode } from '../../../lib/obsidianApi';
 import { parseMarkdown, toggleTaskLine, type MdBlock } from '../../../lib/obsidianMarkdown';
 import { isExtensionEnv } from '../../../lib/permissions';
 import { storageLocal } from '../../../lib/storageLocal';
@@ -181,6 +181,45 @@ export function useObsidianDaily() {
     }
   }, []);
 
+  /**
+   * Save a full-body edit. Same re-read-then-write conflict check as
+   * toggleTask, but for the whole note rather than one line.
+   */
+  const saveEdit = useCallback(async (expectedSource: string, newSource: string) => {
+    const path = pathRef.current;
+    if (!path || !isExtensionEnv) {
+      setState(s => ({ ...s, source: newSource, blocks: parseMarkdown(newSource) }));
+      return true;
+    }
+
+    setWriting(true);
+    try {
+      const result = await saveNoteIfUnchanged(path, expectedSource, newSource);
+      if (result === 'conflict') {
+        await refresh(path);
+        setState(s => ({ ...s, staleConflict: true }));
+        return false;
+      }
+      setState(s => ({
+        ...s,
+        source: newSource,
+        blocks: parseMarkdown(newSource),
+        staleConflict: false,
+        lastRefreshed: new Date(),
+      }));
+      return true;
+    } catch (err) {
+      setState(s => ({
+        ...s,
+        status: 'error',
+        errorCode: err instanceof ObsidianError ? err.code : 'HTTP_ERROR',
+      }));
+      return false;
+    } finally {
+      setWriting(false);
+    }
+  }, [refresh]);
+
   /** Create today's note when it doesn't exist yet. */
   const createNote = useCallback(async (path: string, initial = '') => {
     if (!isExtensionEnv) return;
@@ -199,5 +238,5 @@ export function useObsidianDaily() {
     }
   }, [refresh]);
 
-  return { ...state, writing, refresh, toggleTask, createNote, isMock: !isExtensionEnv };
+  return { ...state, writing, refresh, toggleTask, createNote, saveEdit, isMock: !isExtensionEnv };
 }

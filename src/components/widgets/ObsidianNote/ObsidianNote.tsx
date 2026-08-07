@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ObsidianNoteData } from '../../../types/widget';
 import { useObsidianNote } from './useObsidianNote';
 import { useObsidian } from '../../../hooks/useObsidian';
@@ -8,9 +8,10 @@ import { normalizeVaultPath, vaultPathToTitle } from '../../../lib/obsidianPath'
 import { sliceSection } from '../../../lib/obsidianMarkdown';
 import { openInObsidian } from '../../../lib/obsidianApi';
 import MarkdownView from '../shared/MarkdownView';
+import NoteEditor from '../shared/NoteEditor';
 import ObsidianConnect from '../shared/ObsidianConnect';
 import ObsidianStatus from '../shared/ObsidianStatus';
-import { IconObsidian, IconRefresh, IconOpenExternal, SkeletonRow } from '../shared/ObsidianIcons';
+import { IconObsidian, IconRefresh, IconOpenExternal, IconEdit, SkeletonRow } from '../shared/ObsidianIcons';
 import '../shared/obsidian.css';
 import './ObsidianNote.css';
 
@@ -76,8 +77,6 @@ export function ObsidianNoteSettings({ data, onUpdateData }: SettingsProps) {
         onChange={v => onUpdateData({ fontSize: v })}
       />
 
-      <p className="sg-obs-hint">{t('widget.obsidianNote.readOnlyNote')}</p>
-
       <div className="sg-cal-settings-divider"/>
       <ObsidianConnect />
     </div>
@@ -93,7 +92,9 @@ interface Props {
 export default function ObsidianNote({ data }: Props) {
   const { t } = useSettings();
   const { isReady, checking } = useObsidian();
-  const { status, blocks, errorCode, isStale, refresh, isMock } = useObsidianNote();
+  const { status, source, blocks, errorCode, writing, staleConflict, isStale, refresh, saveEdit, isMock } = useObsidianNote();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
 
   const path = normalizeVaultPath(data.path ?? '');
 
@@ -107,11 +108,11 @@ export default function ObsidianNote({ data }: Props) {
   // without the user reaching for the refresh button.
   useEffect(() => {
     const minutes = data.refreshMinutes ?? 0;
-    if (!minutes || !path) return;
+    if (!minutes || !path || editing) return;
     if (!isMock && !isReady) return;
     const id = setInterval(() => void refresh(path), minutes * 60_000);
     return () => clearInterval(id);
-  }, [data.refreshMinutes, path, isReady, isMock, refresh]);
+  }, [data.refreshMinutes, path, isReady, isMock, refresh, editing]);
 
   const visible = useMemo(() => {
     let out = data.sectionHeading ? sliceSection(blocks, data.sectionHeading) : blocks;
@@ -130,7 +131,17 @@ export default function ObsidianNote({ data }: Props) {
           <span>{path ? vaultPathToTitle(path) : t('widget.obsidianNote.untitled')}</span>
         </div>
         <div className="sg-obsn-actions">
-          {isReady && path && (
+          {isReady && status === 'success' && !editing && (
+            <button
+              className="sg-cal-refresh"
+              onClick={() => { setDraft(source); setEditing(true); }}
+              title={t('widget.obsidian.edit')}
+              aria-label={t('widget.obsidian.edit')}
+            >
+              <IconEdit/>
+            </button>
+          )}
+          {isReady && path && !editing && (
             <button
               className="sg-cal-refresh"
               onClick={() => void openInObsidian(path).catch(() => {})}
@@ -143,7 +154,7 @@ export default function ObsidianNote({ data }: Props) {
           <button
             className="sg-cal-refresh"
             onClick={() => void refresh(path)}
-            disabled={isLoading || notConfigured}
+            disabled={isLoading || notConfigured || editing}
             title={t('widget.obsidianNote.refresh')}
             aria-label={t('widget.obsidianNote.refresh')}
           >
@@ -156,7 +167,19 @@ export default function ObsidianNote({ data }: Props) {
         {isMock && <div className="sg-cal-preview-badge">{t('widget.obsidian.previewBadge')}</div>}
         {isStale && !isLoading && <div className="sg-cal-stale-banner">{t('widget.obsidianNote.stale')}</div>}
 
-        {notConfigured ? (
+        {editing ? (
+          <NoteEditor
+            value={draft}
+            onChange={setDraft}
+            saving={writing}
+            fontSize={data.fontSize ?? 13}
+            onCancel={() => setEditing(false)}
+            onSave={() => void (async () => {
+              await saveEdit(source, draft);
+              setEditing(false);
+            })()}
+          />
+        ) : notConfigured ? (
           <ObsidianStatus code="NOT_CONFIGURED"/>
         ) : !path ? (
           <ObsidianStatus code="NOT_CONFIGURED"/>
@@ -170,7 +193,12 @@ export default function ObsidianNote({ data }: Props) {
             <span className="sg-cal-empty-text">{t('widget.obsidianNote.empty')}</span>
           </div>
         ) : (
-          <MarkdownView blocks={visible}/>
+          <>
+            {staleConflict && (
+              <div className="sg-obs-conflict">{t('widget.obsidian.editConflict')}</div>
+            )}
+            <MarkdownView blocks={visible}/>
+          </>
         )}
       </div>
     </div>

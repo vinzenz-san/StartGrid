@@ -7,16 +7,3 @@
   align-items: center;
   gap: 2px;
 }
-
-/* Shown when a write was refused because the note changed in Obsidian since
-   the last read — the widget has already reloaded, this explains why the row
-   the user clicked may look different now. */
-.sg-obsd-conflict {
-  margin-bottom: 6px;
-  padding: 5px 8px;
-  border-radius: 5px;
-  background: rgba(234, 179, 8, 0.14);
-  color: var(--text);
-  font-size: 10.5px;
-  line-height: 1.4;
-}

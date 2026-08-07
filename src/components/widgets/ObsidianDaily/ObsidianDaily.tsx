@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ObsidianDailyData } from '../../../types/widget';
 import { useObsidianDaily } from './useObsidianDaily';
 import { useObsidian } from '../../../hooks/useObsidian';
@@ -7,9 +7,10 @@ import { useSettings } from '../../../contexts/SettingsContext';
 import { DEFAULT_DAILY_TEMPLATE, resolvePathTemplate, vaultPathToTitle } from '../../../lib/obsidianPath';
 import { sliceSection, type MdBlock } from '../../../lib/obsidianMarkdown';
 import MarkdownView from '../shared/MarkdownView';
+import NoteEditor from '../shared/NoteEditor';
 import ObsidianConnect from '../shared/ObsidianConnect';
 import ObsidianStatus from '../shared/ObsidianStatus';
-import { IconObsidian, IconRefresh, IconOpenExternal, SkeletonRow } from '../shared/ObsidianIcons';
+import { IconObsidian, IconRefresh, IconOpenExternal, IconEdit, SkeletonRow } from '../shared/ObsidianIcons';
 import { openInObsidian } from '../../../lib/obsidianApi';
 import '../shared/obsidian.css';
 import './ObsidianDaily.css';
@@ -109,9 +110,11 @@ export default function ObsidianDaily({ data }: Props) {
   const { t } = useSettings();
   const { isReady, checking } = useObsidian();
   const {
-    status, blocks, errorCode, writing, staleConflict, isStale,
-    refresh, toggleTask, createNote, isMock,
+    status, source, blocks, errorCode, writing, staleConflict, isStale,
+    refresh, toggleTask, createNote, saveEdit, isMock,
   } = useObsidianDaily();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
 
   const template = data.pathTemplate || DEFAULT_DAILY_TEMPLATE;
   // Resolved once per render pass rather than memoised on the date: a tab left
@@ -140,7 +143,17 @@ export default function ObsidianDaily({ data }: Props) {
           <span>{vaultPathToTitle(path)}</span>
         </div>
         <div className="sg-obsd-actions">
-          {isReady && status !== 'error' && (
+          {isReady && status === 'success' && !editing && (
+            <button
+              className="sg-cal-refresh"
+              onClick={() => { setDraft(source); setEditing(true); }}
+              title={t('widget.obsidian.edit')}
+              aria-label={t('widget.obsidian.edit')}
+            >
+              <IconEdit/>
+            </button>
+          )}
+          {isReady && status !== 'error' && !editing && (
             <button
               className="sg-cal-refresh"
               onClick={() => void openInObsidian(path).catch(() => {})}
@@ -153,7 +166,7 @@ export default function ObsidianDaily({ data }: Props) {
           <button
             className="sg-cal-refresh"
             onClick={() => void refresh(path)}
-            disabled={isLoading || notConfigured}
+            disabled={isLoading || notConfigured || editing}
             title={t('widget.obsidianDaily.refresh')}
             aria-label={t('widget.obsidianDaily.refresh')}
           >
@@ -166,7 +179,19 @@ export default function ObsidianDaily({ data }: Props) {
         {isMock && <div className="sg-cal-preview-badge">{t('widget.obsidian.previewBadge')}</div>}
         {isStale && !isLoading && <div className="sg-cal-stale-banner">{t('widget.obsidianDaily.stale')}</div>}
 
-        {notConfigured ? (
+        {editing ? (
+          <NoteEditor
+            value={draft}
+            onChange={setDraft}
+            saving={writing}
+            fontSize={data.fontSize ?? 13}
+            onCancel={() => setEditing(false)}
+            onSave={() => void (async () => {
+              await saveEdit(source, draft);
+              setEditing(false);
+            })()}
+          />
+        ) : notConfigured ? (
           <ObsidianStatus code="NOT_CONFIGURED"/>
         ) : isLoading ? (
           <><SkeletonRow/><SkeletonRow/><SkeletonRow/></>
@@ -187,7 +212,7 @@ export default function ObsidianDaily({ data }: Props) {
         ) : (
           <>
             {staleConflict && (
-              <div className="sg-obsd-conflict">{t('widget.obsidianDaily.conflict')}</div>
+              <div className="sg-obs-conflict">{t('widget.obsidianDaily.conflict')}</div>
             )}
             <MarkdownView blocks={visible} onToggleTask={toggleTask} busy={writing}/>
           </>

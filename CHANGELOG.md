@@ -2,6 +2,13 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.14.2] — Inline edit for Obsidian Daily Note and Pinned Note
+
+- **Obsidian Daily Note and Pinned Note can now be edited in place**, not just read: a new pencil button opens a raw-Markdown editor (Save/Cancel) that writes the whole note back through the REST plugin's `PUT /vault/...` endpoint. Limited to these two widgets since they're the only ones that display a full note body — Random Note only shows a short excerpt, Vault Search shows cross-note snippets, and Quick Capture is already write-oriented but for appending new entries, not editing existing content
+- Editing always operates on the **whole raw note**, ignoring each widget's section/task-only/max-lines display filters — re-splicing an edited filtered slice back into the right spot in the full note was judged too easy to get subtly wrong (duplicated or dropped headings)
+- Reuses the same re-read-before-write conflict check the Daily Note's checkbox toggle already had: saving re-fetches the note first, and if it no longer matches what was loaded when editing started (i.e. it changed in Obsidian meanwhile), the write is refused and the widget reloads the latest version instead of clobbering it — surfaced with the same "changed in Obsidian" banner, now shared between both widgets (`.sg-obs-conflict`)
+- Pinned Note's settings no longer claim the widget is "read-only — edit in Obsidian", since that's no longer true
+
 ## [1.14.1] — Quicklinks icon-picker fix, Obsidian Daily open-in-Obsidian
 
 - Fixed the Quicklinks "Manage Links" panel closing itself the instant you picked "URL" or "Upload" from a link's icon-source dropdown, instead of revealing the URL/upload field. The dropdown's option menu renders in a `document.body` portal outside the panel's own DOM subtree, so the panel's outside-click-to-close listener treated selecting an option as a click outside the panel. It now ignores clicks inside `.sg-dropdown-menu`, matching the guard `WidgetContainer` already had for its own outside-click handling

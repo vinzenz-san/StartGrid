@@ -212,6 +212,20 @@ export async function simpleSearch(query: string, contextLength = 100): Promise<
   })).filter(hit => hit.path);
 }
 
+export type SaveResult = 'ok' | 'conflict';
+
+/** Re-reads the note; writes only if its content still matches `expectedSource`.
+ *  Generalizes the re-read-then-write conflict check useObsidianDaily.ts's
+ *  toggleTaskLine caller already uses, to a whole-body write. */
+export async function saveNoteIfUnchanged(
+  path: string, expectedSource: string, newSource: string,
+): Promise<SaveResult> {
+  const current = await getFile(path);
+  if (current !== expectedSource) return 'conflict';
+  await putFile(path, newSource);
+  return 'ok';
+}
+
 /** Open a note in the Obsidian UI (focuses the Obsidian window). */
 export async function openInObsidian(path: string): Promise<void> {
   const conn = await ready();
