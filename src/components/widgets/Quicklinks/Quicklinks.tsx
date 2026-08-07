@@ -179,6 +179,7 @@ export function QuicklinksSettings({ data, onUpdateData }: SettingsProps) {
     if (!linksPanelOpen) return;
     const handler = (e: PointerEvent) => {
       const target = e.target as Element;
+      if (target.closest('.sg-dropdown-menu')) return;
       const referenceEl = linksRefs.reference.current as Element | null;
       if (!referenceEl?.contains(target) && !linksRefs.floating.current?.contains(target))
         setLinksPanelOpen(false);

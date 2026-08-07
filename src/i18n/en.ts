@@ -392,6 +392,7 @@ export const en = {
   'widget.obsidianDaily.noLimit':           'All',
   'widget.obsidianDaily.fontSize':          'Font size',
   'widget.obsidianDaily.refresh':           'Refresh',
+  'widget.obsidianDaily.openInObsidian':    'Open in Obsidian',
   'widget.obsidianDaily.stale':             'Refresh failed — showing cached note',
   'widget.obsidianDaily.empty':             'Nothing to show',
   'widget.obsidianDaily.createNote':        'Create today’s note',

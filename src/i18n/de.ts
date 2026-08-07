@@ -394,6 +394,7 @@ export const de: Record<TranslationKey, string> = {
   'widget.obsidianDaily.noLimit':           'Alle',
   'widget.obsidianDaily.fontSize':          'Schriftgröße',
   'widget.obsidianDaily.refresh':           'Aktualisieren',
+  'widget.obsidianDaily.openInObsidian':    'In Obsidian öffnen',
   'widget.obsidianDaily.stale':             'Aktualisierung fehlgeschlagen — zeige zwischengespeicherte Notiz',
   'widget.obsidianDaily.empty':             'Nichts anzuzeigen',
   'widget.obsidianDaily.createNote':        'Heutige Notiz anlegen',

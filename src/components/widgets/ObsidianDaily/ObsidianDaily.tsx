@@ -9,7 +9,8 @@ import { sliceSection, type MdBlock } from '../../../lib/obsidianMarkdown';
 import MarkdownView from '../shared/MarkdownView';
 import ObsidianConnect from '../shared/ObsidianConnect';
 import ObsidianStatus from '../shared/ObsidianStatus';
-import { IconObsidian, IconRefresh, SkeletonRow } from '../shared/ObsidianIcons';
+import { IconObsidian, IconRefresh, IconOpenExternal, SkeletonRow } from '../shared/ObsidianIcons';
+import { openInObsidian } from '../../../lib/obsidianApi';
 import '../shared/obsidian.css';
 import './ObsidianDaily.css';
 
@@ -138,15 +139,27 @@ export default function ObsidianDaily({ data }: Props) {
           <IconObsidian/>
           <span>{vaultPathToTitle(path)}</span>
         </div>
-        <button
-          className="sg-cal-refresh"
-          onClick={() => void refresh(path)}
-          disabled={isLoading || notConfigured}
-          title={t('widget.obsidianDaily.refresh')}
-          aria-label={t('widget.obsidianDaily.refresh')}
-        >
-          <IconRefresh spinning={isLoading || writing}/>
-        </button>
+        <div className="sg-obsd-actions">
+          {isReady && status !== 'error' && (
+            <button
+              className="sg-cal-refresh"
+              onClick={() => void openInObsidian(path).catch(() => {})}
+              title={t('widget.obsidianDaily.openInObsidian')}
+              aria-label={t('widget.obsidianDaily.openInObsidian')}
+            >
+              <IconOpenExternal/>
+            </button>
+          )}
+          <button
+            className="sg-cal-refresh"
+            onClick={() => void refresh(path)}
+            disabled={isLoading || notConfigured}
+            title={t('widget.obsidianDaily.refresh')}
+            aria-label={t('widget.obsidianDaily.refresh')}
+          >
+            <IconRefresh spinning={isLoading || writing}/>
+          </button>
+        </div>
       </div>
 
       <div className="sg-cal-body sg-obsd" style={{ fontSize: data.fontSize ?? 13 }}>

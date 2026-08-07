@@ -2,6 +2,11 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versioning: SemVer. Minor bumps mark architecture/feature milestones; patch bumps mark fixes/polish within a milestone.
 
+## [1.14.1] — Quicklinks icon-picker fix, Obsidian Daily open-in-Obsidian
+
+- Fixed the Quicklinks "Manage Links" panel closing itself the instant you picked "URL" or "Upload" from a link's icon-source dropdown, instead of revealing the URL/upload field. The dropdown's option menu renders in a `document.body` portal outside the panel's own DOM subtree, so the panel's outside-click-to-close listener treated selecting an option as a click outside the panel. It now ignores clicks inside `.sg-dropdown-menu`, matching the guard `WidgetContainer` already had for its own outside-click handling
+- Obsidian Daily Note gains an **"Open in Obsidian"** header button (same `obsidian://`-free REST deep-link used by Pinned Note/Random Note), shown once the note exists — previously the widget could create today's note but offered no way to work on it without switching to Obsidian yourself
+
 ## [1.14.0] — Bottom control bar redesign, Rain Radar refinements
 
 - **Reworked the dashboard's top floating control cluster into a bottom control bar with two shapes.** Idle state (not editing): two small icon-only corner buttons — a settings gear (bottom-left) and a pencil that enters edit mode (bottom-right), no full bar. Editing: those collapse into one full-width bar spanning the bottom edge with Add Widget, Settings, the theme toggle, and a labeled "Finish Editing" button (replaces the old icon-only lock/unlock concept). The two Add-Widget entry points (sidebar + a separate floating pill) are now one shared instance living in the bar
